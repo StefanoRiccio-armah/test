@@ -30,7 +30,8 @@ const getStripeLinkAndCheckoutPageIsReloaded = (
     return !isUsingWallet && providerWithCustomCheckout === PaymentMethodId.StripeUPE && hasEmail && isGuest && shouldUseStripeLinkByMinimumAmount;
 }
 
-{/*const getCustomerStepStatus = createSelector(
+// ++ MODIFICA: Ripristiniamo il selettore originale per il Customer Step
+const getCustomerStepStatus = createSelector(
     ({ data }: CheckoutSelectors) => data.getCheckout(),
     ({ data }: CheckoutSelectors) => data.getCustomer(),
     ({ data }: CheckoutSelectors) => data.getBillingAddress(),
@@ -79,32 +80,20 @@ const getStripeLinkAndCheckoutPageIsReloaded = (
     },
 );
 
-*/}
-
-const getCustomerAndShippingStepStatus=createSelector(
-       // Input: prendiamo tutti i dati che servivano ai due selettori originali
-    ({ data }: CheckoutSelectors) => data.getCheckout(),
-    ({ data }: CheckoutSelectors) => data.getCustomer(),
-    ({ data }: CheckoutSelectors) => data.getBillingAddress(),
+// ++ MODIFICA: Ripristiniamo il selettore originale per lo Shipping Step
+const getShippingStepStatus = createSelector(
     ({ data }: CheckoutSelectors) => data.getShippingAddress(),
     ({ data }: CheckoutSelectors) => data.getConsignments(),
-    ({ data }: CheckoutSelectors) => data.getCart(), 
-    ({data}:CheckoutSelectors)=>{
-        const shippingAddress= data.getShippingAddress()
+    ({ data }: CheckoutSelectors) => data.getCart(),
+    ({ data }: CheckoutSelectors) => {
+        const shippingAddress = data.getShippingAddress();
+
         return shippingAddress
-        ? data.getShippingAddressFields(shippingAddress.countryCode)
-        : EMPTY_ARRAY
+            ? data.getShippingAddressFields(shippingAddress.countryCode)
+            : EMPTY_ARRAY;
     },
     ({ data }: CheckoutSelectors) => data.getConfig(),
-    (checkout,customer,billingAddress,shippingAddress,consignments,cart,shippingAddressFields,config)=>{
-
-  // Logica presa da getCustomerStepStatus
-        const hasEmail = !!((customer && customer.email) || (billingAddress && billingAddress.email));
-        const isUsingWallet = checkout?.payments?.some((payment: CheckoutPayment) =>
-            SUPPORTED_METHODS.includes(payment.providerId),
-        ) ?? false;
-
-        // Logica presa da getShippingStepStatus
+    (shippingAddress, consignments, cart, shippingAddressFields, config) => {
         const hasAddress = shippingAddress
             ? isValidAddress(shippingAddress, shippingAddressFields)
             : false;
@@ -112,18 +101,24 @@ const getCustomerAndShippingStepStatus=createSelector(
         const hasUnassignedItems =
             cart && consignments ? hasUnassignedLineItems(consignments, cart.lineItems) : true;
         
+        // La logica di "completezza" è: indirizzo VALIDO E opzioni di spedizione SELEZIONATE
+        const isComplete = hasAddress && hasOptions && !hasUnassignedItems;
         const isRequired = itemsRequireShipping(cart, config);
+        const isCustomShippingSelected =
+            isExperimentEnabled(
+                config?.checkoutSettings,
+                'PROJECT-5015.manual_order.display_custom_shipping',
+            ) &&
+            hasOptions &&
+            consignments?.some(
+                ({ selectedShippingOption }) => selectedShippingOption?.type === 'custom',
+            );
 
-        // NUOVA condizione di completezza: devono essere vere entrambe le condizioni!
-       const isComplete = (hasEmail || isUsingWallet) && (hasAddress && hasOptions);
-
-        // (Opzionale ma consigliato) Potresti dover aggiungere un nuovo tipo in CheckoutStepType.ts
-        // per ora riutilizziamo 'Customer' per semplicità.
         return {
-            type: CheckoutStepType.Customer, // Questo diventerà il tipo del tuo step unificato
+            type: CheckoutStepType.Shipping,
             isActive: false,
             isComplete,
-            isEditable: isComplete && !isUsingWallet,
+            isEditable: isComplete && isRequired && !isCustomShippingSelected,
             isRequired,
         };
     },
@@ -141,6 +136,7 @@ const getBillingStepStatus = createSelector(
     },
     ({ data }: CheckoutSelectors) => data.getConfig(),
     (checkout, billingAddress, billingAddressFields) => {
+        // ... (Logica invariata)
         const hasAddress = billingAddress
             ? isValidAddress(billingAddress, billingAddressFields)
             : false;
@@ -224,47 +220,6 @@ const getBillingStepStatus = createSelector(
     },
 );
 
-{/*const getShippingStepStatus = createSelector(
-    ({ data }: CheckoutSelectors) => data.getShippingAddress(),
-    ({ data }: CheckoutSelectors) => data.getConsignments(),
-    ({ data }: CheckoutSelectors) => data.getCart(),
-    ({ data }: CheckoutSelectors) => {
-        const shippingAddress = data.getShippingAddress();
-
-        return shippingAddress
-            ? data.getShippingAddressFields(shippingAddress.countryCode)
-            : EMPTY_ARRAY;
-    },
-    ({ data }: CheckoutSelectors) => data.getConfig(),
-    (shippingAddress, consignments, cart, shippingAddressFields, config) => {
-        const hasAddress = shippingAddress
-            ? isValidAddress(shippingAddress, shippingAddressFields)
-            : false;
-        const hasOptions = consignments ? hasSelectedShippingOptions(consignments) : false;
-        const hasUnassignedItems =
-            cart && consignments ? hasUnassignedLineItems(consignments, cart.lineItems) : true;
-        const isComplete = hasAddress && hasOptions && !hasUnassignedItems;
-        const isRequired = itemsRequireShipping(cart, config);
-        const isCustomShippingSelected =
-            isExperimentEnabled(
-                config?.checkoutSettings,
-                'PROJECT-5015.manual_order.display_custom_shipping',
-            ) &&
-            hasOptions &&
-            consignments?.some(
-                ({ selectedShippingOption }) => selectedShippingOption?.type === 'custom',
-            );
-
-        return {
-            type: CheckoutStepType.Shipping,
-            isActive: false,
-            isComplete,
-            isEditable: isComplete && isRequired && !isCustomShippingSelected,
-            isRequired,
-        };
-    },
-);
-*/}
 const getPaymentStepStatus = createSelector(
     ({ data }: CheckoutSelectors) => data.getOrder(),
     (order) => {
@@ -285,15 +240,18 @@ const getOrderSubmitStatus = createSelector(
     (status) => status,
 );
 
+// ++ MODIFICA: Usiamo i selettori ripristinati per costruire la lista degli step
 const getCheckoutStepStatuses = createSelector(
-    getCustomerAndShippingStepStatus,
+    getCustomerStepStatus,
+    getShippingStepStatus, // Lo riaggiungiamo qui
     getBillingStepStatus,
     getPaymentStepStatus,
     getOrderSubmitStatus,
-    (customerAndShippingStep,  billingStep, paymentStep, orderStatus) => {
+    (customerStep, shippingStep, billingStep, paymentStep, orderStatus) => {
         const isSubmittingOrder = orderStatus;
 
-        const steps = compact([customerAndShippingStep, billingStep, paymentStep]);
+        // L'array ora contiene di nuovo tutti gli step
+        const steps = compact([customerStep, shippingStep, billingStep, paymentStep]);
 
         const defaultActiveStep =
             steps.find((step) => !step.isComplete && step.isRequired) || steps[steps.length - 1];
@@ -307,7 +265,6 @@ const getCheckoutStepStatuses = createSelector(
                 ...step,
                 isActive: defaultActiveStep.type === step.type,
                 isBusy: false,
-                // A step is only editable if its previous step is complete or not required
                 isEditable: isPrevStepComplete && step.isEditable && !isSubmittingOrder,
             };
         });
