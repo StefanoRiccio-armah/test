@@ -1,4 +1,4 @@
-import { type CheckoutSelectors, type CustomError } from '@bigcommerce/checkout-sdk/essential';
+import { type CheckoutSelectors, type CustomError, } from '@bigcommerce/checkout-sdk/essential';
 import { createSelector } from 'reselect';
 
 import { type CheckoutContextProps } from '@bigcommerce/checkout/contexts';
@@ -48,6 +48,7 @@ export default function mapToCheckoutProps({
         billingAddress: data.getBillingAddress(),
         cart: data.getCart(),
         clearError: checkoutService.clearError,
+        checkoutService,
         data,
         consignments: data.getConsignments(),
         hasCartChanged: submitOrderError && submitOrderError.type === 'cart_changed', // TODO: Need to clear the error once it's displayed

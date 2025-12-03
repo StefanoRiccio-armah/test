@@ -3,9 +3,11 @@
 // =============================================================================
 
 .checkoutHeader {
+       white-space: nowrap !important;
     background-color: container("fill", "dark");
     border-bottom: container("border");
     text-align: center;
+ 
 
     @include breakpoint("small") {
         min-height: remCalc(120px);
@@ -17,6 +19,7 @@
 }
 
 .checkoutHeader-content {
+       white-space: nowrap !important;
     @include grid-row;
 
     padding: spacing("single");
@@ -27,9 +30,11 @@
 }
 
 .checkoutHeader-heading {
+   white-space: nowrap !important;
     @include headingStyle("h1");
 
     color: inherit;
     margin-bottom: 0;
     word-wrap: break-word;
+       white-space: nowrap !important;
 }

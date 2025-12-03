@@ -2,7 +2,7 @@ import { type FormField } from '@bigcommerce/checkout-sdk';
 import { forIn, noop } from 'lodash';
 import React, { useCallback, useEffect, useRef } from 'react';
 
-import { useCheckout, useLocale,useThemeContext } from '@bigcommerce/checkout/contexts';
+import { useCheckout, useLocale, useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { DynamicFormField, DynamicFormFieldType } from '@bigcommerce/checkout/ui';
 
@@ -25,6 +25,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
         countryCode,
         onAutocompleteToggle,
         shouldShowSaveAddress,
+        shouldShowCodiceFiscale, // Prop per la logica condizionale
         setFieldValue = noop,
         onChange = noop,
         type,
@@ -84,20 +85,15 @@ const AddressForm: React.FC<AddressFormProps> = ({
         item: AutocompleteItem,
     ) => {
         const { value: autocompleteValue } = item;
-
         const address = mapToAddress(place, countries);
 
         forIn(address, (value, fieldName) => {
-            if (fieldName === AUTOCOMPLETE_FIELD_NAME && value === undefined) {
-                return;
-            }
-
+            if (fieldName === AUTOCOMPLETE_FIELD_NAME && value === undefined) return;
             setFieldValue(fieldName, value as string);
             onChange(fieldName, value as string);
         });
 
         const address1 = address.address1 ? address.address1 : autocompleteValue;
-
         if (address1) {
             syncNonFormikValue(AUTOCOMPLETE_FIELD_NAME, address1);
         }
@@ -107,7 +103,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
         if (field.default && field.fieldType !== 'dropdown') {
             return field.default;
         }
-
         return translatedPlaceholderId && language.translate(translatedPlaceholderId);
     }, [language]);
 
@@ -122,6 +117,45 @@ const AddressForm: React.FC<AddressFormProps> = ({
                         const addressFieldName = field.name;
                         const translatedPlaceholderId = PLACEHOLDER[addressFieldName];
 
+                        if (addressFieldName === 'field_29') {
+                            if (shouldShowCodiceFiscale) {
+                                // Se richiesto, mostra il campo di input
+                                return (
+                                    <DynamicFormField
+                                        autocomplete={AUTOCOMPLETE[field.name]}
+                                        extraClass={`dynamic-form-field--${getAddressFormFieldLegacyName(addressFieldName)}`}
+                                        field={field}
+                                        inputId={getAddressFormFieldInputId(addressFieldName)}
+                                        isFloatingLabelEnabled={isFloatingLabelEnabledValue}
+                                        key={`${field.id}-${field.name}`}
+                                        label={field.custom ? field.label : <TranslatedString id={LABEL[field.name]} />}
+                                        onChange={handleDynamicFormFieldChange(addressFieldName)}
+                                        parentFieldName={field.custom ? (fieldName ? `${fieldName}.customFields` : 'customFields') : fieldName}
+                                        placeholder={getPlaceholderValue(field, translatedPlaceholderId)}
+                                        themeV2={themeV2}
+                                    />
+                                );
+                            } else {
+                                // Altrimenti, mostra lo span informativo
+                                return (
+                                    <div key="codice-fiscale-placeholder" className="form-field">
+                                        <label className="form-label optimizedCheckout-form-label">
+                                            {field.label}
+                                        </label>
+                                        <span
+                                            style={{
+                                                color: 'blue',
+                                                fontSize: '2rem',
+                                                display: 'block',
+                                                marginTop: '0.5rem',
+                                            }}
+                                        >
+                                            ❗ Nel tuo carrello non ci sono prodotti detraibili
+                                        </span>
+                                    </div>
+                                );
+                            }
+                        }
                         if (
                             addressFieldName === 'address1' &&
                             googleMapsApiKey &&
@@ -144,37 +178,20 @@ const AddressForm: React.FC<AddressFormProps> = ({
                                 />
                             );
                         }
-
+                        
+                        // Render di default per tutti gli altri campi
                         return (
                             <DynamicFormField
                                 autocomplete={AUTOCOMPLETE[field.name]}
-                                extraClass={`dynamic-form-field--${getAddressFormFieldLegacyName(
-                                    addressFieldName,
-                                )}`}
+                                extraClass={`dynamic-form-field--${getAddressFormFieldLegacyName(addressFieldName)}`}
                                 field={field}
                                 inputId={getAddressFormFieldInputId(addressFieldName)}
-                                // stateOrProvince can sometimes be a dropdown or input, so relying on id is not sufficient
                                 isFloatingLabelEnabled={isFloatingLabelEnabledValue}
                                 key={`${field.id}-${field.name}`}
-                                label={
-                                    field.custom ? (
-                                        field.label
-                                    ) : (
-                                        <TranslatedString id={LABEL[field.name]} />
-                                    )
-                                }
+                                label={field.custom ? field.label : <TranslatedString id={LABEL[field.name]} />}
                                 onChange={handleDynamicFormFieldChange(addressFieldName)}
-                                parentFieldName={
-                                    field.custom
-                                        ? fieldName
-                                            ? `${fieldName}.customFields`
-                                            : 'customFields'
-                                        : fieldName
-                                }
-                                placeholder={getPlaceholderValue(
-                                    field,
-                                    translatedPlaceholderId,
-                                )}
+                                parentFieldName={field.custom ? (fieldName ? `${fieldName}.customFields` : 'customFields') : fieldName}
+                                placeholder={getPlaceholderValue(field, translatedPlaceholderId)}
                                 themeV2={themeV2}
                             />
                         );

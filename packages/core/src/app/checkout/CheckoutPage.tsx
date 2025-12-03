@@ -5,6 +5,7 @@ import {
     type CheckoutSelectors,
     type CheckoutStoreSelector,
     type Consignment,
+    type CheckoutService,
     type EmbeddedCheckoutMessenger,
     type EmbeddedCheckoutMessengerOptions,
     type FlashMessage,
@@ -49,6 +50,8 @@ import type CheckoutSupport from './CheckoutSupport';
 import { BillingStep, CartSummary, CheckoutHeader, CustomerStep, PaymentStep, ShippingStep } from './components';
 import { mapCheckoutComponentErrorMessage } from './mapErrorMessage';
 import mapToCheckoutProps from './mapToCheckoutProps';
+import { hasDeductibleProduct } from '../custom/utils/minsan-checker';
+import CustomerAndShippingStep from '../custom/step/CustomerAndShippingStep';
 
 export interface CheckoutProps {
     checkoutId: string;
@@ -88,6 +91,7 @@ export interface WithCheckoutProps {
     isLoadingCheckout: boolean;
     isPending: boolean;
     isPriceHiddenFromGuests: boolean;
+    checkoutService: CheckoutService;
     isShowingWalletButtonsOnTop: boolean;
     isShippingDiscountDisplayEnabled: boolean;
     loginUrl: string;
@@ -117,6 +121,7 @@ const Checkout = ({
                       data,
                       errorLogger,
                       isGuestEnabled,
+                      checkoutService,
                       isShowingWalletButtonsOnTop,
                       hasCartChanged,
                       isShippingDiscountDisplayEnabled,
@@ -138,6 +143,7 @@ const Checkout = ({
     const stepsRef = useRef<CheckoutStepStatus[]>(steps);
     const handleConsignmentsUpdatedRef = useRef<(selectors:CheckoutSelectors) => void>();
     const embeddedMessenger = useRef<EmbeddedCheckoutMessenger>();
+    const shouldShowCodiceFiscale = hasDeductibleProduct(cart);
 
     const [state, setState] = useState<CheckoutState>({
         isBillingSameAsShipping: true,
@@ -370,15 +376,38 @@ const Checkout = ({
     }, []);
 
     const renderStep = (step: CheckoutStepStatus): ReactNode =>{
-        const {
-            customerViewType = isGuestEnabled ? CustomerViewType.Guest : CustomerViewType.Login,
-            isSubscribed,
-            isBillingSameAsShipping,
-            isMultiShippingMode,
-        } = state;
+   //     const {
+    //        customerViewType = isGuestEnabled ? CustomerViewType.Guest : CustomerViewType.Login,
+     //       isSubscribed,
+       //     isBillingSameAsShipping,
+         //   isMultiShippingMode,
+       // } = state;
 
         switch (step.type) {
             case CheckoutStepType.Customer:
+                const shippingAddressFields=data.getShippingAddressFields(
+                    data.getShippingAddress()?.countryCode || data.getConfig()?.storeProfile.storeCountryCode || ''
+                )
+
+                return <CustomerAndShippingStep
+                   step={step}
+                isPending={isPending}
+                
+                // Props per la logica interna del nostro componente
+                formFields={shippingAddressFields}
+                shouldShowCodiceFiscale={shouldShowCodiceFiscale}
+                onStepFinished={navigateToNextIncompleteStep}
+                onError={handleError}
+                
+                // Props per la UI dello step (modifica, espansione)
+                onEdit={handleEditStep}
+                onExpanded={handleExpanded}
+
+                // Dati iniziali per pre-compilare il form
+                email={data.getCustomer()?.email}
+                shippingAddress={data.getShippingAddress()}
+            />;
+                {/*}
                 return <CustomerStep
                     checkEmbeddedSupport={checkEmbeddedSupport}
                     isSubscribed={isSubscribed}
@@ -401,6 +430,10 @@ const Checkout = ({
                     viewType={customerViewType}
                 />;
 
+                
+       
+
+
             case CheckoutStepType.Shipping:
                 return <ShippingStep
                     cart={cart}
@@ -422,6 +455,7 @@ const Checkout = ({
                     }}
                     step={step}
                 />;
+                     */}
 
             case CheckoutStepType.Billing:
                 return <BillingStep

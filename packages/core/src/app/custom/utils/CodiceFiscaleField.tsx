@@ -3,7 +3,7 @@ import { Field, type FieldProps } from 'formik';
 
 import { useThemeContext } from '@bigcommerce/checkout/contexts';
 
-import { FormField, TextInput } from '../ui/form';
+import { FormField, TextInput } from '../../ui/form';
 import { isCodiceFiscaleValid, normalizeCodiceFiscale, CODICE_FISCALE_ERROR } from './codice-fiscale-validator';
 
 interface CodiceFiscaleFieldProps {

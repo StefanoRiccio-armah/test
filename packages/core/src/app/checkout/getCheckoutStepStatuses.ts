@@ -30,7 +30,7 @@ const getStripeLinkAndCheckoutPageIsReloaded = (
     return !isUsingWallet && providerWithCustomCheckout === PaymentMethodId.StripeUPE && hasEmail && isGuest && shouldUseStripeLinkByMinimumAmount;
 }
 
-const getCustomerStepStatus = createSelector(
+{/*const getCustomerStepStatus = createSelector(
     ({ data }: CheckoutSelectors) => data.getCheckout(),
     ({ data }: CheckoutSelectors) => data.getCustomer(),
     ({ data }: CheckoutSelectors) => data.getBillingAddress(),
@@ -75,6 +75,56 @@ const getCustomerStepStatus = createSelector(
             isComplete,
             isEditable,
             isRequired: true,
+        };
+    },
+);
+
+*/}
+
+const getCustomerAndShippingStepStatus=createSelector(
+       // Input: prendiamo tutti i dati che servivano ai due selettori originali
+    ({ data }: CheckoutSelectors) => data.getCheckout(),
+    ({ data }: CheckoutSelectors) => data.getCustomer(),
+    ({ data }: CheckoutSelectors) => data.getBillingAddress(),
+    ({ data }: CheckoutSelectors) => data.getShippingAddress(),
+    ({ data }: CheckoutSelectors) => data.getConsignments(),
+    ({ data }: CheckoutSelectors) => data.getCart(), 
+    ({data}:CheckoutSelectors)=>{
+        const shippingAddress= data.getShippingAddress()
+        return shippingAddress
+        ? data.getShippingAddressFields(shippingAddress.countryCode)
+        : EMPTY_ARRAY
+    },
+    ({ data }: CheckoutSelectors) => data.getConfig(),
+    (checkout,customer,billingAddress,shippingAddress,consignments,cart,shippingAddressFields,config)=>{
+
+  // Logica presa da getCustomerStepStatus
+        const hasEmail = !!((customer && customer.email) || (billingAddress && billingAddress.email));
+        const isUsingWallet = checkout?.payments?.some((payment: CheckoutPayment) =>
+            SUPPORTED_METHODS.includes(payment.providerId),
+        ) ?? false;
+
+        // Logica presa da getShippingStepStatus
+        const hasAddress = shippingAddress
+            ? isValidAddress(shippingAddress, shippingAddressFields)
+            : false;
+        const hasOptions = consignments ? hasSelectedShippingOptions(consignments) : false;
+        const hasUnassignedItems =
+            cart && consignments ? hasUnassignedLineItems(consignments, cart.lineItems) : true;
+        
+        const isRequired = itemsRequireShipping(cart, config);
+
+        // NUOVA condizione di completezza: devono essere vere entrambe le condizioni!
+       const isComplete = (hasEmail || isUsingWallet) && (hasAddress && hasOptions);
+
+        // (Opzionale ma consigliato) Potresti dover aggiungere un nuovo tipo in CheckoutStepType.ts
+        // per ora riutilizziamo 'Customer' per semplicità.
+        return {
+            type: CheckoutStepType.Customer, // Questo diventerà il tipo del tuo step unificato
+            isActive: false,
+            isComplete,
+            isEditable: isComplete && !isUsingWallet,
+            isRequired,
         };
     },
 );
@@ -174,7 +224,7 @@ const getBillingStepStatus = createSelector(
     },
 );
 
-const getShippingStepStatus = createSelector(
+{/*const getShippingStepStatus = createSelector(
     ({ data }: CheckoutSelectors) => data.getShippingAddress(),
     ({ data }: CheckoutSelectors) => data.getConsignments(),
     ({ data }: CheckoutSelectors) => data.getCart(),
@@ -214,7 +264,7 @@ const getShippingStepStatus = createSelector(
         };
     },
 );
-
+*/}
 const getPaymentStepStatus = createSelector(
     ({ data }: CheckoutSelectors) => data.getOrder(),
     (order) => {
@@ -236,15 +286,14 @@ const getOrderSubmitStatus = createSelector(
 );
 
 const getCheckoutStepStatuses = createSelector(
-    getCustomerStepStatus,
-    getShippingStepStatus,
+    getCustomerAndShippingStepStatus,
     getBillingStepStatus,
     getPaymentStepStatus,
     getOrderSubmitStatus,
-    (customerStep, shippingStep, billingStep, paymentStep, orderStatus) => {
+    (customerAndShippingStep,  billingStep, paymentStep, orderStatus) => {
         const isSubmittingOrder = orderStatus;
 
-        const steps = compact([customerStep, shippingStep, billingStep, paymentStep]);
+        const steps = compact([customerAndShippingStep, billingStep, paymentStep]);
 
         const defaultActiveStep =
             steps.find((step) => !step.isComplete && step.isRequired) || steps[steps.length - 1];

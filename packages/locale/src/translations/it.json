@@ -565,6 +565,9 @@
             "guest_multishipping_no_shipping_address_message": "Nessun indirizzo di spedizione inserito",
             "guest_multishipping_enter_shipping_address_action": "Inserisci l'indirizzo di spedizione"
         },
+         "checkout": {
+            "customer_shipping_heading": "Dati Personali e Spedizione"
+        },
         "social": {
             "share_action": "Condividi",
             "share_heading": "Fai sapere ai tuoi amici dell'acquisto!",
