@@ -118,7 +118,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
                         const translatedPlaceholderId = PLACEHOLDER[addressFieldName];
 
                         if (addressFieldName === 'field_29') {
-                            if (shouldShowCodiceFiscale) {
+                            if (!shouldShowCodiceFiscale) {
                                 // Se richiesto, mostra il campo di input
                                 return (
                                     <DynamicFormField

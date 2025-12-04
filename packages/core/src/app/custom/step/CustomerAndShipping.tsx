@@ -230,11 +230,7 @@ const CustomerAndShipping: FunctionComponent<CustomerAndShippingProps> = ({
                     </Fieldset>
 
                     <Fieldset
-                        legend={
-                            <Legend>
-                                <TranslatedString id="shipping.shipping_address_heading" />
-                            </Legend>
-                        }
+
                     >
                         <AddressForm
                             fieldName="shippingAddress"
