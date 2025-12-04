@@ -186,3 +186,36 @@
 .stepHeader-title {
 white-space: nowrap !important;
 }
+
+// Stili generali (desktop)
+.subscribe-login-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+    white-space: nowrap;
+}
+
+.customer-login-link-inline {
+    margin: 0;
+    white-space: nowrap;
+    cursor: pointer;
+    margin-top: -12px;
+    margin-left: 4px;
+}
+
+@media (max-width: 768px) {
+    .subscribe-login-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        margin-top: 8px;
+        white-space: normal; // evita overflow su schermi piccoli
+    }
+
+    .customer-login-link-inline {
+        margin-top: 0;
+        margin-left: 0;
+        white-space: normal; // permette al testo di andare a capo
+    }
+}

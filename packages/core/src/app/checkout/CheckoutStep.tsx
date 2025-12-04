@@ -159,17 +159,19 @@ const CheckoutStep = ({
             })}
             ref={containerRef}
         >
-            <div className="checkout-view-header">
-                <CheckoutStepHeader
-                    heading={heading}
-                    isActive={isActive}
-                    isComplete={isComplete}
-                    isEditable={isEditable}
-                    onEdit={onEdit}
-                    summary={summary}
-                    type={type}
-                />
-            </div>
+            {heading && (
+    <div className="checkout-view-header">
+        <CheckoutStepHeader
+            heading={heading}
+            isActive={isActive}
+            isComplete={isComplete}
+            isEditable={isEditable}
+            onEdit={onEdit}
+            summary={summary}
+            type={type}
+        />
+    </div>
+)}
 
             {suggestion && isClosed && !isActive && (
                 <div className="checkout-suggestion" data-test="step-suggestion">

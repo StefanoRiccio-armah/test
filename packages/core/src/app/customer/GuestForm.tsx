@@ -20,7 +20,7 @@ function getShouldSubscribeValue(requiresMarketingConsent: boolean, defaultShoul
         return true;
     }
 
-    return requiresMarketingConsent ? false : defaultShouldSubscribe
+    return requiresMarketingConsent ? false : defaultShouldSubscribe;
 }
 
 export interface GuestFormProps {
@@ -64,8 +64,8 @@ const GuestForm: FunctionComponent<
 }) => {
     const {
         checkoutState: {
-            data: { getConfig }
-        }
+            data: { getConfig },
+        },
     } = useCheckout();
     const { themeV2 } = useThemeContext();
 
@@ -82,7 +82,7 @@ const GuestForm: FunctionComponent<
         void setFieldValue(
             'shouldSubscribe',
             getShouldSubscribeValue(requiresMarketingConsent, defaultShouldSubscribe),
-            );
+        );
     }, [requiresMarketingConsent, defaultShouldSubscribe]);
 
     if (!config) {
@@ -90,31 +90,20 @@ const GuestForm: FunctionComponent<
     }
 
     const {
-        checkoutSettings: {
-            shouldRedirectToStorefrontForAuth,
-        },
-        links: {
-            checkoutLink,
-            loginLink,
-        }
+        checkoutSettings: { shouldRedirectToStorefrontForAuth },
+        links: { checkoutLink, loginLink },
     } = config;
 
     const handleLogin: () => void = () => {
         if (shouldRedirectToStorefrontForAuth) {
             window.location.assign(`${loginLink}?redirectTo=${checkoutLink}`);
-
             return;
         }
-
         return onShowLogin();
-    }
+    };
 
     return (
-        <Form
-            className="checkout-form"
-            id="checkout-customer-guest"
-            testId="checkout-customer-guest"
-        >
+        <Form className="checkout-form" id="checkout-customer-guest" testId="checkout-customer-guest">
             <Fieldset
                 legend={
                     <Legend hidden>
@@ -124,12 +113,36 @@ const GuestForm: FunctionComponent<
             >
                 <div className="customerEmail-container">
                     <div className="customerEmail-body">
-                        <EmailField isFloatingLabelEnabled={isFloatingLabelEnabled} onChange={onChangeEmail}/>
+                        <EmailField
+                            isFloatingLabelEnabled={isFloatingLabelEnabled}
+                            onChange={onChangeEmail}
+                        />
 
                         {shouldShowEmailWatermark && <PayPalFastlaneWatermark />}
 
                         {(canSubscribe || requiresMarketingConsent) && (
-                            <BasicFormField name="shouldSubscribe" render={renderField} />
+                            <div className="subscribe-login-row">
+                                <BasicFormField name="shouldSubscribe" render={renderField} />
+
+                                {!isLoading && (
+                                    <p
+                                        className={classNames('customer-login-link-inline', {
+                                            'body-regular': themeV2,
+                                        })}
+                                    >
+                                        <TranslatedString id="customer.login_text" />{' '}
+                                        <a
+                                            data-test="customer-continue-button"
+                                            id="checkout-customer-login"
+                                            onClick={handleLogin}
+                                            role="button"
+                                            tabIndex={0}
+                                        >
+                                            <TranslatedString id="customer.login_action" />
+                                        </a>
+                                    </p>
+                                )}
+                            </div>
                         )}
                     </div>
 
@@ -154,24 +167,10 @@ const GuestForm: FunctionComponent<
                 </div>
 
                 {privacyPolicyUrl && (
-                    <PrivacyPolicyField isExpressPrivacyPolicy={isExpressPrivacyPolicy} url={privacyPolicyUrl} />
-                )}
-
-                {!isLoading && (
-                    <p className={classNames('customer-login-link',
-                        { 'body-regular': themeV2 })}
-                    >
-                        <TranslatedString id="customer.login_text" />{' '}
-                        <a
-                            data-test="customer-continue-button"
-                            id="checkout-customer-login"
-                            onClick={handleLogin}
-                            role="button"
-                            tabIndex={0}
-                        >
-                            <TranslatedString id="customer.login_action" />
-                        </a>
-                    </p>
+                    <PrivacyPolicyField
+                        isExpressPrivacyPolicy={isExpressPrivacyPolicy}
+                        url={privacyPolicyUrl}
+                    />
                 )}
 
                 {checkoutButtons}
@@ -182,11 +181,7 @@ const GuestForm: FunctionComponent<
 
 export default withLanguage(
     withFormik<GuestFormProps & WithLanguageProps, GuestFormValues>({
-        mapPropsToValues: ({
-            email = '',
-            defaultShouldSubscribe = false,
-            requiresMarketingConsent,
-        }) => ({
+        mapPropsToValues: ({ email = '', defaultShouldSubscribe = false, requiresMarketingConsent }) => ({
             email,
             shouldSubscribe: getShouldSubscribeValue(requiresMarketingConsent, defaultShouldSubscribe),
             privacyPolicy: false,

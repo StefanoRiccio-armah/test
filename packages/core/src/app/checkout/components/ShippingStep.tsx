@@ -51,8 +51,7 @@ const ShippingStep: React.FC<ShippingStepProps> = ({
 
     return (
         <CheckoutStep
-            {...step}
-            heading={<TranslatedString id="shipping.shipping_heading" />}
+            {...step}          
             key={step.type}
             onEdit={onEdit}
             onExpanded={onExpanded}
