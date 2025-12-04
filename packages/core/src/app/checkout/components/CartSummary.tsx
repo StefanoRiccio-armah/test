@@ -17,15 +17,21 @@ const CartSummaryComponent = lazy(() =>
     ),
 );
 
-const CartSummaryDrawer = lazy(() =>
+const CartSummaryDrawerAccordion = lazy(() =>
     retry(
         () =>
             import(
-                /* webpackChunkName: "cart-summary-drawer" */
-                '../../cart/CartSummaryDrawer'
+                /* webpackChunkName: "cart-summary-accordion" */
+                '../../cart/CartSummaryDrawerAccordion'
             ),
     ),
 );
+
+
+
+
+ 
+
 
 export interface CartSummaryProps {
     isMultiShippingMode: boolean;
@@ -39,7 +45,7 @@ export const CartSummary: React.FC<CartSummaryProps> = ({ isMultiShippingMode })
                     return (
                         <LazyContainer loadingSkeleton={<></>}>
                             <Extension region={ExtensionRegion.SummaryAfter} />
-                            <CartSummaryDrawer isMultiShippingMode={isMultiShippingMode} />
+                           <CartSummaryDrawerAccordion isMultiShippingMode={isMultiShippingMode} />
                         </LazyContainer>
                     );
                 }

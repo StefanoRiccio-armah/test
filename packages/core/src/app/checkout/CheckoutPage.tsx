@@ -450,7 +450,7 @@ const Checkout = ({
             case CheckoutStepType.Payment:
                 return <PaymentStep
                     cart={cart}
-                     key={step.type} 
+                    
                     checkEmbeddedSupport={checkEmbeddedSupport}
                     consignments={consignments}
                     errorLogger={errorLogger}
