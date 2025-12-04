@@ -23,18 +23,18 @@ export interface CheckoutStepProps {
 }
 
 const CheckoutStep = ({
-        children,
-        heading,
-        isActive,
-        isBusy,
-        isComplete,
-        isEditable,
-        onEdit,
-        suggestion,
-        summary,
-        type,
-        onExpanded = noop,
-    }: CheckoutStepProps): ReactElement => {
+    children,
+    heading,
+    isActive,
+    isBusy,
+    isComplete,
+    isEditable,
+    onEdit,
+    suggestion,
+    summary,
+    type,
+    onExpanded = noop,
+}: CheckoutStepProps): ReactElement => {
     const [isClosed, setIsClosed] = useState(true);
 
     const containerRef = useRef<HTMLLIElement>(null);
@@ -180,15 +180,18 @@ const CheckoutStep = ({
             <MobileView>
                 {(matched) => (
                     <CSSTransition
-                        addEndListener={handleTransitionEnd}
+                        // 1. Rimuovi addEndListener
                         classNames="checkout-view-content"
                         enter={!matched}
                         exit={!matched}
                         in={isActive}
                         mountOnEnter
                         onExited={onAnimationEnd}
-                        timeout={{}}
+                        // 2. Fornisci un timeout reale. 300ms è un valore comune, 
+                        //    ma puoi usare la tua funzione getTransitionDelay() se preferisci.
+                        timeout={500}
                         unmountOnExit
+                        nodeRef={contentRef}
                     >
                         <div
                             aria-busy={isBusy}
