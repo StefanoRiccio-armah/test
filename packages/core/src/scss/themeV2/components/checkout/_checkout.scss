@@ -76,3 +76,7 @@
         padding-right: #{spacing('double') + spacing('double')};
     }
 }
+
+.checkout-step--customer {
+    border-bottom: none !important;
+}

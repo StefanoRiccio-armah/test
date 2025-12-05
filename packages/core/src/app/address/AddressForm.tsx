@@ -117,8 +117,13 @@ const AddressForm: React.FC<AddressFormProps> = ({
                         const addressFieldName = field.name;
                         const translatedPlaceholderId = PLACEHOLDER[addressFieldName];
 
+                            if (addressFieldName === 'company') {
+        return null;
+    }
+
+
                         if (addressFieldName === 'field_29') {
-                            if (!shouldShowCodiceFiscale) {
+                            if (shouldShowCodiceFiscale) {
                                 // Se richiesto, mostra il campo di input
                                 return (
                                     <DynamicFormField
@@ -144,13 +149,12 @@ const AddressForm: React.FC<AddressFormProps> = ({
                                         </label>
                                         <span
                                             style={{
-                                                color: 'blue',
-                                                fontSize: '2rem',
+                                                color: 'black',
+                                                fontSize: '1rem',
                                                 display: 'block',
-                                                marginTop: '0.5rem',
                                             }}
                                         >
-                                            ❗ Nel tuo carrello non ci sono prodotti detraibili
+                                            ❕ Nel tuo carrello non ci sono prodotti detraibili
                                         </span>
                                     </div>
                                 );

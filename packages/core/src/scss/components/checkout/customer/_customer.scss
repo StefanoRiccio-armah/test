@@ -7,11 +7,6 @@
 // -----------------------------------------------------------------------------
 .customerEmail-container {
     @include grid-row;
-
-    @include breakpoint("small") {
-        margin-bottom: spacing("half");
-    }
-
     .customerEmail-floating--enabled {
         @include breakpoint("small") {
             margin-top: 0;

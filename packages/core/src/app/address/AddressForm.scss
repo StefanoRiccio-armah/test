@@ -41,9 +41,19 @@
         }
     }
 
-    .dynamic-form-field--postCode {
-        @include breakpoint("small") {
-            flex-basis: 30%;
-        }
+   .dynamic-form-field--address1,
+.dynamic-form-field--addressLine1 {
+    @include breakpoint("small") {
+        flex-basis: 70%;
     }
+}
+
+// postalcode → 30%
+.dynamic-form-field--postCode,
+.dynamic-form-field--postalCode,
+.dynamic-form-field--zip {
+    @include breakpoint("small") {
+        flex-basis: 30%;
+    }
+}
 }
