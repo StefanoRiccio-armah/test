@@ -48,6 +48,10 @@
 .customerEmail-button {
     padding: $customerEmail-button-padding;
     width: 100%;
+    border-radius:20px;
+    background-color:cyan;
+    color:black;
+    border:cyan;
 }
 
 .customer-login-link {
