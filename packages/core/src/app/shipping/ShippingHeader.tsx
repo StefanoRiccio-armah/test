@@ -43,13 +43,7 @@ const ShippingHeader: FunctionComponent<ShippingHeaderProps> = ({
             <Extension region={ExtensionRegion.ShippingShippingAddressFormBefore} />
             <div className={classNames(['form-legend-container', 'shipping-header'])}>
                 <Legend testId="shipping-address-heading" themeV2={themeV2}>
-                    <TranslatedString
-                        id={
-                            isMultiShippingMode
-                                ? 'shipping.multishipping_address_heading'
-                                : 'shipping.shipping_address_heading'
-                        }
-                    />
+                    Dati Personali
                 </Legend>
 
                 {showConfirmationModal && (

@@ -8,12 +8,13 @@ import { TranslatedString, withLanguage, type WithLanguageProps } from '@bigcomm
 import { PayPalFastlaneWatermark } from '@bigcommerce/checkout/paypal-fastlane-integration';
 
 import { getPrivacyPolicyValidationSchema, PrivacyPolicyField } from '../privacyPolicy';
-import { Button, ButtonVariant } from '../ui/button';
+//import { Button, ButtonVariant } from '../ui/button';
 import { BasicFormField, Fieldset, Form, Legend } from '../ui/form';
 
 import EmailField from './EmailField';
 import SubscribeField from './SubscribeField';
 import { SubscribeSessionStorage } from './SubscribeSessionStorage';
+
 
 function getShouldSubscribeValue(requiresMarketingConsent: boolean, defaultShouldSubscribe: boolean) {
     if (SubscribeSessionStorage.getSubscribeStatus()) {
@@ -50,7 +51,6 @@ const GuestForm: FunctionComponent<
 > = ({
     canSubscribe,
     checkoutButtons,
-    continueAsGuestButtonLabelId,
     defaultShouldSubscribe,
     isLoading,
     onChangeEmail,
@@ -61,6 +61,9 @@ const GuestForm: FunctionComponent<
     isFloatingLabelEnabled,
     shouldShowEmailWatermark,
     setFieldValue,
+    handleSubmit,
+    values:formValues,
+    errors:formErrors,
 }) => {
     const {
         checkoutState: {
@@ -70,6 +73,21 @@ const GuestForm: FunctionComponent<
     const { themeV2 } = useThemeContext();
 
     const config = getConfig();
+
+ useEffect(() => {
+        if (!formValues.email || formErrors.email) {
+            return;
+        }
+
+        const timerId = setTimeout(() => {
+            console.log('Debounced submit innescato per:', formValues.email);
+            handleSubmit();
+        }, 5000);
+        return () => {
+            clearTimeout(timerId);
+        };
+    }, [formValues.email, formErrors.email, handleSubmit]);
+
 
     const renderField = useCallback(
         (fieldProps: FieldProps<boolean>) => (
@@ -117,13 +135,10 @@ const GuestForm: FunctionComponent<
                             isFloatingLabelEnabled={isFloatingLabelEnabled}
                             onChange={onChangeEmail}
                         />
-
                         {shouldShowEmailWatermark && <PayPalFastlaneWatermark />}
 
                         {(canSubscribe || requiresMarketingConsent) && (
                             <div className="subscribe-login-row">
-                                <BasicFormField name="shouldSubscribe" render={renderField} />
-
                                 {!isLoading && (
                                     <p
                                         className={classNames('customer-login-link-inline', {
@@ -142,27 +157,9 @@ const GuestForm: FunctionComponent<
                                         </a>
                                     </p>
                                 )}
+                                  <BasicFormField name="shouldSubscribe" render={renderField} />
                             </div>
                         )}
-                    </div>
-
-                    <div
-                        className={classNames('form-actions customerEmail-action', {
-                            'customerEmail-floating--enabled': isFloatingLabelEnabled,
-                        })}
-                    >
-                        <Button
-                            className={classNames('customerEmail-button', {
-                                'body-bold': themeV2,
-                            })}
-                            id="checkout-customer-continue"
-                            isLoading={isLoading}
-                            testId="customer-continue-as-guest-button"
-                            type="submit"
-                            variant={ButtonVariant.Primary}
-                        >
-                            <TranslatedString id={continueAsGuestButtonLabelId} />
-                        </Button>
                     </div>
                 </div>
 
@@ -187,6 +184,7 @@ export default withLanguage(
             privacyPolicy: false,
         }),
         handleSubmit: (values, { props: { onContinueAsGuest } }) => {
+            console.log('GuestForm onContinueAsGuest', values);
             onContinueAsGuest(values);
         },
         validationSchema: ({ language, privacyPolicyUrl, isExpressPrivacyPolicy }: GuestFormProps & WithLanguageProps) => {

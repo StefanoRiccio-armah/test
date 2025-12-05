@@ -15,12 +15,12 @@ import {
 import classNames from 'classnames';
 import { find, findIndex } from 'lodash';
 import React, {
-  type ReactElement,
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
+    type ReactElement,
+    type ReactNode,
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
 } from 'react';
 
 import { type AnalyticsContextProps, type ExtensionContextProps, withExtension } from '@bigcommerce/checkout/contexts';
@@ -57,7 +57,7 @@ export interface CheckoutProps {
     embeddedStylesheet: EmbeddedCheckoutStylesheet;
     embeddedSupport: CheckoutSupport;
     errorLogger: ErrorLogger;
-    themeV2?:boolean;
+    themeV2?: boolean;
     createEmbeddedMessenger(options: EmbeddedCheckoutMessengerOptions): EmbeddedCheckoutMessenger;
 }
 
@@ -108,33 +108,33 @@ type CheckoutPageProps = CheckoutProps &
     ExtensionContextProps;
 
 const Checkout = ({
-                      createAccountUrl,
-                      createEmbeddedMessenger,
-                      embeddedSupport,
-                      billingAddress,
-                      consignments,
-                      cart,
-                      data,
-                      errorLogger,
-                      isGuestEnabled,
-                      isShowingWalletButtonsOnTop,
-                      hasCartChanged,
-                      isShippingDiscountDisplayEnabled,
-                      clearError,
-                      error,
-                      steps,
-                      analyticsTracker,
-                      loginUrl,
-                      language,
-                      cartUrl,
-                      isPending,
-                      isPriceHiddenFromGuests,
-                      containerId,
-                      embeddedStylesheet,
-                      loadPaymentMethodByIds,
-                      subscribeToConsignments,
-                      themeV2
-                  }: CheckoutPageProps):ReactElement => {
+    createAccountUrl,
+    createEmbeddedMessenger,
+    embeddedSupport,
+    billingAddress,
+    consignments,
+    cart,
+    data,
+    errorLogger,
+    isGuestEnabled,
+    isShowingWalletButtonsOnTop,
+    hasCartChanged,
+    isShippingDiscountDisplayEnabled,
+    clearError,
+    error,
+    steps,
+    analyticsTracker,
+    loginUrl,
+    language,
+    cartUrl,
+    isPending,
+    isPriceHiddenFromGuests,
+    containerId,
+    embeddedStylesheet,
+    loadPaymentMethodByIds,
+    subscribeToConsignments,
+    themeV2
+}: CheckoutPageProps): ReactElement => {
     const [state, setState] = useState<CheckoutState>({
         isBillingSameAsShipping: true,
         isCartEmpty: false,
@@ -156,7 +156,7 @@ const Checkout = ({
         hasSelectedShippingOptions: state.hasSelectedShippingOptions,
     });
 
-    const navigateToStep = useCallback((type: CheckoutStepType, options?: { isDefault?: boolean }):void => {
+    const navigateToStep = useCallback((type: CheckoutStepType, options?: { isDefault?: boolean }): void => {
         const step = find(stepsRef.current, { type });
 
         if (!step) {
@@ -187,7 +187,7 @@ const Checkout = ({
         }
     }, [state.activeStepType, error, clearError]);
 
-    const navigateToNextIncompleteStep = useCallback((options?: { isDefault?: boolean }):void => {
+    const navigateToNextIncompleteStep = useCallback((options?: { isDefault?: boolean }): void => {
         const activeStepIndex = findIndex(stepsRef.current, { isActive: true });
         const activeStep = activeStepIndex >= 0 && stepsRef.current[activeStepIndex];
 
@@ -204,11 +204,11 @@ const Checkout = ({
         navigateToStep(activeStep.type, options);
     }, [analyticsTracker, navigateToStep]);
 
-    const handleToggleMultiShipping = useCallback(():void => {
+    const handleToggleMultiShipping = useCallback((): void => {
         setState((prevState) => ({ ...prevState, isMultiShippingMode: !prevState.isMultiShippingMode }));
-    },[]);
+    }, []);
 
-    const navigateToOrderConfirmation = useCallback((orderId?: number):void => {
+    const navigateToOrderConfirmation = useCallback((orderId?: number): void => {
         analyticsTracker.trackStepCompleted(stepsRef.current[stepsRef.current.length - 1].type);
 
         if (embeddedMessenger.current) {
@@ -236,14 +236,14 @@ const Checkout = ({
         }
 
         navigateToStep(CheckoutStepType.Customer);
-        setState( prevState => ({ ...prevState, customerViewType }));
-    },[createAccountUrl, navigateToStep]);
+        setState(prevState => ({ ...prevState, customerViewType }));
+    }, [createAccountUrl, navigateToStep]);
 
-    const handleCartChangedError = useCallback(():void => {
+    const handleCartChangedError = useCallback((): void => {
         navigateToStep(CheckoutStepType.Shipping);
     }, [navigateToStep]);
 
-    const handleConsignmentsUpdated = ({ data }: CheckoutSelectors):void => {
+    const handleConsignmentsUpdated = ({ data }: CheckoutSelectors): void => {
         const { hasSelectedShippingOptions: prevHasSelectedShippingOptions, activeStepType, defaultStepType } =
             stateRef.current;
 
@@ -380,7 +380,7 @@ const Checkout = ({
         setState(prevState => ({ ...prevState, isMultiShippingMode: value }));
     }, []);
 
-    const renderStep = (step: CheckoutStepStatus): ReactNode =>{
+    const renderStep = (step: CheckoutStepStatus): ReactNode => {
         const {
             customerViewType = isGuestEnabled ? CustomerViewType.Guest : CustomerViewType.Login,
             isSubscribed,
@@ -476,7 +476,7 @@ const Checkout = ({
     }
 
     // Initialize refs 2/2
-    const handleConsignmentsUpdatedRef = useRef<(selectors:CheckoutSelectors) => void>(handleConsignmentsUpdated);
+    const handleConsignmentsUpdatedRef = useRef<(selectors: CheckoutSelectors) => void>(handleConsignmentsUpdated);
     const handleBeforeExitRef = useRef<() => void>(handleBeforeExit);
 
     // Update refs
@@ -513,16 +513,16 @@ const Checkout = ({
 
                 if (errorFlashMessages.length) {
                     setState(prevState => ({
-                            ...prevState,
-                            error: new CustomError({
-                                title:
-                                    errorFlashMessages[0].title ||
-                                    language.translate('common.error_heading'),
-                                message: errorFlashMessages[0].message,
-                                data: {},
-                                name: 'default',
-                            }),
-                        })
+                        ...prevState,
+                        error: new CustomError({
+                            title:
+                                errorFlashMessages[0].title ||
+                                language.translate('common.error_heading'),
+                            message: errorFlashMessages[0].message,
+                            data: {},
+                            name: 'default',
+                        }),
+                    })
                     );
                 }
 
@@ -587,7 +587,7 @@ const Checkout = ({
             }
         };
 
-      void init();
+        void init();
 
         return (): void => {
             const deInit = () => {
@@ -604,7 +604,7 @@ const Checkout = ({
         };
     }, []);
 
-    if (state.isRedirecting){
+    if (state.isRedirecting) {
         return <OrderConfirmationPageSkeleton />;
     }
 
@@ -635,7 +635,7 @@ const Checkout = ({
             <div className="layout optimizedCheckout-contentPrimary">
                 {state.isCartEmpty ?
                     <EmptyCartMessage loginUrl={loginUrl} waitInterval={3000} />
-                    :<>
+                    : <>
                         <div className="layout-main">
                             <CheckoutHeader
                                 activeStepType={state.activeStepType}
@@ -647,27 +647,35 @@ const Checkout = ({
                             />
 
                             <ol className="checkout-steps">
-    {stepsRef.current
-        .filter((step) => step.isRequired)
-        .map((step) =>
-            renderStep({
-                ...step,
-                isActive: (() => {
-                    // 1) Se siamo nella fase iniziale (activeStepType non è ancora impostato)
-                    // considera "fase iniziale" quando activeStepType è undefined
-                    if (!state.activeStepType) {
-                        // Customer e Shipping aperti insieme
-                        return step.type === CheckoutStepType.Customer
-                            || step.type === CheckoutStepType.Shipping;
-                    }
+                                {stepsRef.current
+                                    .filter((step) => step.isRequired)
+                                    .map((step) =>
+                                        renderStep({
+                                            ...step,
+                                            isActive: (() => {
+                                                const { activeStepType } = state;
+                                                const currentStepType = step.type;
 
-                    // 2) Dopo: comportamento normale (un solo step aperto per volta)
-                    return state.activeStepType === step.type;
-                })(),
-                isBusy: isPending,
-            }),
-        )}
-</ol>
+                                                // Regola speciale: Customer e Shipping sono trattati come un unico blocco.
+                                                // Devono essere attivi entrambi se lo step corrente è uno dei due.
+                                                if (
+                                                    currentStepType === CheckoutStepType.Customer ||
+                                                    currentStepType === CheckoutStepType.Shipping
+                                                ) {
+                                                    return (
+                                                        !activeStepType || // Stato iniziale, entrambi aperti
+                                                        activeStepType === CheckoutStepType.Customer ||
+                                                        activeStepType === CheckoutStepType.Shipping
+                                                    );
+                                                }
+
+                                                // Comportamento standard per tutti gli altri step (Billing, Payment, ecc.)
+                                                return activeStepType === currentStepType;
+                                            })(),
+                                            isBusy: isPending,
+                                        }),
+                                    )}
+                            </ol>
                         </div>
                     </>
                 }

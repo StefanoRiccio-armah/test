@@ -150,7 +150,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
                                         <span
                                             style={{
                                                 color: 'black',
-                                                fontSize: '1rem',
+                                                fontSize: '1.5rem',
                                                 display: 'block',
                                             }}
                                         >

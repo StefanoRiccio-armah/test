@@ -41,8 +41,8 @@
         }
     }
 
-   .dynamic-form-field--address1,
-.dynamic-form-field--addressLine1 {
+   .dynamic-form-field--addres2,
+.dynamic-form-field--addressLine2{
     @include breakpoint("small") {
         flex-basis: 70%;
     }
