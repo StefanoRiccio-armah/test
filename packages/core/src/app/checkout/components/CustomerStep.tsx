@@ -55,7 +55,7 @@ const CustomerStep: React.FC<CustomerStepProps> = ({
     return (
         <CheckoutStep
             {...step}
-            heading="Dati Personali e Spedizione"
+            heading="Dati Personali"
             key={step.type}
             onEdit={onEdit}
             onExpanded={onExpanded}

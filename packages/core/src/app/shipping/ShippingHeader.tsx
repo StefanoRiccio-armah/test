@@ -42,10 +42,6 @@ const ShippingHeader: FunctionComponent<ShippingHeaderProps> = ({
         <>
             <Extension region={ExtensionRegion.ShippingShippingAddressFormBefore} />
             <div className={classNames(['form-legend-container', 'shipping-header'])}>
-                <Legend testId="shipping-address-heading" themeV2={themeV2}>
-                    Dati Personali
-                </Legend>
-
                 {showConfirmationModal && (
                     <>
                         <ConfirmationModal

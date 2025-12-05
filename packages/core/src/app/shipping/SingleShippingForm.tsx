@@ -74,6 +74,7 @@ interface SingleShippingFormState {
     isResettingAddress: boolean;
     isUpdatingShippingData: boolean;
     hasRequestedShippingOptions: boolean;
+    isAccordionOpen: boolean;
 }
 
 function shouldHaveCustomValidation(methodId?: string): boolean {
@@ -96,6 +97,7 @@ class SingleShippingForm extends PureComponent<
         isResettingAddress: false,
         isUpdatingShippingData: false,
         hasRequestedShippingOptions: false,
+        isAccordionOpen: false,
     };
 
     private debouncedUpdateAddress: any;
@@ -145,10 +147,6 @@ class SingleShippingForm extends PureComponent<
             ({ name }) => name === 'stateOrProvinceCode',
         );
 
-        // Workaround for a bug found during manual testing:
-        // When the shipping step first loads, the `stateOrProvinceCode` field may not be there.
-        // It later appears with an empty value if the selected country has states/provinces.
-        // To address this, we manually set `stateOrProvinceCode` in Formik.
         if (
             stateOrProvinceCodeFormField &&
             shippingAddress?.stateOrProvinceCode &&
@@ -157,7 +155,6 @@ class SingleShippingForm extends PureComponent<
             setFieldValue('shippingAddress.stateOrProvinceCode', shippingAddress.stateOrProvinceCode);
         }
 
-        // This is for executing extension command, `ReRenderShippingForm`.
         if (newShippingFormRenderTimestamp !== shippingFormRenderTimestamp) {
             setValues({
                 billingSameAsShipping: isBillingSameAsShipping,
@@ -168,6 +165,14 @@ class SingleShippingForm extends PureComponent<
                 ),
             });
         }
+    }
+
+    private handleShowShippingOptionsClick = () => {
+        this.setState({ isAccordionOpen: true });
+    };
+
+    private handleCloseShippingOptionsClick = () => {
+        this.setState({ isAccordionOpen: false });
     }
 
     render(): ReactNode {
@@ -188,7 +193,7 @@ class SingleShippingForm extends PureComponent<
             shippingFormRenderTimestamp,
         } = this.props;
 
-        const { isResettingAddress, isUpdatingShippingData, hasRequestedShippingOptions } =
+        const { isResettingAddress, isUpdatingShippingData, hasRequestedShippingOptions, isAccordionOpen } =
             this.state;
 
         const PAYMENT_METHOD_VALID = ['amazonpay'];
@@ -220,17 +225,54 @@ class SingleShippingForm extends PureComponent<
                         </div>
                     )}
                 </Fieldset>
-
-                <ShippingFormFooter
-                    cartHasChanged={cartHasChanged}
-                    isInitialValueLoaded={isInitialValueLoaded}
-                    isLoading={isLoading || isUpdatingShippingData}
-                    isMultiShippingMode={false}
-                    shippingFormRenderTimestamp={shippingFormRenderTimestamp}
-                    shouldDisableSubmit={this.shouldDisableSubmit()}
-                    shouldShowOrderComments={shouldShowOrderComments}
-                    shouldShowShippingOptions={isValid}
-                />
+                
+                {!isAccordionOpen && (
+                    <div className="form-actions">
+                        <button
+                            // MODIFICA: La classe è ora 'button' per uno stile secondario.
+                            // L'aspetto disabilitato (grigio) è dato automaticamente dall'attributo 'disabled'.
+                            className="button"
+                            disabled={!isValid}
+                            onClick={this.handleShowShippingOptionsClick}
+                            type="button"
+                        >
+                            Scegli Metodo di Spedizione
+                        </button>
+                    </div>
+                )}
+                
+                {isAccordionOpen && (
+                    // MODIFICA: Aggiunta la struttura standard dell'accordion con header e body.
+                    <div className="checkout-step optimizedCheckout-checkoutStep checkout-step--billing">
+                        <div className="checkout-step-header">
+                            <h2 className="checkout-step-title">
+                                Metodo di Spedizione
+                            </h2>
+                            <a
+                                className="checkout-step-edit"
+                                href="#"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    this.handleCloseShippingOptionsClick();
+                                }}
+                            >
+                                <span>{'‹ Modifica'}</span>
+                            </a>
+                        </div>
+                        <div className="checkout-step-body">
+                            <ShippingFormFooter
+                                cartHasChanged={cartHasChanged}
+                                isInitialValueLoaded={isInitialValueLoaded}
+                                isLoading={isLoading || isUpdatingShippingData}
+                                isMultiShippingMode={false}
+                                shippingFormRenderTimestamp={shippingFormRenderTimestamp}
+                                shouldDisableSubmit={this.shouldDisableSubmit()}
+                                shouldShowOrderComments={shouldShowOrderComments}
+                                shouldShowShippingOptions={isValid}
+                            />
+                        </div>
+                    </div>
+                )}
             </Form>
         );
     }
@@ -255,7 +297,6 @@ class SingleShippingForm extends PureComponent<
             setFieldValue('shippingAddress.stateOrProvinceCode', '');
         }
 
-        // Enqueue the following code to run after Formik has run validation
         await new Promise((resolve) => setTimeout(resolve));
 
         const isShippingField = SHIPPING_ADDRESS_FIELDS.includes(name);
@@ -391,6 +432,6 @@ export default withLanguage(
                           }),
                       ),
                   }),
-        enableReinitialize: false, // This is false due to the concern that a shopper may lose typed details if somehow checkout state changes in the middle.
+        enableReinitialize: false,
     })(SingleShippingForm),
 );

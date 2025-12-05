@@ -42,10 +42,6 @@ const ShippingFormFooter: FunctionComponent<ShippingFormFooterProps> = ({
                 id="checkout-shipping-options"
                 legend={
                     <>
-                        <Legend themeV2={themeV2}>
-                            <TranslatedString id="shipping.shipping_method_label" />
-                        </Legend>
-
                         {cartHasChanged && (
                             <Alert type={AlertType.Error}>
                                 <strong>
