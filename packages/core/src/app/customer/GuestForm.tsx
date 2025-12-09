@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import { type FieldProps, type FormikProps, withFormik } from 'formik';
-import React, { type FunctionComponent, memo, type ReactNode, useCallback, useEffect } from 'react';
+// Riga modificata: aggiunto 'useState' agli import di React
+import React, { type FunctionComponent, memo, type ReactNode, useCallback, useEffect, useState } from 'react';
 import { object, string } from 'yup';
 
 import { useCheckout, useThemeContext } from '@bigcommerce/checkout/contexts';
@@ -71,23 +72,41 @@ const GuestForm: FunctionComponent<
         },
     } = useCheckout();
     const { themeV2 } = useThemeContext();
-
     const config = getConfig();
 
- useEffect(() => {
-        if (!formValues.email || formErrors.email) {
+    // NUOVA LOGICA: Stato per tracciare l'interazione dell'utente.
+    // Inizia come 'false' e diventa 'true' solo quando l'utente digita.
+    // Viene resettato a 'false' ogni volta che il componente si rimonta.
+    const [hasUserTyped, setHasUserTyped] = useState(false);
+
+    // BLOCCO useEffect MODIFICATO
+    useEffect(() => {
+        const isEmailValid = !!formValues.email && !formErrors.email;
+
+        // CONDIZIONE CHIAVE: Il submit parte solo se l'utente ha GIÀ digitato
+        // E l'email risultante è valida.
+        if (!hasUserTyped || !isEmailValid) {
             return;
         }
 
         const timerId = setTimeout(() => {
-            console.log('Debounced submit innescato per:', formValues.email);
+            console.log('Debounced submit innescato dopo interazione utente:', formValues.email);
             handleSubmit();
         }, 5000);
+
         return () => {
             clearTimeout(timerId);
         };
-    }, [formValues.email, formErrors.email, handleSubmit]);
+    // Aggiungiamo 'hasUserTyped' all'array delle dipendenze.
+    }, [formValues.email, formErrors.email, handleSubmit, hasUserTyped]);
 
+    // NUOVA FUNZIONE: Questo handler si attiva ad ogni cambiamento nell'input email.
+    // Esegue due azioni: aggiorna il form (tramite la prop) e imposta il nostro
+    // stato di interazione a 'true'.
+    const handleEmailChange = useCallback((email: string) => {
+        onChangeEmail(email);
+        setHasUserTyped(true);
+    }, [onChangeEmail]);
 
     const renderField = useCallback(
         (fieldProps: FieldProps<boolean>) => (
@@ -131,9 +150,10 @@ const GuestForm: FunctionComponent<
             >
                 <div className="customerEmail-container">
                     <div className="customerEmail-body">
+                        {/* MODIFICA: Usiamo il nostro nuovo handler 'handleEmailChange' */}
                         <EmailField
                             isFloatingLabelEnabled={isFloatingLabelEnabled}
-                            onChange={onChangeEmail}
+                            onChange={handleEmailChange}
                         />
                         {shouldShowEmailWatermark && <PayPalFastlaneWatermark />}
 

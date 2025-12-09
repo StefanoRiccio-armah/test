@@ -1,6 +1,7 @@
 import { noop } from 'lodash';
 import React from 'react';
-import ReactDOM from 'react-dom';
+// 1. Modifica l'import
+import { createRoot } from 'react-dom/client';
 
 import { getAppliedStyles } from '@bigcommerce/checkout/dom-utils';
 import { FormContext } from '@bigcommerce/checkout/ui';
@@ -29,6 +30,9 @@ export default function getCreditCardInputStyles(
 
     parentContainer.appendChild(container);
 
+    // 2. Crea la root di rendering legata al container temporaneo
+    const root = createRoot(container);
+
     return new Promise((resolve) => {
         const callbackRef = (element: HTMLInputElement | null) => {
             if (!element) {
@@ -37,14 +41,16 @@ export default function getCreditCardInputStyles(
 
             resolve(getAppliedStyles(element, properties));
 
-            ReactDOM.unmountComponentAtNode(container);
+            // 3. Usa il nuovo metodo unmount
+            root.unmount();
 
             if (container.parentElement) {
                 container.parentElement.removeChild(container);
             }
         };
 
-        ReactDOM.render(
+        // 4. Renderizza il componente usando la root
+        root.render(
             <FormContext.Provider value={{ isSubmitted: true, setSubmitted: noop }}>
                 <FormFieldContainer hasError={type === CreditCardInputStylesType.Error}>
                     <TextInput
@@ -53,7 +59,6 @@ export default function getCreditCardInputStyles(
                     />
                 </FormFieldContainer>
             </FormContext.Provider>,
-            container,
         );
     });
 }

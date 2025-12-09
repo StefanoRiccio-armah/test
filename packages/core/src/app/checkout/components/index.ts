@@ -4,3 +4,4 @@ export { default as BillingStep } from './BillingStep';
 export { default as PaymentStep } from './PaymentStep';
 export { default as CustomerStep } from './CustomerStep';
 export { default as ShippingStep } from './ShippingStep';
+export { default as ShippingMethodStep } from './ShippingMethodStep';

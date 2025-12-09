@@ -1,5 +1,6 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+// 1. Modifica l'import
+import { createRoot } from 'react-dom/client';
 
 import { configurePublicPath } from '../common/bundler';
 
@@ -15,12 +16,8 @@ export default function renderOrderConfirmation({
 }: RenderOrderConfirmationOptions): void {
     const configuredPublicPath = configurePublicPath(publicPath);
 
-    // We want to use `require` here because we want to set up the public path
-    // first before importing the app component and its dependencies.
     const { default: OrderConfirmationApp } = require('./OrderConfirmationApp');
 
-    // We want to use `require` here because we only want to import the package
-    // in development mode.
     if (process.env.NODE_ENV === 'development') {
         const whyDidYouRender = require('@welldone-software/why-did-you-render');
 
@@ -29,12 +26,19 @@ export default function renderOrderConfirmation({
         });
     }
 
-    ReactDOM.render(
-        <OrderConfirmationApp
-            containerId={containerId}
-            publicPath={configuredPublicPath}
-            {...props}
-        />,
-        document.getElementById(containerId),
-    );
+    // 2. Applica la nuova API createRoot
+    const container = document.getElementById(containerId);
+
+    // È buona norma verificare che il container esista prima di procedere
+    if (container) {
+        const root = createRoot(container);
+
+        root.render(
+            <OrderConfirmationApp
+                containerId={containerId}
+                publicPath={configuredPublicPath}
+                {...props}
+            />,
+        );
+    }
 }

@@ -1,3 +1,5 @@
+// File: packages/core/src/app/shipping/SingleShippingForm.tsx
+
 import {
     type Address,
     type CheckoutParams,
@@ -31,11 +33,8 @@ import { PaymentMethodId } from '../payment/paymentMethod';
 import { Fieldset, Form } from '../ui/form';
 
 import BillingSameAsShippingField from './BillingSameAsShippingField';
-import hasSelectedShippingOptions from './hasSelectedShippingOptions';
-import isSelectedShippingOptionValid from './isSelectedShippingOptionValid';
 import ShippingAddress from './ShippingAddress';
 import { SHIPPING_ADDRESS_FIELDS } from './ShippingAddressFields';
-import ShippingFormFooter from './ShippingFormFooter';
 
 export interface SingleShippingFormProps {
     isBillingSameAsShipping: boolean;
@@ -74,7 +73,6 @@ interface SingleShippingFormState {
     isResettingAddress: boolean;
     isUpdatingShippingData: boolean;
     hasRequestedShippingOptions: boolean;
-    isAccordionOpen: boolean;
 }
 
 function shouldHaveCustomValidation(methodId?: string): boolean {
@@ -97,7 +95,6 @@ class SingleShippingForm extends PureComponent<
         isResettingAddress: false,
         isUpdatingShippingData: false,
         hasRequestedShippingOptions: false,
-        isAccordionOpen: false,
     };
 
     private debouncedUpdateAddress: any;
@@ -167,33 +164,20 @@ class SingleShippingForm extends PureComponent<
         }
     }
 
-    private handleShowShippingOptionsClick = () => {
-        this.setState({ isAccordionOpen: true });
-    };
-
-    private handleCloseShippingOptionsClick = () => {
-        this.setState({ isAccordionOpen: false });
-    }
-
     render(): ReactNode {
         const {
-            cartHasChanged,
-            isInitialValueLoaded,
-            isLoading,
             onUnhandledError,
             methodId,
             shippingAddress,
             consignments,
-            shouldShowOrderComments,
             initialize,
             isValid,
             deinitialize,
             values: { shippingAddress: addressForm },
             isShippingStepPending,
-            shippingFormRenderTimestamp,
         } = this.props;
 
-        const { isResettingAddress, isUpdatingShippingData, hasRequestedShippingOptions, isAccordionOpen } =
+        const { isResettingAddress, hasRequestedShippingOptions } =
             this.state;
 
         const PAYMENT_METHOD_VALID = ['amazonpay'];
@@ -226,68 +210,18 @@ class SingleShippingForm extends PureComponent<
                     )}
                 </Fieldset>
                 
-                {!isAccordionOpen && (
-                    <div className="form-actions">
-                        <button
-                            // MODIFICA: La classe è ora 'button' per uno stile secondario.
-                            // L'aspetto disabilitato (grigio) è dato automaticamente dall'attributo 'disabled'.
-                            className="button"
-                            disabled={!isValid}
-                            onClick={this.handleShowShippingOptionsClick}
-                            type="button"
-                        >
-                            Scegli Metodo di Spedizione
-                        </button>
-                    </div>
-                )}
-                
-                {isAccordionOpen && (
-                    // MODIFICA: Aggiunta la struttura standard dell'accordion con header e body.
-                    <div className="checkout-step optimizedCheckout-checkoutStep checkout-step--billing">
-                        <div className="checkout-step-header">
-                            <h2 className="checkout-step-title">
-                                Metodo di Spedizione
-                            </h2>
-                            <a
-                                className="checkout-step-edit"
-                                href="#"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    this.handleCloseShippingOptionsClick();
-                                }}
-                            >
-                                <span>{'‹ Modifica'}</span>
-                            </a>
-                        </div>
-                        <div className="checkout-step-body">
-                            <ShippingFormFooter
-                                cartHasChanged={cartHasChanged}
-                                isInitialValueLoaded={isInitialValueLoaded}
-                                isLoading={isLoading || isUpdatingShippingData}
-                                isMultiShippingMode={false}
-                                shippingFormRenderTimestamp={shippingFormRenderTimestamp}
-                                shouldDisableSubmit={this.shouldDisableSubmit()}
-                                shouldShowOrderComments={shouldShowOrderComments}
-                                shouldShowShippingOptions={isValid}
-                            />
-                        </div>
-                    </div>
-                )}
+                <div className="form-actions">
+                    <button
+                        className="button button--primary"
+                        disabled={!isValid}
+                        type="submit"
+                    >
+                        Continua
+                    </button>
+                </div>
             </Form>
         );
     }
-
-    private shouldDisableSubmit: () => boolean = () => {
-        const { isLoading, consignments, isValid } = this.props;
-
-        const { isUpdatingShippingData } = this.state;
-
-        if (!isValid) {
-            return false;
-        }
-
-        return isLoading || isUpdatingShippingData || !hasSelectedShippingOptions(consignments) || !isSelectedShippingOptionValid(consignments);
-    };
 
     private handleFieldChange: (name: string) => void = async (name) => {
         const { setFieldValue } = this.props;
