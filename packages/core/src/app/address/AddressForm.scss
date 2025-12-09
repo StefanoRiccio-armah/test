@@ -41,19 +41,50 @@
         }
     }
 
-   .dynamic-form-field--addres2,
-.dynamic-form-field--addressLine2{
-    @include breakpoint("small") {
-        flex-basis: 70%;
+    // address2 → 70%
+    .dynamic-form-field--addres2,
+    .dynamic-form-field--addressLine2 {
+        @include breakpoint("small") {
+            flex-basis: 70%;
+        }
     }
-}
 
-// postalcode → 30%
-.dynamic-form-field--postCode,
-.dynamic-form-field--postalCode,
-.dynamic-form-field--zip {
-    @include breakpoint("small") {
-        flex-basis: 30%;
+    // postalcode → 30%
+    .dynamic-form-field--postCode,
+    .dynamic-form-field--postalCode,
+    .dynamic-form-field--zip {
+        @include breakpoint("small") {
+            flex-basis: 30%;
+        }
     }
-}
+
+    // Codice Fiscale (field_29) → 50%
+    .dynamic-form-field--field_29 {
+        @include breakpoint("small") {
+            flex-basis: 50%;
+        }
+    }
+
+    // Phone → 50% (già incluso sopra, ma lo ribadiamo per chiarezza)
+    .dynamic-form-field--phone {
+        @include breakpoint("small") {
+            flex-basis: 50%;
+        }
+    }
+
+    // Ragione sociale (company) + Partita IVA (field_31) → 50 / 50
+    .dynamic-form-field--company,
+    .dynamic-form-field--field_31 {
+        @include breakpoint("small") {
+            flex-basis: 50%;
+        }
+    }
+
+    // PEC (field_33) + Codice SDI (field_35) → 50 / 50
+    .dynamic-form-field--field_33,
+    .dynamic-form-field--field_35 {
+        @include breakpoint("small") {
+            flex-basis: 50%;
+        }
+    }
 }

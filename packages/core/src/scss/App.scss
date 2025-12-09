@@ -218,11 +218,10 @@ white-space: nowrap !important;
     }
 }
 
-#checkout-shipping-continue{
-    border-radius: 20px;
-    background-color:cyan;
-    color:black;
-    border:cyan;
+.checkbox-billing{
+    display:flex;
+    flex-direction: row;
+    gap:5px;
 }
 
 

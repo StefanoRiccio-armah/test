@@ -27,9 +27,12 @@ import { getShippableItemsCount } from '../shipping';
 import { Button, ButtonVariant } from '../ui/button';
 import { Fieldset, Form } from '../ui/form';
 
+import { hasDeductibleProduct } from '../custom/utils/minsan-checker';
+
+
 import StaticBillingAddress from './StaticBillingAddress';
 
-export type BillingFormValues = AddressFormValues & { orderComment: string };
+export type BillingFormValues = AddressFormValues & { orderComment: string,  wantsInvoice: boolean; };
 
 export interface BillingFormProps {
     methodId?: string;
@@ -63,6 +66,8 @@ const BillingForm = ({
     const customer = getCustomer();
     const config = getConfig();
     const cart = getCart();
+    const shouldShowCodiceFiscale = hasDeductibleProduct(cart);
+
 
     if (!config || !customer || !cart) {
         throw new Error('checkout data is not available');
@@ -107,13 +112,39 @@ const BillingForm = ({
         void handleSelectAddress({});
     };
 
-    return (
+      const handleToggleInvoice = () => {
+        setFieldValue('wantsInvoice', !values.wantsInvoice);
+    };
+
+        const invoiceFieldNames = ['company', 'field_29', 'field_31', 'field_33', 'field_35'];
+
+         const addressFormFieldsForBilling = values.wantsInvoice
+        ? editableFormFields
+        : editableFormFields.filter(field => !invoiceFieldNames.includes(field.name));
+
+
+        return (
         <Form autoComplete="on">
             {shouldRenderStaticAddress && billingAddress && (
                 <div className="form-fieldset">
                     <StaticBillingAddress address={billingAddress} />
                 </div>
             )}
+
+            {/* Checkbox "Vuoi la fattura?" */}
+            <Fieldset>
+                <div className="checkbox-billing">
+                    <input
+                        id="wantsInvoice"
+                        type="checkbox"
+                        checked={values.wantsInvoice}
+                        onChange={handleToggleInvoice}
+                    />
+                    <label htmlFor="wantsInvoice">
+                        Vuoi la fattura?
+                    </label>
+                </div>
+            </Fieldset>
 
             <Fieldset id="checkoutBillingAddress" ref={addressFormRef}>
                 {hasAddresses && !shouldRenderStaticAddress && (
@@ -136,10 +167,11 @@ const BillingForm = ({
                     <AddressFormSkeleton isLoading={isResettingAddress}>
                         <AddressForm
                             countryCode={values.countryCode}
-                            formFields={editableFormFields}
+                            formFields={addressFormFieldsForBilling}
                             setFieldValue={setFieldValue}
                             shouldShowSaveAddress={!isGuest}
                             type={AddressType.Billing}
+                             shouldShowCodiceFiscale={shouldShowCodiceFiscale}
                         />
                     </AddressFormSkeleton>
                 )}
@@ -168,13 +200,14 @@ export default withLanguage(
         handleSubmit: (values, { props: { onSubmit } }) => {
             onSubmit(values);
         },
-        mapPropsToValues: ({ getFields, customerMessage, billingAddress }) => ({
-            ...mapAddressToFormValues(
-                getFields(billingAddress && billingAddress.countryCode),
-                billingAddress,
-            ),
-            orderComment: customerMessage,
-        }),
+mapPropsToValues: ({ getFields, customerMessage, billingAddress }) => ({
+    ...mapAddressToFormValues(
+        getFields(billingAddress && billingAddress.countryCode),
+        billingAddress,
+    ),
+    orderComment: customerMessage,
+    wantsInvoice: false, // di default non vuole fattura
+}),
         isInitialValid: ({ billingAddress, getFields, language }) =>
             !!billingAddress &&
             getAddressFormFieldsValidationSchema({

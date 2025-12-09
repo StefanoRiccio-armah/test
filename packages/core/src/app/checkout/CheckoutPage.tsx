@@ -51,6 +51,8 @@ import type CheckoutSupport from './CheckoutSupport';
 import { BillingStep, CartSummary, CheckoutHeader, CustomerStep, PaymentStep, ShippingStep, ShippingMethodStep } from './components';
 import { mapCheckoutComponentErrorMessage } from './mapErrorMessage';
 import mapToCheckoutProps from './mapToCheckoutProps';
+import { hasDeductibleProduct } from '../custom/utils/minsan-checker';
+
 
 export interface CheckoutProps {
     checkoutId: string;
@@ -146,6 +148,8 @@ const Checkout = ({
         isSubscribed: false,
         buttonConfigs: [],
     });
+
+    const shouldShowCodiceFiscale = hasDeductibleProduct(cart);
 
     const stepsRef = useRef<CheckoutStepStatus[]>(steps);
     const embeddedMessenger = useRef<EmbeddedCheckoutMessenger>();
