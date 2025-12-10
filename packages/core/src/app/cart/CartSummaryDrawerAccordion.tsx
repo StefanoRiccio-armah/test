@@ -4,7 +4,7 @@ import React, { type FunctionComponent, memo, useState } from 'react';
 import { withCheckout } from '../checkout';
 
 // Tipi & componenti usati da withRedeemable
-import OrderSummary, {
+import  {
     type OrderSummaryProps,
 } from '../order/OrderSummary';
 import OrderSummaryAccordionContent, {

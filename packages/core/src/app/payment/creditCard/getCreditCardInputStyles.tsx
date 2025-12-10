@@ -1,7 +1,6 @@
 import { noop } from 'lodash';
-import React from 'react';
-// 1. Modifica l'import
-import { createRoot } from 'react-dom/client';
+import React, { useEffect, useRef } from 'react';
+import { createRoot, Root } from 'react-dom/client';
 
 import { getAppliedStyles } from '@bigcommerce/checkout/dom-utils';
 import { FormContext } from '@bigcommerce/checkout/ui';
@@ -30,35 +29,44 @@ export default function getCreditCardInputStyles(
 
     parentContainer.appendChild(container);
 
-    // 2. Crea la root di rendering legata al container temporaneo
-    const root = createRoot(container);
-
     return new Promise((resolve) => {
-        const callbackRef = (element: HTMLInputElement | null) => {
-            if (!element) {
-                return;
-            }
+        let root: Root | null = createRoot(container);
 
-            resolve(getAppliedStyles(element, properties));
+        const MeasureInputStyles: React.FC = () => {
+            const inputRef = useRef<HTMLInputElement>(null);
 
-            // 3. Usa il nuovo metodo unmount
-            root.unmount();
+            useEffect(() => {
+                if (!inputRef.current) return;
 
-            if (container.parentElement) {
-                container.parentElement.removeChild(container);
-            }
+                // Ottieni gli stili richiesti
+                const styles = getAppliedStyles(inputRef.current, properties);
+                resolve(styles);
+
+                // Posticipa l'unmount per evitare warning di React 18
+                setTimeout(() => {
+                    if (root) {
+                        root.unmount();
+                        root = null;
+                    }
+                    if (container.parentElement) {
+                        container.parentElement.removeChild(container);
+                    }
+                }, 0);
+            }, []);
+
+            return (
+                <FormContext.Provider value={{ isSubmitted: true, setSubmitted: noop }}>
+                    <FormFieldContainer hasError={type === CreditCardInputStylesType.Error}>
+                        <TextInput
+                            appearFocused={type === CreditCardInputStylesType.Focus}
+                            ref={inputRef}
+                        />
+                    </FormFieldContainer>
+                </FormContext.Provider>
+            );
         };
 
-        // 4. Renderizza il componente usando la root
-        root.render(
-            <FormContext.Provider value={{ isSubmitted: true, setSubmitted: noop }}>
-                <FormFieldContainer hasError={type === CreditCardInputStylesType.Error}>
-                    <TextInput
-                        appearFocused={type === CreditCardInputStylesType.Focus}
-                        ref={callbackRef}
-                    />
-                </FormFieldContainer>
-            </FormContext.Provider>,
-        );
+        // Monta il componente misuratore
+        root.render(<MeasureInputStyles />);
     });
 }

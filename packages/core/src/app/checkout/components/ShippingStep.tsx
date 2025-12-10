@@ -1,7 +1,7 @@
 import type { Cart, Consignment } from '@bigcommerce/checkout-sdk/essential';
 import React, { lazy } from 'react';
 
-import { TranslatedString } from '@bigcommerce/checkout/locale';
+
 import { AddressFormSkeleton, LazyContainer } from '@bigcommerce/checkout/ui';
 
 import { retry } from '../../common/utility';

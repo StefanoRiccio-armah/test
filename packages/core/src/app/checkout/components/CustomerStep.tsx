@@ -1,6 +1,6 @@
 import React, { lazy } from 'react';
 
-import { TranslatedString } from '@bigcommerce/checkout/locale';
+
 import { LazyContainer } from '@bigcommerce/checkout/ui';
 
 import { retry } from '../../common/utility';

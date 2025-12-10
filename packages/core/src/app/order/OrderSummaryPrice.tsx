@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { type FC, type ReactNode, useCallback, useEffect, useState } from 'react';
+import React, { type FC, type ReactNode,  useEffect, useState,useRef } from 'react';
 import { CSSTransition } from 'react-transition-group';
 
 import { useCheckout, useThemeContext } from '@bigcommerce/checkout/contexts';
@@ -71,19 +71,14 @@ const OrderSummaryPrice: FC<OrderSummaryPriceProps> = ({
     const displayValue = getDisplayValue(amount, zeroLabel);
     const isActionDisabled = isSubmittingOrder();
 
+    const nodeRef = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
         setHighlight(amount !== previousAmount);
         setPreviousAmount(amount);
     }, [ amount ]);
 
-    const handleTransitionEnd: (node: HTMLElement, done: () => void) => void = useCallback((node, done) => {
-        node.addEventListener('animationend', ({ target }) => {
-            if (target === node) {
-                setHighlight(false);
-                done();
-            }
-        });
-    }, [ setHighlight ]);
+
 
     const handleActionTrigger = () => {
         if (isActionDisabled || !onActionTriggered) {
@@ -96,10 +91,13 @@ const OrderSummaryPrice: FC<OrderSummaryPriceProps> = ({
     return (
         <div data-test={testId}>
             <CSSTransition
-                addEndListener={handleTransitionEnd}
+             
                 classNames="changeHighlight"
                 in={highlight}
-                timeout={{}}
+                     timeout={500}
+                        unmountOnExit
+
+                   nodeRef={nodeRef}
             >
                 <div
                     aria-live="polite"

@@ -91,12 +91,14 @@
 
 /* Aggiungi questi stili in un file CSS globale o nel tuo styled-components */
 .cart-summary-accordion {
-    border: 1px solid var(--gray-300);
+    border: 1px solid #24849E;
     border-radius: 8px;
     overflow: hidden;
     background: var(--white);
     margin-bottom: 1rem;
+   
 }
+
 
 .accordion-header {
     display: flex;
@@ -174,6 +176,8 @@
 
 .orderSummaryAccordionContent {
     padding: 1rem 1.25rem 1.25rem;
+    border:#24849E !important; 
+    box-shadow: 0 4px 12px rgba(36, 132, 158, 0.25);
 }
 
 .orderSummaryAccordionHeader {
@@ -224,4 +228,37 @@ white-space: nowrap !important;
     gap:5px;
 }
 
+.button--primary{
+    background-color: #24849E;
+    border-color: #24849E;
+}
 
+.optimizedCheckout-headingPrimary{
+    color:#24849E;
+}
+
+.checkout-view-header{
+    border-bottom-color: #24849E !important;
+}
+
+.optimizedCheckout-orderSummary{
+    border-color: #24849E !important;
+}
+
+#checkout-payment-continue{
+    background-color: #24849E;
+    border-color: #24849E;
+}
+
+button[data-test="step-edit-button"] {
+    background-color: #ffffff !important; /* Sfondo bianco */
+    color: #000000 !important;             /* Colore del testo (usa il tuo colore primario) */
+    border: 1px solid #24849E !important;   /* Bordo con il tuo colore primario */
+}
+
+/*
+ * Stile per quando il mouse passa sopra il pulsante "Modifica"
+ */
+button[data-test="step-edit-button"]:hover {
+    background-color: #f2f2f2 !important; /* Un grigio molto chiaro per l'effetto hover */
+}

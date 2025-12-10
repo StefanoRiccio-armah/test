@@ -5,6 +5,14 @@
     margin-right: -0.5 * $floating-form-field-spacing;
 }
 
+.optimizedCheckout-form-input{
+    background-color:#f7f7f7 !important;
+}
+
+.optimizedCheckout-form-select{
+    background-color:#f7f7f7 !important;
+}
+
 .checkout-address {
     display: flex;
     flex-flow: row wrap;
@@ -58,19 +66,6 @@
         }
     }
 
-    // Codice Fiscale (field_29) → 50%
-    .dynamic-form-field--field_29 {
-        @include breakpoint("small") {
-            flex-basis: 50%;
-        }
-    }
-
-    // Phone → 50% (già incluso sopra, ma lo ribadiamo per chiarezza)
-    .dynamic-form-field--phone {
-        @include breakpoint("small") {
-            flex-basis: 50%;
-        }
-    }
 
     // Ragione sociale (company) + Partita IVA (field_31) → 50 / 50
     .dynamic-form-field--company,
@@ -86,5 +81,22 @@
         @include breakpoint("small") {
             flex-basis: 50%;
         }
+    }
+}
+
+
+
+.invoice-section {
+  background-color: transparent;
+    border: 1px solid #e6e6e6;
+    border-radius: 5px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+
+    // Rimuove il margine inferiore dell'ultimo campo all'interno della sezione
+    // per una migliore spaziatura interna.
+    .form-field:last-child {
+        margin-bottom: 0;
     }
 }

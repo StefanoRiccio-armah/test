@@ -123,13 +123,14 @@ const CheckoutStep = ({
         }, delay);
     };
 
-    const handleTransitionEnd = (node: HTMLElement, done: () => void): void => {
+   {/* const handleTransitionEnd = (node: HTMLElement, done: () => void): void => {
         node.addEventListener('transitionend', ({ target }) => {
             if (target === node) {
                 done();
             }
         });
     };
+    */}
 
     const onAnimationEnd = useCallback((): void => {
         if (!isActive) {

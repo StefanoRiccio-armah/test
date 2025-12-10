@@ -1,4 +1,4 @@
-// File: packages/core/src/app/checkout/CheckoutPage.tsx (Versione Completa, Corretta e Funzionante)
+// File: packages/core/src/app/checkout/CheckoutPage.tsx
 
 import {
     type Address,
@@ -51,7 +51,7 @@ import type CheckoutSupport from './CheckoutSupport';
 import { BillingStep, CartSummary, CheckoutHeader, CustomerStep, PaymentStep, ShippingStep, ShippingMethodStep } from './components';
 import { mapCheckoutComponentErrorMessage } from './mapErrorMessage';
 import mapToCheckoutProps from './mapToCheckoutProps';
-import { hasDeductibleProduct } from '../custom/utils/minsan-checker';
+
 
 
 export interface CheckoutProps {
@@ -149,8 +149,8 @@ const Checkout = ({
         buttonConfigs: [],
     });
 
-    const shouldShowCodiceFiscale = hasDeductibleProduct(cart);
 
+     const [isBillingFormSubmitted, setIsBillingFormSubmitted] = useState(false); // <-- AGGIUNGI QUESTA RIGA
     const stepsRef = useRef<CheckoutStepStatus[]>(steps);
     const embeddedMessenger = useRef<EmbeddedCheckoutMessenger>();
     const stateRef = useRef<{
@@ -184,22 +184,32 @@ const Checkout = ({
         }
     }, [state.activeStepType, error, clearError]);
 
-    const navigateToNextIncompleteStep = useCallback((options?: { isDefault?: boolean }): void => {
-        const activeStepIndex = findIndex(stepsRef.current, { isActive: true });
-        const activeStep = activeStepIndex >= 0 && stepsRef.current[activeStepIndex];
+const navigateToNextIncompleteStep = useCallback((options?: { isDefault?: boolean }): void => {
+    const { activeStepType } = stateRef.current;
 
-        if (!activeStep) {
-            return;
-        }
+    // prendi solo gli step richiesti nell’ordine giusto
+    const orderedSteps = stepsRef.current.filter(step => step.isRequired);
 
-        const previousStep = stepsRef.current[Math.max(activeStepIndex - 1, 0)];
+    const currentIndex = activeStepType
+        ? findIndex(orderedSteps, { type: activeStepType })
+        : -1;
 
-        if (previousStep) {
-            analyticsTracker.trackStepCompleted(previousStep.type);
-        }
+    // prossimo step dopo quello attuale
+    const nextStep =
+        orderedSteps[currentIndex + 1] ??
+        orderedSteps[currentIndex]; // fallback, nel dubbio resta sull’ultimo
 
-        navigateToStep(activeStep.type, options);
-    }, [analyticsTracker, navigateToStep]);
+    if (!nextStep) {
+        return;
+    }
+
+    // tracci lo step precedente come completato
+    if (activeStepType) {
+        analyticsTracker.trackStepCompleted(activeStepType);
+    }
+
+    navigateToStep(nextStep.type, options);
+}, [analyticsTracker, navigateToStep]);
 
     const handleToggleMultiShipping = useCallback((): void => {
         setState((prevState) => ({ ...prevState, isMultiShippingMode: !prevState.isMultiShippingMode }));
@@ -239,6 +249,8 @@ const Checkout = ({
     const handleCartChangedError = useCallback((): void => {
         navigateToStep(CheckoutStepType.Shipping);
     }, [navigateToStep]);
+
+
 
     const handleConsignmentsUpdated = ({ data }: CheckoutSelectors): void => {
         const { hasSelectedShippingOptions: prevHasSelectedShippingOptions, activeStepType, defaultStepType } =
@@ -296,14 +308,26 @@ const Checkout = ({
         setState(prevState => ({ ...prevState, error }));
     }, []);
 
-    const handleEditStep = useCallback((type: CheckoutStepType): void => {
-        navigateToStep(type);
-    }, [navigateToStep]);
+const handleEditStep = useCallback((type: CheckoutStepType): void => {
+    // Se l'utente sta modificando lo step di fatturazione, resettiamo il nostro stato
+    // per permettere al form di riaprirsi.
+    if (type === CheckoutStepType.Billing) {
+        setIsBillingFormSubmitted(false);
+    }
+
+    navigateToStep(type);
+}, [navigateToStep]);
 
     const handleReady = useCallback((): void => {
         navigateToNextIncompleteStep({ isDefault: true });
     }, [navigateToNextIncompleteStep]);
 
+    const handleBillingContinue = useCallback((): void => {
+        setIsBillingFormSubmitted(true);
+        // Tracciamo il completamento ma non navighiamo via
+        analyticsTracker.trackStepCompleted(CheckoutStepType.Billing);
+    }, [analyticsTracker]);
+    
     const handleNewsletterSubscription = useCallback((subscribed: boolean): void => {
         setState(prevState => ({ ...prevState, isSubscribed: subscribed }));
     }, []);
@@ -342,7 +366,7 @@ const Checkout = ({
         setState(prev => ({ ...prev, isBillingSameAsShipping }));
         navigateToStep(CheckoutStepType.ShippingMethod);
     }, [navigateToStep]);
-    
+
     const handleShippingMethodNextStep = useCallback((): void => {
         navigateToStep(CheckoutStepType.Billing);
     }, [navigateToStep]);
@@ -372,7 +396,6 @@ const Checkout = ({
         setState(prevState => ({ ...prevState, isMultiShippingMode: value }));
     }, []);
 
-    // MODIFICA: La firma della funzione torna ad accettare UN solo argomento
     const renderStep = (step: CheckoutStepStatus): ReactNode => {
         const {
             customerViewType = isGuestEnabled ? CustomerViewType.Guest : CustomerViewType.Login,
@@ -443,7 +466,7 @@ const Checkout = ({
             case CheckoutStepType.Billing:
                 return <BillingStep
                     billingAddress={billingAddress}
-                    navigateNextStep={navigateToNextIncompleteStep}
+                    navigateNextStep={handleBillingContinue}
                     onEdit={handleEditStep}
                     key={step.type}
                     onExpanded={handleExpanded}
@@ -607,21 +630,21 @@ const Checkout = ({
                                 onWalletButtonClick={handleWalletButtonClick}
                             />
 
-                            <ol className="checkout-steps">
+                             <ol className="checkout-steps">
                                 {(() => {
                                     const allSteps: CheckoutStepStatus[] = [];
                                     const originalSteps = stepsRef.current;
 
                                     originalSteps.forEach(step => {
                                         allSteps.push(step);
-                                        
+
                                         if (step.type === CheckoutStepType.Shipping) {
                                             allSteps.push({
                                                 type: CheckoutStepType.ShippingMethod,
                                                 isComplete: hasSelectedShippingOptions(consignments || []),
                                                 isEditable: true,
                                                 isRequired: true,
-                                                isActive: false, 
+                                                isActive: false,
                                                 isBusy: isPending,
                                             });
                                         }
@@ -630,27 +653,55 @@ const Checkout = ({
                                     return allSteps
                                         .filter((step) => step.isRequired)
                                         .map((step) => {
-                                            // L'errore era qui. `renderStep` viene chiamato sul risultato della mappatura.
-                                            // La `step` che passiamo è quella del ciclo `map`, non una globale.
+                                            const { activeStepType } = state;
+                                            const currentStepType = step.type;
+
+                                            const isActive = (() => {
+                                                // 1. LOGICA ORIGINALE PER CUSTOMER E SHIPPING (INVARIATA)
+                                                if (
+                                                    currentStepType === CheckoutStepType.Customer ||
+                                                    currentStepType === CheckoutStepType.Shipping
+                                                ) {
+                                                    return !activeStepType || activeStepType === CheckoutStepType.Customer || activeStepType === CheckoutStepType.Shipping;
+                                                }
+
+                                                // 2. LOGICA MODIFICATA PER BILLING E PAYMENT
+                                                if (
+                                                    currentStepType === CheckoutStepType.Billing ||
+                                                    currentStepType === CheckoutStepType.Payment
+                                                ) {
+                                                    // Se siamo nello step di Fatturazione o Pagamento...
+                                                    const isBillingOrPaymentStep = activeStepType === CheckoutStepType.Billing || activeStepType === CheckoutStepType.Payment;
+
+                                                    if (!isBillingOrPaymentStep) return false;
+
+                                                    // Se lo step corrente è BILLING, è "attivo" (mostra il form) SOLO se non è ancora stato sottomesso.
+                                                    if (currentStepType === CheckoutStepType.Billing) {
+                                                        return !isBillingFormSubmitted;
+                                                    }
+
+                                                    // Se lo step corrente è PAYMENT, è sempre attivo durante questa fase.
+                                                    if (currentStepType === CheckoutStepType.Payment) {
+                                                        return true;
+                                                    }
+                                                }
+
+                                                // 3. LOGICA ORIGINALE DI DEFAULT (INVARIATA)
+                                                return activeStepType === currentStepType;
+                                            })();
+
+                                            // Un passo è completo o se lo era già, o se abbiamo appena sottomesso il form di fatturazione
+                                            const isComplete = (currentStepType === CheckoutStepType.Billing)
+                                                ? step.isComplete || isBillingFormSubmitted
+                                                : step.isComplete;
+
                                             const newStepProps = {
                                                 ...step,
-                                                isActive: (() => {
-                                                    const { activeStepType } = state;
-                                                    const currentStepType = step.type;
-
-                                                    if (
-                                                        currentStepType === CheckoutStepType.Customer ||
-                                                        currentStepType === CheckoutStepType.Shipping
-                                                    ) {
-                                                        return !activeStepType || activeStepType === CheckoutStepType.Customer || activeStepType === CheckoutStepType.Shipping;
-                                                    }
-                                                    
-                                                    return activeStepType === currentStepType;
-                                                })(),
+                                                isActive,
+                                                isComplete, // Usiamo il valore calcolato
                                                 isBusy: isPending,
                                             };
-                                            
-                                            // Passiamo l'oggetto `step` appena costruito e completo a renderStep.
+
                                             return renderStep(newStepProps);
                                         });
                                 })()}

@@ -87,7 +87,7 @@ const CheckoutStepHeader: FunctionComponent<CheckoutStepHeaderProps> = ({
                         className={classNames({ 'body-regular': themeV2 })}
                         size={ButtonSize.Tiny}
                         testId="step-edit-button"
-                        variant={ButtonVariant.Secondary}
+                        variant={ButtonVariant.Primary}
                     >
                         <TranslatedString id="common.edit_action" />
                     </Button>

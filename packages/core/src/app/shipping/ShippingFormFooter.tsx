@@ -8,7 +8,7 @@ import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { OrderComments } from '../orderComments';
 import { Alert, AlertType } from '../ui/alert';
 import { Button, ButtonVariant } from '../ui/button';
-import { Fieldset, Legend } from '../ui/form';
+import { Fieldset } from '../ui/form';
 
 import { ShippingOptions } from './shippingOption';
 

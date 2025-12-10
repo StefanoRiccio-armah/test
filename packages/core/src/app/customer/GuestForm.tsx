@@ -1,6 +1,5 @@
 import classNames from 'classnames';
 import { type FieldProps, type FormikProps, withFormik } from 'formik';
-// Riga modificata: aggiunto 'useState' agli import di React
 import React, { type FunctionComponent, memo, type ReactNode, useCallback, useEffect, useState } from 'react';
 import { object, string } from 'yup';
 
@@ -8,8 +7,7 @@ import { useCheckout, useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString, withLanguage, type WithLanguageProps } from '@bigcommerce/checkout/locale';
 import { PayPalFastlaneWatermark } from '@bigcommerce/checkout/paypal-fastlane-integration';
 
-import { getPrivacyPolicyValidationSchema, PrivacyPolicyField } from '../privacyPolicy';
-//import { Button, ButtonVariant } from '../ui/button';
+
 import { BasicFormField, Fieldset, Form, Legend } from '../ui/form';
 
 import EmailField from './EmailField';
@@ -58,7 +56,6 @@ const GuestForm: FunctionComponent<
     onShowLogin,
     privacyPolicyUrl,
     requiresMarketingConsent,
-    isExpressPrivacyPolicy,
     isFloatingLabelEnabled,
     shouldShowEmailWatermark,
     setFieldValue,
@@ -74,17 +71,11 @@ const GuestForm: FunctionComponent<
     const { themeV2 } = useThemeContext();
     const config = getConfig();
 
-    // NUOVA LOGICA: Stato per tracciare l'interazione dell'utente.
-    // Inizia come 'false' e diventa 'true' solo quando l'utente digita.
-    // Viene resettato a 'false' ogni volta che il componente si rimonta.
     const [hasUserTyped, setHasUserTyped] = useState(false);
 
-    // BLOCCO useEffect MODIFICATO
     useEffect(() => {
         const isEmailValid = !!formValues.email && !formErrors.email;
 
-        // CONDIZIONE CHIAVE: Il submit parte solo se l'utente ha GIÀ digitato
-        // E l'email risultante è valida.
         if (!hasUserTyped || !isEmailValid) {
             return;
         }
@@ -92,17 +83,13 @@ const GuestForm: FunctionComponent<
         const timerId = setTimeout(() => {
             console.log('Debounced submit innescato dopo interazione utente:', formValues.email);
             handleSubmit();
-        }, 5000);
+        }, 3000);
 
         return () => {
             clearTimeout(timerId);
         };
-    // Aggiungiamo 'hasUserTyped' all'array delle dipendenze.
     }, [formValues.email, formErrors.email, handleSubmit, hasUserTyped]);
 
-    // NUOVA FUNZIONE: Questo handler si attiva ad ogni cambiamento nell'input email.
-    // Esegue due azioni: aggiorna il form (tramite la prop) e imposta il nostro
-    // stato di interazione a 'true'.
     const handleEmailChange = useCallback((email: string) => {
         onChangeEmail(email);
         setHasUserTyped(true);
@@ -150,7 +137,6 @@ const GuestForm: FunctionComponent<
             >
                 <div className="customerEmail-container">
                     <div className="customerEmail-body">
-                        {/* MODIFICA: Usiamo il nostro nuovo handler 'handleEmailChange' */}
                         <EmailField
                             isFloatingLabelEnabled={isFloatingLabelEnabled}
                             onChange={handleEmailChange}
@@ -183,11 +169,15 @@ const GuestForm: FunctionComponent<
                     </div>
                 </div>
 
+                {/* LA SOLUZIONE È QUI: rimossa la condizione "!isExpressPrivacyPolicy" */}
                 {privacyPolicyUrl && (
-                    <PrivacyPolicyField
-                        isExpressPrivacyPolicy={isExpressPrivacyPolicy}
-                        url={privacyPolicyUrl}
-                    />
+                    <p className="privacy-policy-disclaimer">
+                        *Facendo clic su Continua, accetti la nostra{' '}
+                        <a href={privacyPolicyUrl} rel="noopener noreferrer" target="_blank">
+                            Informativa sulla privacy
+                        </a>
+                        .
+                    </p>
                 )}
 
                 {checkoutButtons}
@@ -201,30 +191,18 @@ export default withLanguage(
         mapPropsToValues: ({ email = '', defaultShouldSubscribe = false, requiresMarketingConsent }) => ({
             email,
             shouldSubscribe: getShouldSubscribeValue(requiresMarketingConsent, defaultShouldSubscribe),
-            privacyPolicy: false,
         }),
         handleSubmit: (values, { props: { onContinueAsGuest } }) => {
             console.log('GuestForm onContinueAsGuest', values);
             onContinueAsGuest(values);
         },
-        validationSchema: ({ language, privacyPolicyUrl, isExpressPrivacyPolicy }: GuestFormProps & WithLanguageProps) => {
+        validationSchema: ({ language }: GuestFormProps & WithLanguageProps) => {
             const email = string()
                 .email(language.translate('customer.email_invalid_error'))
                 .max(256)
                 .required(language.translate('customer.email_required_error'));
-
-            const baseSchema = object({ email });
-
-            if (privacyPolicyUrl && !isExpressPrivacyPolicy) {
-                return baseSchema.concat(
-                    getPrivacyPolicyValidationSchema({
-                        isRequired: !!privacyPolicyUrl,
-                        language,
-                    }),
-                );
-            }
-
-            return baseSchema;
+            
+            return object({ email });
         },
     })(memo(GuestForm)),
 );

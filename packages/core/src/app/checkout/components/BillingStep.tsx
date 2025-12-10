@@ -1,7 +1,5 @@
 import { type Address } from '@bigcommerce/checkout-sdk/essential';
 import React, { lazy } from 'react';
-
-import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { AddressFormSkeleton, LazyContainer } from '@bigcommerce/checkout/ui';
 
 import { type BillingProps, StaticBillingAddress } from '../../billing';
@@ -39,7 +37,7 @@ const BillingStep: React.FC<BillingStepProps> = ({
     return (
         <CheckoutStep
             {...step}
-            heading={<TranslatedString id="billing.billing_heading" />}
+            heading="Pagamento e Fatturazione"
             key={step.type}
             onEdit={onEdit}
             onExpanded={onExpanded}

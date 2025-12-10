@@ -160,11 +160,11 @@ export default withLanguage(
       onSubmit(values);
     },
     mapPropsToValues: ({
-         getFields,
-         shippingAddress,
-         isBillingSameAsShipping,
-         customerMessage,
-       }) => ({
+      getFields,
+      shippingAddress,
+      isBillingSameAsShipping,
+      customerMessage,
+    }) => ({
       billingSameAsShipping: isBillingSameAsShipping,
       orderComment: customerMessage,
       shippingAddress: mapAddressToFormValues(
@@ -172,34 +172,29 @@ export default withLanguage(
         shippingAddress,
       ),
     }),
-    isInitialValid: ({ shippingAddress, getFields, language }) =>
-      !!shippingAddress &&
-      getAddressFormFieldsValidationSchema({
-        language,
-        formFields: getFields(shippingAddress.countryCode),
-      }).isValidSync(shippingAddress),
+    validateOnMount: true, // ✅ valida subito i valori iniziali
     validationSchema: ({
-         language,
-         getFields,
-         methodId,
-       }: SingleShippingFormProps & WithLanguageProps) =>
+      language,
+      getFields,
+      methodId,
+    }: SingleShippingFormProps & WithLanguageProps) =>
       methodId
         ? object({
-          shippingAddress: lazy<Partial<AddressFormValues>>((formValues) =>
-            getCustomFormFieldsValidationSchema({
-              translate: getTranslateAddressError(language),
-              formFields: getFields(formValues && formValues.countryCode),
-            }),
-          ),
-        })
+            shippingAddress: lazy<Partial<AddressFormValues>>((formValues) =>
+              getCustomFormFieldsValidationSchema({
+                translate: getTranslateAddressError(language),
+                formFields: getFields(formValues && formValues.countryCode),
+              }),
+            ),
+          })
         : object({
-          shippingAddress: lazy<Partial<AddressFormValues>>((formValues) =>
-            getAddressFormFieldsValidationSchema({
-              language,
-              formFields: getFields(formValues && formValues.countryCode),
-            }),
-          ),
-        }),
+            shippingAddress: lazy<Partial<AddressFormValues>>((formValues) =>
+              getAddressFormFieldsValidationSchema({
+                language,
+                formFields: getFields(formValues && formValues.countryCode),
+              }),
+            ),
+          }),
     enableReinitialize: false,
   })(StripeShippingForm),
 );

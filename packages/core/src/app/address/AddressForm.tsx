@@ -29,6 +29,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
     setFieldValue = noop,
     onChange = noop,
     type,
+    isFloatingLabelEnabled: isFloatingLabelEnabledOverride,
 }) => {
     const { language } = useLocale();
     const { themeV2 } = useThemeContext();
@@ -43,9 +44,17 @@ const AddressForm: React.FC<AddressFormProps> = ({
         (type === AddressType.Billing ? getBillingCountries() : getShippingCountries()) ||
         EMPTY_ARRAY;
     const googleMapsApiKey = config?.checkoutSettings.googleMapsApiKey || '';
+
+    // Valore di default globale
     const isFloatingLabelEnabledValue = config
         ? isFloatingLabelEnabled(config.checkoutSettings)
         : false;
+
+    // Determina se usare l'override o il valore globale
+    const finalIsFloatingLabelEnabled = typeof isFloatingLabelEnabledOverride === 'boolean'
+        ? isFloatingLabelEnabledOverride
+        : isFloatingLabelEnabledValue;
+
     const countriesWithAutocomplete = ['US', 'CA', 'AU', 'NZ', 'GB'];
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -121,157 +130,135 @@ const AddressForm: React.FC<AddressFormProps> = ({
         [language],
     );
 
+    const renderFormField = (field: FormField) => {
+        const addressFieldName = field.name;
+        const translatedPlaceholderId = PLACEHOLDER[addressFieldName];
+
+        if (type === AddressType.Shipping) {
+            if (
+                addressFieldName === 'company' ||
+                addressFieldName === 'field_29' ||
+                addressFieldName === 'field_31' ||
+                addressFieldName === 'field_33' ||
+                addressFieldName === 'field_35'
+            ) {
+                return null;
+            }
+        }
+
+        if (type === AddressType.Billing && addressFieldName === 'field_29') {
+            if (shouldShowCodiceFiscale) {
+                return (
+                    <DynamicFormField
+                        autocomplete={AUTOCOMPLETE[field.name]}
+                        extraClass={`dynamic-form-field--${getAddressFormFieldLegacyName(
+                            addressFieldName,
+                        )}`}
+                        field={field}
+                        inputId={getAddressFormFieldInputId(addressFieldName)}
+                        isFloatingLabelEnabled={finalIsFloatingLabelEnabled}
+                        key={`${field.id}-${field.name}`}
+                        label={
+                            field.custom ? (
+                                field.label
+                            ) : (
+                                <TranslatedString id={LABEL[field.name]} />
+                            )
+                        }
+                        onChange={handleDynamicFormFieldChange(addressFieldName)}
+                        parentFieldName={
+                            field.custom
+                                ? fieldName
+                                    ? `${fieldName}.customFields`
+                                    : 'customFields'
+                                : fieldName
+                        }
+                        placeholder={getPlaceholderValue(
+                            field,
+                            translatedPlaceholderId,
+                        )}
+                        themeV2={themeV2}
+                    />
+                );
+            }
+
+            return (
+                <div key="codice-fiscale-placeholder" className="form-field">
+                    <label className="form-label optimizedCheckout-form-label">
+                        {field.label}
+                    </label>
+                    <span
+                        style={{
+                            color: 'black',
+                            fontSize: '1.5rem',
+                            display: 'block',
+                        }}
+                    >
+                        ❗ Nel tuo carrello non ci sono prodotti detraibili
+                    </span>
+                </div>
+            );
+        }
+
+        if (
+            addressFieldName === 'address1' &&
+            googleMapsApiKey &&
+            countryCode &&
+            countriesWithAutocomplete.includes(countryCode)
+        ) {
+            return (
+                <GoogleAutocompleteFormField
+                    apiKey={googleMapsApiKey}
+                    countryCode={countryCode}
+                    field={field}
+                    isFloatingLabelEnabled={finalIsFloatingLabelEnabled}
+                    key={field.id}
+                    nextElement={nextElementRef.current || undefined}
+                    onChange={handleAutocompleteChange}
+                    onSelect={handleAutocompleteSelect}
+                    onToggleOpen={onAutocompleteToggle}
+                    parentFieldName={fieldName}
+                    supportedCountries={countriesWithAutocomplete}
+                />
+            );
+        }
+
+        return (
+            <DynamicFormField
+                autocomplete={AUTOCOMPLETE[field.name]}
+                extraClass={`dynamic-form-field--${getAddressFormFieldLegacyName(
+                    addressFieldName,
+                )}`}
+                field={field}
+                inputId={getAddressFormFieldInputId(addressFieldName)}
+                isFloatingLabelEnabled={finalIsFloatingLabelEnabled}
+                key={`${field.id}-${field.name}`}
+                label={
+                    field.custom ? (
+                        field.label
+                    ) : (
+                        <TranslatedString id={LABEL[field.name]} />
+                    )
+                }
+                onChange={handleDynamicFormFieldChange(addressFieldName)}
+                parentFieldName={
+                    field.custom
+                        ? fieldName
+                            ? `${fieldName}.customFields`
+                            : 'customFields'
+                        : fieldName
+                }
+                placeholder={getPlaceholderValue(field, translatedPlaceholderId)}
+                themeV2={themeV2}
+            />
+        );
+    };
+
     return (
         <>
             <Fieldset>
                 <div className="checkout-address" ref={containerRef}>
-                    {formFields.map((field) => {
-                        const addressFieldName = field.name;
-                        const translatedPlaceholderId = PLACEHOLDER[addressFieldName];
-
-                        //
-                        // LOGICA SHIPPING vs BILLING (campi aziendali / CF)
-                        //
-                        if (type === AddressType.Shipping) {
-                            // In SHIPPING:
-                            // - nascondi sempre company
-                            // - nascondi sempre field_29 (CF)
-            if (
-            addressFieldName === 'company' ||   // Ragione Sociale
-            addressFieldName === 'field_29' ||  // Codice Fiscale
-            addressFieldName === 'field_31' ||  // P.IVA
-            addressFieldName === 'field_33' ||  // PEC
-            addressFieldName === 'field_35'     // Codice SDI
-        ) {
-            return null;
-        }
-    } else if (type === AddressType.Billing) {
-                            // In BILLING:
-                            // company: mostrata normalmente (niente return qui, cade nel render di default)
-                            // field_29: gestito sotto con shouldShowCodiceFiscale
-                        }
-
-                        //
-                        // CODICE FISCALE (field_29) in BILLING
-                        //
-                        if (type === AddressType.Billing && addressFieldName === 'field_29') {
-                            if (shouldShowCodiceFiscale) {
-                                // Mostra il campo di input
-                                return (
-                                    <DynamicFormField
-                                        autocomplete={AUTOCOMPLETE[field.name]}
-                                        extraClass={`dynamic-form-field--${getAddressFormFieldLegacyName(
-                                            addressFieldName,
-                                        )}`}
-                                        field={field}
-                                        inputId={getAddressFormFieldInputId(addressFieldName)}
-                                        isFloatingLabelEnabled={isFloatingLabelEnabledValue}
-                                        key={`${field.id}-${field.name}`}
-                                        label={
-                                            field.custom ? (
-                                                field.label
-                                            ) : (
-                                                <TranslatedString id={LABEL[field.name]} />
-                                            )
-                                        }
-                                        onChange={handleDynamicFormFieldChange(addressFieldName)}
-                                        parentFieldName={
-                                            field.custom
-                                                ? fieldName
-                                                    ? `${fieldName}.customFields`
-                                                    : 'customFields'
-                                                : fieldName
-                                        }
-                                        placeholder={getPlaceholderValue(
-                                            field,
-                                            translatedPlaceholderId,
-                                        )}
-                                        themeV2={themeV2}
-                                    />
-                                );
-                            }
-
-                            // Billing ma non deve essere mostrato come input → tooltip
-                            return (
-                                <div
-                                    key="codice-fiscale-placeholder"
-                                    className="form-field"
-                                >
-                                    <label className="form-label optimizedCheckout-form-label">
-                                        {field.label}
-                                    </label>
-                                    <span
-                                        style={{
-                                            color: 'black',
-                                            fontSize: '1.5rem',
-                                            display: 'block',
-                                        }}
-                                    >
-                                        ❕ Nel tuo carrello non ci sono prodotti detraibili
-                                    </span>
-                                </div>
-                            );
-                        }
-
-                        //
-                        // ADDRESS1 con Google Autocomplete
-                        //
-                        if (
-                            addressFieldName === 'address1' &&
-                            googleMapsApiKey &&
-                            countryCode &&
-                            countriesWithAutocomplete.includes(countryCode)
-                        ) {
-                            return (
-                                <GoogleAutocompleteFormField
-                                    apiKey={googleMapsApiKey}
-                                    countryCode={countryCode}
-                                    field={field}
-                                    isFloatingLabelEnabled={isFloatingLabelEnabledValue}
-                                    key={field.id}
-                                    nextElement={nextElementRef.current || undefined}
-                                    onChange={handleAutocompleteChange}
-                                    onSelect={handleAutocompleteSelect}
-                                    onToggleOpen={onAutocompleteToggle}
-                                    parentFieldName={fieldName}
-                                    supportedCountries={countriesWithAutocomplete}
-                                />
-                            );
-                        }
-
-                        //
-                        // RENDER DI DEFAULT PER TUTTI GLI ALTRI CAMPI
-                        //
-                        return (
-                            <DynamicFormField
-                                autocomplete={AUTOCOMPLETE[field.name]}
-                                extraClass={`dynamic-form-field--${getAddressFormFieldLegacyName(
-                                    addressFieldName,
-                                )}`}
-                                field={field}
-                                inputId={getAddressFormFieldInputId(addressFieldName)}
-                                isFloatingLabelEnabled={isFloatingLabelEnabledValue}
-                                key={`${field.id}-${field.name}`}
-                                label={
-                                    field.custom ? (
-                                        field.label
-                                    ) : (
-                                        <TranslatedString id={LABEL[field.name]} />
-                                    )
-                                }
-                                onChange={handleDynamicFormFieldChange(addressFieldName)}
-                                parentFieldName={
-                                    field.custom
-                                        ? fieldName
-                                            ? `${fieldName}.customFields`
-                                            : 'customFields'
-                                        : fieldName
-                                }
-                                placeholder={getPlaceholderValue(field, translatedPlaceholderId)}
-                                themeV2={themeV2}
-                            />
-                        );
-                    })}
+                    {formFields.map(renderFormField)}
                 </div>
             </Fieldset>
 

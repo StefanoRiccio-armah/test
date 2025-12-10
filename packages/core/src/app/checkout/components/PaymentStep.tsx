@@ -2,7 +2,6 @@ import type { Cart, Consignment } from '@bigcommerce/checkout-sdk/essential';
 import React, { lazy ,type  ReactElement } from 'react';
 
 import type { ErrorLogger } from '@bigcommerce/checkout/error-handling-utils';
-import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { ChecklistSkeleton, LazyContainer } from '@bigcommerce/checkout/ui';
 
 import { retry } from '../../common/utility';
@@ -49,7 +48,6 @@ const PaymentStep = ({
 }: PaymentStepProps): ReactElement => (
     <CheckoutStep
         {...step}
-        heading={<TranslatedString id="payment.payment_heading" />}
         key={step.type}
         onEdit={onEdit}
         onExpanded={onExpanded}

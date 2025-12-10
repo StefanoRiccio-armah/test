@@ -112,18 +112,18 @@ const BillingForm = ({
         void handleSelectAddress({});
     };
 
-      const handleToggleInvoice = () => {
+    const handleToggleInvoice = () => {
         setFieldValue('wantsInvoice', !values.wantsInvoice);
     };
 
-        const invoiceFieldNames = ['company', 'field_29', 'field_31', 'field_33', 'field_35'];
+    const invoiceFieldNames = ['company', 'field_29', 'field_31', 'field_33', 'field_35'];
 
-         const addressFormFieldsForBilling = values.wantsInvoice
-        ? editableFormFields
-        : editableFormFields.filter(field => !invoiceFieldNames.includes(field.name));
+    // Separiamo i campi: quelli per la fattura e quelli normali
+    const regularAddressFields = editableFormFields.filter(field => !invoiceFieldNames.includes(field.name));
+    const invoiceAddressFields = editableFormFields.filter(field => invoiceFieldNames.includes(field.name));
 
 
-        return (
+    return (
         <Form autoComplete="on">
             {shouldRenderStaticAddress && billingAddress && (
                 <div className="form-fieldset">
@@ -146,6 +146,21 @@ const BillingForm = ({
                 </div>
             </Fieldset>
 
+            {/* Sezione Fattura: appare solo se il checkbox è spuntato */}
+            {values.wantsInvoice && (
+                <div className="invoice-section">
+                    <AddressForm
+                        countryCode={values.countryCode}
+                        formFields={invoiceAddressFields} // Passiamo solo i campi della fattura
+                       
+                        setFieldValue={setFieldValue}
+                        shouldShowCodiceFiscale={shouldShowCodiceFiscale}
+                        type={AddressType.Billing}
+                    />
+                </div>
+            )}
+
+
             <Fieldset id="checkoutBillingAddress" ref={addressFormRef}>
                 {hasAddresses && !shouldRenderStaticAddress && (
                     <Fieldset id="billingAddresses">
@@ -167,7 +182,7 @@ const BillingForm = ({
                     <AddressFormSkeleton isLoading={isResettingAddress}>
                         <AddressForm
                             countryCode={values.countryCode}
-                            formFields={addressFormFieldsForBilling}
+                            formFields={regularAddressFields}
                             setFieldValue={setFieldValue}
                             shouldShowSaveAddress={!isGuest}
                             type={AddressType.Billing}
@@ -197,23 +212,19 @@ const BillingForm = ({
 
 export default withLanguage(
     withFormik<BillingFormProps & WithLanguageProps, BillingFormValues>({
-        handleSubmit: (values, { props: { onSubmit } }) => {
-            onSubmit(values);
+   handleSubmit: async (values, { props: { onSubmit, navigateNextStep } }) => {
+          await  onSubmit(values);
+            navigateNextStep();
         },
-mapPropsToValues: ({ getFields, customerMessage, billingAddress }) => ({
-    ...mapAddressToFormValues(
-        getFields(billingAddress && billingAddress.countryCode),
-        billingAddress,
-    ),
-    orderComment: customerMessage,
-    wantsInvoice: false, // di default non vuole fattura
-}),
-        isInitialValid: ({ billingAddress, getFields, language }) =>
-            !!billingAddress &&
-            getAddressFormFieldsValidationSchema({
-                language,
-                formFields: getFields(billingAddress.countryCode),
-            }).isValidSync(billingAddress),
+        mapPropsToValues: ({ getFields, customerMessage, billingAddress }) => ({
+            ...mapAddressToFormValues(
+                getFields(billingAddress && billingAddress.countryCode),
+                billingAddress,
+            ),
+            orderComment: customerMessage,
+            wantsInvoice: false,
+        }),
+        validateOnMount: true,
         validationSchema: ({
             language,
             getFields,

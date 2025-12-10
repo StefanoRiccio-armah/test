@@ -8,7 +8,7 @@ import { preventDefault } from '@bigcommerce/checkout/dom-utils';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { ConfirmationModal } from '@bigcommerce/checkout/ui';
 
-import { Legend } from '../ui/form';
+
 
 import './ShippingHeader.scss';
 
