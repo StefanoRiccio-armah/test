@@ -243,6 +243,7 @@ white-space: nowrap !important;
 
 .optimizedCheckout-orderSummary{
     border-color: #24849E !important;
+       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25) !important;
 }
 
 #checkout-payment-continue{
@@ -262,3 +263,12 @@ button[data-test="step-edit-button"] {
 button[data-test="step-edit-button"]:hover {
     background-color: #f2f2f2 !important; /* Un grigio molto chiaro per l'effetto hover */
 }
+
+.shepple_social_login_wrapper{
+    display:flex !important;
+    justify-content: flex-start !important;
+    justify-self:flex-start !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+}
+

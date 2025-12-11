@@ -7,7 +7,7 @@ import { useCheckout, useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString, withLanguage, type WithLanguageProps } from '@bigcommerce/checkout/locale';
 import { PayPalFastlaneWatermark } from '@bigcommerce/checkout/paypal-fastlane-integration';
 
-
+import { PrivacyPolicyField } from '../privacyPolicy';
 import { BasicFormField, Fieldset, Form, Legend } from '../ui/form';
 
 import EmailField from './EmailField';
@@ -58,6 +58,7 @@ const GuestForm: FunctionComponent<
     requiresMarketingConsent,
     isFloatingLabelEnabled,
     shouldShowEmailWatermark,
+    isExpressPrivacyPolicy,
     setFieldValue,
     handleSubmit,
     values:formValues,
@@ -68,6 +69,7 @@ const GuestForm: FunctionComponent<
             data: { getConfig },
         },
     } = useCheckout();
+    
     const { themeV2 } = useThemeContext();
     const config = getConfig();
 
@@ -126,64 +128,58 @@ const GuestForm: FunctionComponent<
         return onShowLogin();
     };
 
-    return (
-        <Form className="checkout-form" id="checkout-customer-guest" testId="checkout-customer-guest">
-            <Fieldset
-                legend={
-                    <Legend hidden>
-                        <TranslatedString id="customer.guest_customer_text" />
-                    </Legend>
-                }
-            >
-                <div className="customerEmail-container">
-                    <div className="customerEmail-body">
-                        <EmailField
-                            isFloatingLabelEnabled={isFloatingLabelEnabled}
-                            onChange={handleEmailChange}
-                        />
-                        {shouldShowEmailWatermark && <PayPalFastlaneWatermark />}
+return (
+    <Form className="checkout-form" id="checkout-customer-guest" testId="checkout-customer-guest">
+        <Fieldset
+            legend={
+                <Legend hidden>
+                    <TranslatedString id="customer.guest_customer_text" />
+                </Legend>
+            }
+        >
+            <div className="form-body">
+                <EmailField
+                    isFloatingLabelEnabled={isFloatingLabelEnabled}
+                    onChange={handleEmailChange}
+                />
+                {shouldShowEmailWatermark && <PayPalFastlaneWatermark />}
 
-                        {(canSubscribe || requiresMarketingConsent) && (
-                            <div className="subscribe-login-row">
-                                {!isLoading && (
-                                    <p
-                                        className={classNames('customer-login-link-inline', {
-                                            'body-regular': themeV2,
-                                        })}
-                                    >
-                                        <TranslatedString id="customer.login_text" />{' '}
-                                        <a
-                                            data-test="customer-continue-button"
-                                            id="checkout-customer-login"
-                                            onClick={handleLogin}
-                                            role="button"
-                                            tabIndex={0}
-                                        >
-                                            <TranslatedString id="customer.login_action" />
-                                        </a>
-                                    </p>
-                                )}
-                                  <BasicFormField name="shouldSubscribe" render={renderField} />
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* LA SOLUZIONE È QUI: rimossa la condizione "!isExpressPrivacyPolicy" */}
                 {privacyPolicyUrl && (
-                    <p className="privacy-policy-disclaimer">
-                        *Facendo clic su Continua, accetti la nostra{' '}
-                        <a href={privacyPolicyUrl} rel="noopener noreferrer" target="_blank">
-                            Informativa sulla privacy
+                    <PrivacyPolicyField isExpressPrivacyPolicy={isExpressPrivacyPolicy} url={privacyPolicyUrl} />
+                )}
+
+                {!isLoading && (
+                    <p
+                        className={classNames('customer-login-link', {
+                            'body-regular': themeV2,
+                        })}
+                    >
+                        <TranslatedString id="customer.login_text" />{' '}
+                        <a
+                            data-test="customer-continue-button"
+                            id="checkout-customer-login"
+                            onClick={handleLogin}
+                            role="button"
+                            tabIndex={0}
+                        >
+                            <TranslatedString id="customer.login_action" />
                         </a>
-                        .
                     </p>
                 )}
 
-                {checkoutButtons}
-            </Fieldset>
-        </Form>
-    );
+
+                    {checkoutButtons}
+
+
+                {(canSubscribe || requiresMarketingConsent) && (
+                    <div className="form-field">
+                        <BasicFormField name="shouldSubscribe" render={renderField} />
+                    </div>
+                )}
+            </div>
+        </Fieldset>
+    </Form>
+);
 };
 
 export default withLanguage(

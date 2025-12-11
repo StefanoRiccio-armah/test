@@ -74,7 +74,6 @@ export const GuestFormContainer: React.FC<GuestFormContainerProps> = ({
 
     const {
         checkoutSettings: {
-            privacyPolicyUrl,
             requiresMarketingConsent,
             remoteCheckoutProviders: checkoutButtonIds,
             providerWithCustomCheckout,
@@ -84,6 +83,11 @@ export const GuestFormContainer: React.FC<GuestFormContainerProps> = ({
             showNewsletterSignup: canSubscribe,
         },
     } = config;
+
+
+
+        const privacyPolicyUrl="https://www.petroneonline.com/privacy-policy"
+
 
     const customCheckoutProvider = getProviderWithCustomCheckout(providerWithCustomCheckout);
 
