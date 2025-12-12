@@ -242,9 +242,9 @@ $buttonWidthMap: (
 }
 
 .privacy-login-container {
-    display: flex;                      // Attiva il layout Flexbox
-    justify-content: space-between;     // Spinge le due colonne ai lati opposti
-    align-items: flex-start;            // Allinea le colonne in alto
+    display: flex;                      
+    justify-content: space-between;  
+    align-items: flex-start;           
     width: 100%;
 }
 
@@ -252,13 +252,43 @@ $buttonWidthMap: (
 // Questo div raggruppa Privacy Policy e Subscribe
 .first-row {
     display: flex;
-    flex-direction: column;      // Impila i suoi figli (le checkbox) in verticale
-    gap: spacing("base");        // Aggiunge uno spazio pulito tra le due checkbox
+    flex-direction: column;   
+    gap: spacing("base");        
 }
 
 // COLONNA DESTRA: Il link di login
 // Questo stile si applica al paragrafo <p>
 .customer-login-link {
-    margin-bottom: 0; // Previene margini indesiderati che potrebbero scombinare l'allineamento
+    margin-bottom: 0; 
     text-align: right;
+}
+
+.subscribe-login-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+    white-space: nowrap;
+}
+
+.customer-login-link-inline {
+    margin: 0;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .subscribe-login-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        margin-top: 8px;
+        white-space: normal; // evita overflow su schermi piccoli
+    }
+
+    .customer-login-link-inline {
+        margin-top: 0;
+        margin-left: 0;
+        white-space: normal; // permette al testo di andare a capo
+    }
 }

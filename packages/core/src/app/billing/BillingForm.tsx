@@ -151,7 +151,7 @@ const BillingForm = ({
                 <div className="invoice-section">
                     <AddressForm
                         countryCode={values.countryCode}
-                        formFields={invoiceAddressFields} // Passiamo solo i campi della fattura
+                        formFields={invoiceAddressFields}
                        
                         setFieldValue={setFieldValue}
                         shouldShowCodiceFiscale={shouldShowCodiceFiscale}

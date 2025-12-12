@@ -83,7 +83,6 @@ const GuestForm: FunctionComponent<
         }
 
         const timerId = setTimeout(() => {
-            console.log('Debounced submit innescato dopo interazione utente:', formValues.email);
             handleSubmit();
         }, 3000);
 
@@ -191,7 +190,6 @@ export default withLanguage(
             shouldSubscribe: getShouldSubscribeValue(requiresMarketingConsent, defaultShouldSubscribe),
         }),
         handleSubmit: (values, { props: { onContinueAsGuest } }) => {
-            console.log('GuestForm onContinueAsGuest', values);
             onContinueAsGuest(values);
         },
         validationSchema: ({ language }: GuestFormProps & WithLanguageProps) => {

@@ -89,7 +89,7 @@
 }
 
 
-/* Aggiungi questi stili in un file CSS globale o nel tuo styled-components */
+//stile accordion mobile per il summary
 .cart-summary-accordion {
     border: 1px solid #24849E;
     border-radius: 8px;
@@ -203,36 +203,6 @@
 white-space: nowrap !important;
 }
 
-// Stili generali (desktop)
-.subscribe-login-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 10px;
-    white-space: nowrap;
-}
-
-.customer-login-link-inline {
-    margin: 0;
-    white-space: nowrap;
-    cursor: pointer;
-}
-
-@media (max-width: 768px) {
-    .subscribe-login-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 6px;
-        margin-top: 8px;
-        white-space: normal; // evita overflow su schermi piccoli
-    }
-
-    .customer-login-link-inline {
-        margin-top: 0;
-        margin-left: 0;
-        white-space: normal; // permette al testo di andare a capo
-    }
-}
 
 .checkbox-billing{
     display:flex;
@@ -264,16 +234,14 @@ white-space: nowrap !important;
 }
 
 button[data-test="step-edit-button"] {
-    background-color: #ffffff !important; /* Sfondo bianco */
-    color: #000000 !important;             /* Colore del testo (usa il tuo colore primario) */
-    border: 1px solid #24849E !important;   /* Bordo con il tuo colore primario */
+    background-color: #ffffff !important;
+    color: #000000 !important; 
+    border: 1px solid #24849E !important; 
 }
 
-/*
- * Stile per quando il mouse passa sopra il pulsante "Modifica"
- */
+
 button[data-test="step-edit-button"]:hover {
-    background-color: #f2f2f2 !important; /* Un grigio molto chiaro per l'effetto hover */
+    background-color: #f2f2f2 !important;
 }
 
 .shepple_social_login_wrapper{

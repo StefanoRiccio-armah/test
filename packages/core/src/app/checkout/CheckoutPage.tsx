@@ -1,5 +1,3 @@
-// File: packages/core/src/app/checkout/CheckoutPage.tsx
-
 import {
     type Address,
     type Cart,
@@ -150,7 +148,7 @@ const Checkout = ({
     });
 
 
-     const [isBillingFormSubmitted, setIsBillingFormSubmitted] = useState(false); // <-- AGGIUNGI QUESTA RIGA
+    const [isBillingFormSubmitted, setIsBillingFormSubmitted] = useState(false);
     const stepsRef = useRef<CheckoutStepStatus[]>(steps);
     const embeddedMessenger = useRef<EmbeddedCheckoutMessenger>();
     const stateRef = useRef<{
@@ -657,15 +655,12 @@ const handleEditStep = useCallback((type: CheckoutStepType): void => {
                                             const currentStepType = step.type;
 
                                             const isActive = (() => {
-                                                // 1. LOGICA ORIGINALE PER CUSTOMER E SHIPPING (INVARIATA)
                                                 if (
                                                     currentStepType === CheckoutStepType.Customer ||
                                                     currentStepType === CheckoutStepType.Shipping
                                                 ) {
                                                     return !activeStepType || activeStepType === CheckoutStepType.Customer || activeStepType === CheckoutStepType.Shipping;
                                                 }
-
-                                                // 2. LOGICA MODIFICATA PER BILLING E PAYMENT
                                                 if (
                                                     currentStepType === CheckoutStepType.Billing ||
                                                     currentStepType === CheckoutStepType.Payment
@@ -685,8 +680,6 @@ const handleEditStep = useCallback((type: CheckoutStepType): void => {
                                                         return true;
                                                     }
                                                 }
-
-                                                // 3. LOGICA ORIGINALE DI DEFAULT (INVARIATA)
                                                 return activeStepType === currentStepType;
                                             })();
 
@@ -698,7 +691,7 @@ const handleEditStep = useCallback((type: CheckoutStepType): void => {
                                             const newStepProps = {
                                                 ...step,
                                                 isActive,
-                                                isComplete, // Usiamo il valore calcolato
+                                                isComplete,
                                                 isBusy: isPending,
                                             };
 
