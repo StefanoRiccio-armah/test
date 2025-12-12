@@ -42,7 +42,7 @@
 
 
 .customer-login-link {
-    margin-bottom: #{spacing("half") + spacing("third")};
+    margin-bottom: 0;
 }
 
 .stripeCustomerEmail-button {
@@ -239,4 +239,26 @@ $buttonWidthMap: (
     display: inline-block;
     flex-grow: 2;
     height: $container-border-global-size;
+}
+
+.privacy-login-container {
+    display: flex;                      // Attiva il layout Flexbox
+    justify-content: space-between;     // Spinge le due colonne ai lati opposti
+    align-items: flex-start;            // Allinea le colonne in alto
+    width: 100%;
+}
+
+// COLONNA SINISTRA: Contiene le due checkbox
+// Questo div raggruppa Privacy Policy e Subscribe
+.first-row {
+    display: flex;
+    flex-direction: column;      // Impila i suoi figli (le checkbox) in verticale
+    gap: spacing("base");        // Aggiunge uno spazio pulito tra le due checkbox
+}
+
+// COLONNA DESTRA: Il link di login
+// Questo stile si applica al paragrafo <p>
+.customer-login-link {
+    margin-bottom: 0; // Previene margini indesiderati che potrebbero scombinare l'allineamento
+    text-align: right;
 }

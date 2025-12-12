@@ -144,38 +144,40 @@ return (
                 />
                 {shouldShowEmailWatermark && <PayPalFastlaneWatermark />}
 
-                {privacyPolicyUrl && (
-                    <PrivacyPolicyField isExpressPrivacyPolicy={isExpressPrivacyPolicy} url={privacyPolicyUrl} />
-                )}
-
-                {!isLoading && (
-                    <p
-                        className={classNames('customer-login-link', {
-                            'body-regular': themeV2,
-                        })}
-                    >
-                        <TranslatedString id="customer.login_text" />{' '}
-                        <a
-                            data-test="customer-continue-button"
-                            id="checkout-customer-login"
-                            onClick={handleLogin}
-                            role="button"
-                            tabIndex={0}
-                        >
-                            <TranslatedString id="customer.login_action" />
-                        </a>
-                    </p>
-                )}
-
-
-                    {checkoutButtons}
-
-
+               <div className="privacy-login-container">
+                <div className="first-row">
+                    {privacyPolicyUrl && (
+                        <PrivacyPolicyField isExpressPrivacyPolicy={isExpressPrivacyPolicy} url={privacyPolicyUrl} />
+                    )}
+                    
                 {(canSubscribe || requiresMarketingConsent) && (
                     <div className="form-field">
                         <BasicFormField name="shouldSubscribe" render={renderField} />
                     </div>
                 )}
+                </div>
+
+                    {!isLoading && (
+                        <p
+                            className={classNames('customer-login-link', {
+                                'body-regular': themeV2,
+                            })}
+                        >
+                            <TranslatedString id="customer.login_text" />{' '}
+                            <a
+                                data-test="customer-continue-button"
+                                id="checkout-customer-login"
+                                onClick={handleLogin}
+                                role="button"
+                                tabIndex={0}
+                            >
+                                <TranslatedString id="customer.login_action" />
+                            </a>
+                        </p>
+                    )}
+                </div>
+                    {checkoutButtons}
+
             </div>
         </Fieldset>
     </Form>

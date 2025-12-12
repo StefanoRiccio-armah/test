@@ -19,6 +19,7 @@
 .shippingOption-price {
     display: inline-block;
     font-size: fontSize("base");
+      font-weight: bolder;
 }
 
 .shippingOption-img {
@@ -61,6 +62,7 @@
         font-size: inherit;
         line-height: lineHeight("base");
         vertical-align: middle;
+        font-weight: bolder;
     }
 
     .shippingOption-figure,

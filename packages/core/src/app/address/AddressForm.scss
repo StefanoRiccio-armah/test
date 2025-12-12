@@ -84,19 +84,27 @@
     }
 }
 
+.dynamic-form-field.floating-form-field.dynamic-form-field--field_29 {
+    margin-bottom: 0 !important;
+}
 
 
 .invoice-section {
-  background-color: transparent;
-    border: 1px solid #e6e6e6;
+    background-color: transparent;
     border-radius: 5px;
-    padding: 1.5rem;
-    margin-top: 1.5rem;
+    margin-top: 1rem;
     margin-bottom: 1rem;
+    animation: fadeIn 0.5s ease-in-out;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
 
-    // Rimuove il margine inferiore dell'ultimo campo all'interno della sezione
-    // per una migliore spaziatura interna.
-    .form-field:last-child {
-        margin-bottom: 0;
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
