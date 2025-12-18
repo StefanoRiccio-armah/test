@@ -99,6 +99,19 @@
    
 }
 
+.orderSummaryAccordionContent {
+    padding: 1rem 1.25rem 1.25rem;
+    border:#24849E !important; 
+    box-shadow: 0 4px 12px rgba(36, 132, 158, 0.25);
+}
+
+.orderSummaryAccordionHeader {
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
 .cart-header{
     border-bottom-color:#24849E !important;
 }
@@ -111,6 +124,10 @@
     font-weight:bold;
 }
 
+.optimizedCheckout-orderSummary{
+    border-color: #24849E !important;
+       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25) !important;
+}
 
 .accordion-header {
     display: flex;
@@ -170,6 +187,14 @@
     }
 }
 
+.optimizedCheckout-headingPrimary{
+    color:#24849E;
+}
+
+.checkout-view-header{
+    border-bottom-color: #24849E !important;
+}
+
 /* Accessibilità */
 .accordion-header:focus-within {
     outline: 2px solid var(--blue-500);
@@ -186,18 +211,7 @@
     }
 }
 
-.orderSummaryAccordionContent {
-    padding: 1rem 1.25rem 1.25rem;
-    border:#24849E !important; 
-    box-shadow: 0 4px 12px rgba(36, 132, 158, 0.25);
-}
 
-.orderSummaryAccordionHeader {
-    margin-bottom: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-}
 
 .stepHeader-title {
 white-space: nowrap !important;
@@ -215,18 +229,6 @@ white-space: nowrap !important;
     border-color: black;
 }
 
-.optimizedCheckout-headingPrimary{
-    color:#24849E;
-}
-
-.checkout-view-header{
-    border-bottom-color: #24849E !important;
-}
-
-.optimizedCheckout-orderSummary{
-    border-color: #24849E !important;
-       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25) !important;
-}
 
 #checkout-payment-continue{
     background-color: #24849E;
@@ -258,4 +260,21 @@ button[data-test="step-edit-button"]:hover {
 
 .optimizedCheckout-form-label{
      background-color:#f7f7f7 !important;
+}
+
+.optimizedCheckout-form-checklist{
+    border-color:#24849E !important;
+}
+
+
+.form-checklist-item {
+    border-bottom: 1px solid #24849E;
+}
+
+.checkout-step--shipping_method .stepHeader-body {
+
+       @include breakpoint("small") {
+        margin-left: 65px !important;
+       
+    }
 }

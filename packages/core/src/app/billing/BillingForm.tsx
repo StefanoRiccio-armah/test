@@ -4,7 +4,7 @@ import {
 } from '@bigcommerce/checkout-sdk';
 import { type FormikProps, withFormik } from 'formik';
 import React, { type RefObject, useRef, useState } from 'react';
-import { lazy } from 'yup';
+import * as Yup from 'yup';
 
 import { useCheckout, useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString, withLanguage, type WithLanguageProps } from '@bigcommerce/checkout/locale';
@@ -212,8 +212,8 @@ const BillingForm = ({
 
 export default withLanguage(
     withFormik<BillingFormProps & WithLanguageProps, BillingFormValues>({
-   handleSubmit: async (values, { props: { onSubmit, navigateNextStep } }) => {
-          await  onSubmit(values);
+        handleSubmit: async (values, { props: { onSubmit, navigateNextStep } }) => {
+            await onSubmit(values);
             navigateNextStep();
         },
         mapPropsToValues: ({ getFields, customerMessage, billingAddress }) => ({
@@ -230,19 +230,49 @@ export default withLanguage(
             getFields,
             methodId,
         }: BillingFormProps & WithLanguageProps) =>
-            methodId === 'amazonpay'
-                ? lazy<Partial<AddressFormValues>>((values) =>
-                      getCustomFormFieldsValidationSchema({
-                          translate: getTranslateAddressError(language),
-                          formFields: getFields(values && values.countryCode),
-                      }),
-                  )
-                : lazy<Partial<AddressFormValues>>((values) =>
-                      getAddressFormFieldsValidationSchema({
-                          language,
-                          formFields: getFields(values && values.countryCode),
-                      }),
-                  ),
+            Yup.lazy<BillingFormValues>((values) => {
+                let baseSchema: any;
+                
+                if (methodId === 'amazonpay') {
+                    baseSchema = getCustomFormFieldsValidationSchema({
+                        translate: getTranslateAddressError(language),
+                        formFields: getFields(values.countryCode),
+                    });
+                } else {
+                    baseSchema = getAddressFormFieldsValidationSchema({
+                        language,
+                        formFields: getFields(values.countryCode),
+                    });
+                }
+
+                const extendedFields = {
+                    ...baseSchema.fields,
+                    wantsInvoice: Yup.boolean(),
+                    customFields: Yup.object().shape({
+                        field_29: Yup.string().test(
+                            'fiscal-code-or-vat',
+                            'Formato non valido: Codice Fiscale (16 caratteri) o Partita IVA (11 cifre)',
+                            function(value) {
+                                if (!value || value.trim() === '') {
+                                    return true;
+                                }
+
+                                const trimmed = value.trim();
+                                const cfRegex = /^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/;
+                                const pivaRegex = /^([Ii][Tt])?\d{11}$/;
+                                
+                                const isCfValid = cfRegex.test(trimmed);
+                                const isPivaValid = pivaRegex.test(trimmed);
+                                const isValid = isCfValid || isPivaValid;
+                                                                
+                                return isValid;
+                            }
+                        )
+                    })
+                };
+
+                return Yup.object(extendedFields);
+            }),
         enableReinitialize: true,
     })(BillingForm),
 );

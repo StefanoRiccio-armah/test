@@ -2,6 +2,7 @@ import {
     type LineItemMap,
     type ShopperCurrency as ShopperCurrencyType,
     type StoreCurrency,
+    type PaymentMethod
 } from '@bigcommerce/checkout-sdk';
 import React, { type FunctionComponent, type ReactNode } from 'react';
 
@@ -23,6 +24,7 @@ export interface OrderSummaryAccordionContentProps
     total: number;
     storeCurrency: StoreCurrency;
     shopperCurrency: ShopperCurrencyType;
+      selectedPaymentMethod?: PaymentMethod; 
 }
 
 const OrderSummaryAccordionContent: FunctionComponent<OrderSummaryAccordionContentProps> = ({
@@ -33,9 +35,12 @@ const OrderSummaryAccordionContent: FunctionComponent<OrderSummaryAccordionConte
     shopperCurrency,
     items,
     total,
+      selectedPaymentMethod,
     ...orderSummarySubtotalsProps
 }) => {
     const displayInclusiveTax = isTaxIncluded && taxes && taxes.length > 0;
+     const paymentMethodName = selectedPaymentMethod?.config.displayName;
+
 
     const subHeaderText = (
         <OrderModalSummarySubheader
@@ -66,6 +71,7 @@ const OrderSummaryAccordionContent: FunctionComponent<OrderSummaryAccordionConte
                 <OrderSummarySubtotals
                     isTaxIncluded={isTaxIncluded}
                     taxes={taxes}
+                      paymentMethodName={paymentMethodName}
                     {...orderSummarySubtotalsProps}
                 />
                 {additionalLineItems}

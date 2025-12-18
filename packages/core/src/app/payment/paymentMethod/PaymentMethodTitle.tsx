@@ -63,6 +63,12 @@ export function getPaymentMethodTitle(
         // TODO: API could provide the data below so UI can read simply read it.
         // However, I'm not sure how we deal with translation yet. TBC.
         const customTitles: { [key: string]: { logoUrl: string; titleText: string, subtitle?: ReactNode | ((props: any) => ReactNode) } } = {
+                        cod: { // Questo è l'ID per il Contrassegno (Cash on Delivery)
+                logoUrl: '',
+                titleText: methodDisplayName,
+                subtitle: <span style={{ marginTop: '5px', display: 'block' }}>€5.00</span>,
+            },
+
             [PaymentMethodType.CreditCard]: {
                 logoUrl: '',
                 titleText: methodName,

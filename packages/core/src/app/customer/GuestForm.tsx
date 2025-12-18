@@ -63,6 +63,9 @@ const GuestForm: FunctionComponent<
     handleSubmit,
     values:formValues,
     errors:formErrors,
+    // Aggiungiamo 'onContinueAsGuest' e 'email' dalle props principali per usarle nel nuovo useEffect
+    onContinueAsGuest,
+    email,
 }) => {
     const {
         checkoutState: {
@@ -75,6 +78,27 @@ const GuestForm: FunctionComponent<
 
     const [hasUserTyped, setHasUserTyped] = useState(false);
 
+    // --- INIZIO SOLUZIONE: SUBMIT AUTOMATICO AL REFRESH ---
+    useEffect(() => {
+        // Questo useEffect si esegue solo al primo caricamento del componente.
+        // Controlla se abbiamo già un'email valida dalle props (quindi dopo un refresh).
+        const isEmailPreloadedAndValid = !!email && !formErrors.email;
+
+        // Se l'email è pre-caricata, valida e non stiamo già caricando,
+        // procedi direttamente allo step successivo.
+        if (isEmailPreloadedAndValid && !isLoading) {
+            console.log('[GuestForm] Email pre-compilata e valida al caricamento. Eseguo onContinueAsGuest.');
+            onContinueAsGuest({
+                email,
+                shouldSubscribe: getShouldSubscribeValue(requiresMarketingConsent, defaultShouldSubscribe),
+            });
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // L'array vuoto [] assicura che questo effetto si esegua solo una volta.
+    // --- FINE SOLUZIONE ---
+
+
+    // Questo useEffect gestisce l'auto-submit quando l'utente DIGITA
     useEffect(() => {
         const isEmailValid = !!formValues.email && !formErrors.email;
 
@@ -84,7 +108,7 @@ const GuestForm: FunctionComponent<
 
         const timerId = setTimeout(() => {
             handleSubmit();
-        }, 3000);
+        }, 2000);
 
         return () => {
             clearTimeout(timerId);
@@ -127,60 +151,60 @@ const GuestForm: FunctionComponent<
         return onShowLogin();
     };
 
-return (
-    <Form className="checkout-form" id="checkout-customer-guest" testId="checkout-customer-guest">
-        <Fieldset
-            legend={
-                <Legend hidden>
-                    <TranslatedString id="customer.guest_customer_text" />
-                </Legend>
-            }
-        >
-            <div className="form-body">
-                <EmailField
-                    isFloatingLabelEnabled={isFloatingLabelEnabled}
-                    onChange={handleEmailChange}
-                />
-                {shouldShowEmailWatermark && <PayPalFastlaneWatermark />}
+    return (
+        <Form className="checkout-form" id="checkout-customer-guest" testId="checkout-customer-guest">
+            <Fieldset
+                legend={
+                    <Legend hidden>
+                        <TranslatedString id="customer.guest_customer_text" />
+                    </Legend>
+                }
+            >
+                <div className="form-body">
+                    <EmailField
+                        isFloatingLabelEnabled={isFloatingLabelEnabled}
+                        onChange={handleEmailChange}
+                    />
+                    {shouldShowEmailWatermark && <PayPalFastlaneWatermark />}
 
-               <div className="privacy-login-container">
-                <div className="first-row">
-                    {privacyPolicyUrl && (
-                        <PrivacyPolicyField isExpressPrivacyPolicy={isExpressPrivacyPolicy} url={privacyPolicyUrl} />
+                <div className="privacy-login-container">
+                    <div className="first-row">
+                        {privacyPolicyUrl && (
+                            <PrivacyPolicyField isExpressPrivacyPolicy={isExpressPrivacyPolicy} url={privacyPolicyUrl} />
+                        )}
+                        
+                    {(canSubscribe || requiresMarketingConsent) && (
+                        <div className="form-field">
+                            <BasicFormField name="shouldSubscribe" render={renderField} />
+                        </div>
                     )}
-                    
-                {(canSubscribe || requiresMarketingConsent) && (
-                    <div className="form-field">
-                        <BasicFormField name="shouldSubscribe" render={renderField} />
                     </div>
-                )}
-                </div>
 
-                    {!isLoading && (
-                        <p
-                            className={classNames('customer-login-link', {
-                                'body-regular': themeV2,
-                            })}
-                        >
-                            <TranslatedString id="customer.login_text" />{' '}
-                            <a
-                                data-test="customer-continue-button"
-                                id="checkout-customer-login"
-                                onClick={handleLogin}
-                                role="button"
-                                tabIndex={0}
+                        {!isLoading && (
+                            <p
+                                className={classNames('customer-login-link', {
+                                    'body-regular': themeV2,
+                                })}
                             >
-                                <TranslatedString id="customer.login_action" />
-                            </a>
-                        </p>
-                    )}
-                </div>
-                    {checkoutButtons}
+                                <TranslatedString id="customer.login_text" />{' '}
+                                <a
+                                    data-test="customer-continue-button"
+                                    id="checkout-customer-login"
+                                    onClick={handleLogin}
+                                    role="button"
+                                    tabIndex={0}
+                                >
+                                    <TranslatedString id="customer.login_action" />
+                                </a>
+                            </p>
+                        )}
+                    </div>
+                        {checkoutButtons}
 
-            </div>
-        </Fieldset>
-    </Form>
-);
+                </div>
+            </Fieldset>
+        </Form>
+    );
 };
 
 export default withLanguage(

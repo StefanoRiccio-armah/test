@@ -20,6 +20,7 @@ export interface OrderSummarySubtotalsProps {
     handlingAmount?: number;
     storeCreditAmount?: number;
     subtotalAmount: number;
+    paymentMethodName?: string;
     onRemovedGiftCertificate?(code: string): void;
     onRemovedCoupon?(code: string): void;
 }
@@ -39,7 +40,9 @@ const OrderSummarySubtotals: FunctionComponent<OrderSummarySubtotalsProps> = ({
     coupons,
     onRemovedGiftCertificate,
     onRemovedCoupon,
+    paymentMethodName
 }) => {
+
     return (
         <>
             <OrderSummaryPrice
@@ -129,8 +132,26 @@ const OrderSummarySubtotals: FunctionComponent<OrderSummarySubtotalsProps> = ({
                     testId="cart-store-credit"
                 />
             )}
+            {paymentMethodName && (
+                <div className="cart-priceItem" data-test="cart-payment-method">
+                    {/* Etichetta a sinistra, con il testo modificato */}
+                    <span className="cart-priceItem-label">
+                        {paymentMethodName === 'Contanti alla Consegna' ? 'Contrassegno' : paymentMethodName}
+                    </span>
+                    <span className="cart-priceItem-value">
+                        {/* Aggiungiamo qui la nostra condizione! */}
+                        {paymentMethodName === 'Contanti alla Consegna' && (
+                            <span style={{ marginLeft: '8px'}}>
+                                +5,00€
+                            </span>
+                        )}
+                    </span>
+                </div>
+            )}
+            
         </>
     );
 };
+
 
 export default memo(OrderSummarySubtotals);

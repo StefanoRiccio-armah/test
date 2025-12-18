@@ -72,6 +72,7 @@ const OrderSummaryAccordionAdapter: FunctionComponent<OrderSummaryAdapterProps> 
 interface CartSummaryAccordionProps extends WithCheckoutCartSummaryProps {
     isMultiShippingMode: boolean;
     className?: string;
+      selectedPaymentMethodName?: string;
 }
 
 const CartSummaryDrawerAccordion: FunctionComponent<CartSummaryAccordionProps> = ({
@@ -79,6 +80,7 @@ const CartSummaryDrawerAccordion: FunctionComponent<CartSummaryAccordionProps> =
     isMultiShippingMode,
     isBuyNowCart,
     className = '',
+    selectedPaymentMethodName,
     ...props
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -161,6 +163,7 @@ const CartSummaryDrawerAccordion: FunctionComponent<CartSummaryAccordionProps> =
                         isBuyNowCart,
                         cartUrl,
                         headerLink: <div />,
+                         paymentMethodName: selectedPaymentMethodName,
                     })}
                 </div>
             )}

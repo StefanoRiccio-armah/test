@@ -55,6 +55,7 @@ export default function mapToCheckoutProps({
         isLoadingCheckout: statuses.isLoadingCheckout(),
         isShippingDiscountDisplayEnabled,
         isPending: statuses.isPending(),
+        selectConsignmentShippingOption: checkoutService.selectConsignmentShippingOption,
         isPriceHiddenFromGuests,
         isShowingWalletButtonsOnTop: walletButtonsOnTopFlag,
         loadCheckout: checkoutService.loadCheckout,

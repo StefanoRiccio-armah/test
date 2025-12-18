@@ -59,3 +59,12 @@ export const CODICE_FISCALE_ERROR = 'Codice Fiscale non valido. Formato: RSSMRA9
  * Messaggio di errore per validazione P.IVA
  */
 export const PARTITA_IVA_ERROR = 'Partita IVA non valida. Deve contenere 11 cifre.';
+
+export function isCodiceFiscaleOrPartitaIvaValid(value?: string): boolean {
+    if (!value || value.trim() === '') {
+        // Lascia che la regola .required() di Yup gestisca i campi vuoti.
+        return true; 
+    }
+
+    return isCodiceFiscaleValid(value) || isPartitaIvaValid(value);
+}

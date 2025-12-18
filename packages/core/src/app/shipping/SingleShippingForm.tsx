@@ -322,8 +322,41 @@ class SingleShippingForm extends PureComponent<
 
 export default withLanguage(
     withFormikExtended<SingleShippingFormProps & WithLanguageProps, SingleShippingFormValues>({
-        handleSubmit: (values, { props: { onSubmit } }) => {
-            onSubmit(values);
+ handleSubmit: async (values, { props }) => {
+            const { onSubmit, updateAddress, onUnhandledError } = props;
+            
+            // 1. Mappa i valori del form in un oggetto Address
+            const address = values.shippingAddress ? mapAddressFromFormValues(values.shippingAddress) : undefined;
+
+            if (!address) {
+                // Se non c'è un indirizzo, esegui solo l'onSubmit originale per gestire altri dati (es. orderComment)
+                onSubmit(values);
+                return;
+            }
+
+            try {
+                console.log('%c[SingleShippingForm] Eseguo handleSubmit: aggiorno indirizzo e forzo calcolo spedizione.', 'color: green; font-weight: bold;');
+                
+                // 2. Chiama updateAddress forzando l'inclusione delle opzioni di spedizione.
+                //    Questa è la chiamata chiave che prepara lo stato per lo step successivo.
+                await updateAddress(address, {
+                    params: {
+                        include: {
+                            'consignments.availableShippingOptions': true,
+                        },
+                    },
+                });
+
+                // 3. Solo dopo che la promise si è risolta con successo, procedi.
+                console.log('%c[SingleShippingForm] Aggiornamento completato. Eseguo onSubmit per navigare.', 'color: green;');
+                onSubmit(values);
+
+            } catch (error) {
+                console.error('[SingleShippingForm] Errore durante l\'aggiornamento dell\'indirizzo.', error);
+                if (onUnhandledError) {
+                    onUnhandledError(error as Error);
+                }
+            }
         },
         mapPropsToValues: ({
             getFields,

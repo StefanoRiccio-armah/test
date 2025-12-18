@@ -42,8 +42,6 @@ const Billing = ({ navigateNextStep, onReady, onUnhandledError }:BillingProps): 
     }
 
     const isInitializing  = isLoadingBillingCountries();
-
-    // Below constants are for <BillingForm />'s HOC props
     const customerMessage  = checkout.customerMessage;
     const methodId  = getBillingMethodId(checkout);
     const billingAddress  = getBillingAddress();

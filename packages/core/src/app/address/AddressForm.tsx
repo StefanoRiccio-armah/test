@@ -138,7 +138,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
             if (
                 addressFieldName === 'company' ||
                 addressFieldName === 'field_29' ||
-                addressFieldName === 'field_31' ||
                 addressFieldName === 'field_33' ||
                 addressFieldName === 'field_35'
             ) {

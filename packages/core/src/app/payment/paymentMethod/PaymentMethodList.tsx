@@ -142,8 +142,30 @@ const PaymentMethodListItem: FunctionComponent<PaymentMethodListItemProps> = ({
     }, [isEmbedded, isUsingMultiShipping, method, onUnhandledError]);
 
     const renderPaymentMethodTitle = useCallback(
-        (isSelected: boolean) => <PaymentMethodTitle isSelected={isSelected} method={method} onUnhandledError={onUnhandledError} />,
-        [method],
+        (isSelected: boolean) => (
+            <div>
+                <PaymentMethodTitle
+                    isSelected={isSelected}
+                    method={method}
+                    onUnhandledError={onUnhandledError}
+                />
+                
+                {/* Aggiungiamo qui la descrizione, se esiste */}
+                {method.config.helpText && (
+                    <div
+                        className="payment-method-description"
+                        style={{
+                            fontSize: '0.875rem',
+                            color: 'black',
+                            lineHeight: '1',
+                        }}
+                    >
+                        {method.config.helpText}
+                    </div>
+                )}
+            </div>
+        ),
+        [method, onUnhandledError], 
     );
 
     if (method.initializationData?.isCustomChecklistItem) {

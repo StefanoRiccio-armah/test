@@ -1,14 +1,14 @@
 import React, { type ComponentType, type FunctionComponent } from 'react';
-
 import { type OrderSummaryProps, type OrderSummarySubtotalsProps } from '../order';
-
 import { type WithCheckoutCartSummaryProps } from './CartSummary';
 import mapToOrderSummarySubtotalsProps from './mapToOrderSummarySubtotalsProps';
 import Redeemable from './Redeemable';
 
+
+
 export default function withRedeemable(
     OriginalComponent: ComponentType<OrderSummaryProps & OrderSummarySubtotalsProps>,
-): FunctionComponent<WithCheckoutCartSummaryProps & { headerLink?: any }> {
+): FunctionComponent<WithCheckoutCartSummaryProps & { headerLink?: any, paymentMethodName?:string }> {
     return (props) => {
         const {
             checkout,
@@ -19,10 +19,12 @@ export default function withRedeemable(
             onRemovedGiftCertificate,
             storeCreditAmount,
             isShippingDiscountDisplayEnabled,
+            paymentMethodName,
             ...redeemableProps
         } = props;
-
-        return (
+      
+ 
+     return (
             <OriginalComponent
                 {...mapToOrderSummarySubtotalsProps(checkout, isShippingDiscountDisplayEnabled)}
                 additionalLineItems={
@@ -41,6 +43,7 @@ export default function withRedeemable(
                 shopperCurrency={shopperCurrency}
                 storeCreditAmount={storeCreditAmount}
                 storeCurrency={storeCurrency}
+                paymentMethodName={paymentMethodName}
                 total={checkout.outstandingBalance}
             />
         );

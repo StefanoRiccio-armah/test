@@ -1,7 +1,5 @@
 import React from 'react';
-// 1. Modifica l'import per usare 'react-dom/client'
 import ReactDOM from 'react-dom/client';
-
 import { configurePublicPath } from '../common/bundler';
 import { type CheckoutAppProps } from './CheckoutApp';
 
@@ -24,18 +22,13 @@ export default function renderCheckout({
         });
     }
 
-    // 2. Trova il container nel DOM
     const container = document.getElementById(containerId);
 
-    // È buona norma verificare che il container esista prima di procedere
     if (!container) {
         return;
     }
 
-    // 3. Crea un "root" per il rendering dell'applicazione
     const root = ReactDOM.createRoot(container);
-
-    // 4. Esegui il render dell'app all'interno del root
     root.render(
         <CheckoutApp containerId={containerId} publicPath={configuredPublicPath} {...props} />,
     );

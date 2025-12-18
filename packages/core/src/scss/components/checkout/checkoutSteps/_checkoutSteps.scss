@@ -105,7 +105,7 @@
 // Checkout Step Header
 // -----------------------------------------------------------------------------
 .stepHeader {
-    align-items: top;
+    align-items: center;
     display: flex;
     flex-wrap: wrap;
     padding: #{spacing("half") + spacing("third")} 0;
@@ -157,6 +157,7 @@
     margin-top: remCalc(10px);
     order: 3;
     width: 100%;
+    flex-grow: 1;
 
     @include breakpoint("small") {
         margin-left: 0;

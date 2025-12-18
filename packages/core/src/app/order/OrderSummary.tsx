@@ -19,6 +19,7 @@ import OrderSummarySubtotals, { type OrderSummarySubtotalsProps } from './OrderS
 import OrderSummaryTotal from './OrderSummaryTotal';
 import removeBundledItems from './removeBundledItems';
 
+// 1. Aggiungiamo la tua nuova prop all'interfaccia.
 export interface OrderSummaryProps {
     lineItems: LineItemMap;
     total: number;
@@ -26,8 +27,10 @@ export interface OrderSummaryProps {
     storeCurrency: StoreCurrency;
     shopperCurrency: ShopperCurrency;
     additionalLineItems?: ReactNode;
+    paymentMethodName?: string; // <-- LA TUA MODIFICA
 }
 
+// Assicurati che il tipo del componente accetti le nuove props
 const OrderSummary: FunctionComponent<OrderSummaryProps & OrderSummarySubtotalsProps> = ({
     isTaxIncluded,
     taxes,
@@ -37,13 +40,14 @@ const OrderSummary: FunctionComponent<OrderSummaryProps & OrderSummarySubtotalsP
     additionalLineItems,
     lineItems,
     total,
+    paymentMethodName, // <-- 2. Estrai la nuova prop
     ...orderSummarySubtotalsProps
 }) => {
     const nonBundledLineItems = useMemo(() => removeBundledItems(lineItems), [lineItems]);
     const displayInclusiveTax = isTaxIncluded && taxes && taxes.length > 0;
 
     const { themeV2 } = useThemeContext();
-
+    
     return (
         <article className="cart optimizedCheckout-orderSummary" data-test="cart">
             <OrderSummaryHeader>{headerLink}</OrderSummaryHeader>
@@ -55,7 +59,13 @@ const OrderSummary: FunctionComponent<OrderSummaryProps & OrderSummarySubtotalsP
             <Extension region={ExtensionRegion.SummaryLastItemAfter} />
 
             <OrderSummarySection>
-                <OrderSummarySubtotals isTaxIncluded={isTaxIncluded} taxes={taxes} {...orderSummarySubtotalsProps} />
+                {/* 3. Passa la nuova prop al componente figlio, che la visualizzerà */}
+                <OrderSummarySubtotals
+                    isTaxIncluded={isTaxIncluded}
+                    paymentMethodName={paymentMethodName} // <-- LA TUA MODIFICA
+                    taxes={taxes}
+                    {...orderSummarySubtotalsProps}
+                />
                 {additionalLineItems}
             </OrderSummarySection>
 

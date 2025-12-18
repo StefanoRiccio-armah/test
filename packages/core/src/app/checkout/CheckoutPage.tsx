@@ -46,11 +46,17 @@ import { ShippingOptionExpiredError } from '../shipping/shippingOption';
 import type CheckoutStepStatus from './CheckoutStepStatus';
 import CheckoutStepType from './CheckoutStepType';
 import type CheckoutSupport from './CheckoutSupport';
-import { BillingStep, CartSummary, CheckoutHeader, CustomerStep, PaymentStep, ShippingStep, ShippingMethodStep } from './components';
+import {
+    BillingStep,
+    CartSummary,
+    CheckoutHeader,
+    CustomerStep,
+    PaymentStep,
+    ShippingStep,
+    ShippingMethodStep,
+} from './components';
 import { mapCheckoutComponentErrorMessage } from './mapErrorMessage';
 import mapToCheckoutProps from './mapToCheckoutProps';
-
-
 
 export interface CheckoutProps {
     checkoutId: string;
@@ -100,6 +106,7 @@ export interface WithCheckoutProps {
     clearError(error?: Error): void;
     loadCheckout(id: string, options?: RequestOptions<CheckoutParams>): Promise<CheckoutSelectors>;
     loadPaymentMethodByIds(methodIds: string[]): Promise<CheckoutSelectors>;
+    selectConsignmentShippingOption(consignmentId: string, optionId: string, options?: RequestOptions): Promise<CheckoutSelectors>;
     subscribeToConsignments(subscriber: (state: CheckoutSelectors) => void): () => void;
 }
 
@@ -124,7 +131,10 @@ const Checkout = ({
     isShippingDiscountDisplayEnabled,
     clearError,
     error,
+
     steps,
+    selectConsignmentShippingOption,
+    loadCheckout, // Prop necessaria per la nuova funzione
     analyticsTracker,
     loginUrl,
     language,
@@ -135,7 +145,7 @@ const Checkout = ({
     embeddedStylesheet,
     loadPaymentMethodByIds,
     subscribeToConsignments,
-    themeV2
+    themeV2,
 }: CheckoutPageProps): ReactElement => {
     const [state, setState] = useState<CheckoutState>({
         isBillingSameAsShipping: true,
@@ -146,8 +156,8 @@ const Checkout = ({
         isSubscribed: false,
         buttonConfigs: [],
     });
-
-
+    
+    const [selectedPaymentMethodName, setSelectedPaymentMethodName] = useState<string | undefined>();
     const [isBillingFormSubmitted, setIsBillingFormSubmitted] = useState(false);
     const stepsRef = useRef<CheckoutStepStatus[]>(steps);
     const embeddedMessenger = useRef<EmbeddedCheckoutMessenger>();
@@ -158,101 +168,150 @@ const Checkout = ({
     }>({
         hasSelectedShippingOptions: state.hasSelectedShippingOptions,
     });
+    
+    const handleUnhandledError = useCallback(
+        (error: Error): void => {
+            // Questa funzione esisteva già, la riutilizziamo
+            // handleError(error);
+            setState(prevState => ({ ...prevState, error }));
+        },
+        [],
+    );
 
-    const navigateToStep = useCallback((type: CheckoutStepType, options?: { isDefault?: boolean }): void => {
-        const allPossibleSteps = [...stepsRef.current, { type: CheckoutStepType.ShippingMethod, isRequired: true, isBusy: false }];
-        const step = find(allPossibleSteps, { type });
-
-        if (!step) {
-            return;
+    // NUOVA FUNZIONE CHE ORCHESTRA L'AGGIORNAMENTO
+    const handleSelectShippingOption = useCallback(async (consignmentId: string, optionId: string) => {
+        try {
+        
+            await selectConsignmentShippingOption(consignmentId, optionId);
+            
+            const checkoutId = cart?.id;
+            if (checkoutId) {
+                await loadCheckout(checkoutId);
+            }
+            
+            console.log('%c[CheckoutPage] Aggiornamento completato con successo.', 'color: #007bff; font-weight: bold;');
+        } catch (error) {
+            console.error('[CheckoutPage] Errore durante l\'aggiornamento della spedizione.', error);
+            if (error instanceof Error) {
+                handleUnhandledError(error);
+            }
         }
+    }, [
+        selectConsignmentShippingOption, 
+        loadCheckout, 
+        cart?.id, 
+        handleUnhandledError
+    ]);
 
-        if (state.activeStepType === type) {
-            return;
-        }
+    const handlePaymentMethodSelect = useCallback((method?: PaymentMethod): void => {
+        const displayName = method?.config.displayName;
+        setSelectedPaymentMethodName(displayName);
+    }, []);
 
-        if (options && options.isDefault) {
-            setState(prevState => ({ ...prevState, defaultStepType: type }));
-        } else {
-            setState(prevState => ({ ...prevState, activeStepType: type }));
-        }
+    const navigateToStep = useCallback(
+        (type: CheckoutStepType, options?: { isDefault?: boolean }): void => {
+            console.log(`%c[CheckoutPage] Navigazione richiesta allo step: ${type}`, 'color: blue; font-weight: bold;');
+            
+            const allPossibleSteps = [
+                ...stepsRef.current,
+                { type: CheckoutStepType.ShippingMethod, isRequired: true, isBusy: false },
+            ];
+            const step = find(allPossibleSteps, { type });
 
-        if (error) {
-            clearError(error);
-        }
-    }, [state.activeStepType, error, clearError]);
+            if (!step) {
+                return;
+            }
 
-const navigateToNextIncompleteStep = useCallback((options?: { isDefault?: boolean }): void => {
-    const { activeStepType } = stateRef.current;
+            if (state.activeStepType === type) {
+                return;
+            }
 
-    // prendi solo gli step richiesti nell’ordine giusto
-    const orderedSteps = stepsRef.current.filter(step => step.isRequired);
+            if (options && options.isDefault) {
+                setState(prevState => ({ ...prevState, defaultStepType: type }));
+            } else {
+                setState(prevState => ({ ...prevState, activeStepType: type }));
+            }
 
-    const currentIndex = activeStepType
-        ? findIndex(orderedSteps, { type: activeStepType })
-        : -1;
+            if (error) {
+                clearError(error);
+            }
+        },
+        [state.activeStepType, error, clearError],
+    );
 
-    // prossimo step dopo quello attuale
-    const nextStep =
-        orderedSteps[currentIndex + 1] ??
-        orderedSteps[currentIndex]; // fallback, nel dubbio resta sull’ultimo
+    const navigateToNextIncompleteStep = useCallback(
+        (options?: { isDefault?: boolean }): void => {
+            const { activeStepType } = stateRef.current;
+            const orderedSteps = stepsRef.current.filter(step => step.isRequired);
+            const currentIndex = activeStepType
+                ? findIndex(orderedSteps, { type: activeStepType })
+                : -1;
+            const nextStep = orderedSteps[currentIndex + 1] ?? orderedSteps[currentIndex];
 
-    if (!nextStep) {
-        return;
-    }
+            if (!nextStep) {
+                return;
+            }
 
-    // tracci lo step precedente come completato
-    if (activeStepType) {
-        analyticsTracker.trackStepCompleted(activeStepType);
-    }
+            if (activeStepType) {
+                analyticsTracker.trackStepCompleted(activeStepType);
+            }
 
-    navigateToStep(nextStep.type, options);
-}, [analyticsTracker, navigateToStep]);
+            navigateToStep(nextStep.type, options);
+        },
+        [analyticsTracker, navigateToStep],
+    );
 
     const handleToggleMultiShipping = useCallback((): void => {
-        setState((prevState) => ({ ...prevState, isMultiShippingMode: !prevState.isMultiShippingMode }));
+        setState(prevState => ({ ...prevState, isMultiShippingMode: !prevState.isMultiShippingMode }));
     }, []);
 
     const navigateToOrderConfirmation = useCallback((orderId?: number): void => {
-        analyticsTracker.trackStepCompleted(stepsRef.current[stepsRef.current.length - 1].type);
+        analyticsTracker.trackStepCompleted(
+            stepsRef.current[stepsRef.current.length - 1].type,
+        );
 
         if (embeddedMessenger.current) {
             embeddedMessenger.current.postComplete();
         }
 
         SubscribeSessionStorage.removeSubscribeStatus();
-
         setState(prevState => ({ ...prevState, isRedirecting: true }));
-
         void navigateToOrderConfirmationUtility(orderId);
-    }, []);
+    }, [analyticsTracker]);
 
-    const checkEmbeddedSupport = useCallback((methodIds: string[]): boolean => {
-        return embeddedSupport.isSupported(...methodIds);
-    }, [embeddedSupport]);
+    const checkEmbeddedSupport = useCallback(
+        (methodIds: string[]): boolean => {
+            return embeddedSupport.isSupported(...methodIds);
+        },
+        [embeddedSupport],
+    );
 
-    const setCustomerViewType = useCallback((customerViewType: CustomerViewType): void => {
-        if (customerViewType === CustomerViewType.CreateAccount && isEmbedded()) {
-            if (window.top) {
-                window.top.location.replace(createAccountUrl);
+    const setCustomerViewType = useCallback(
+        (customerViewType: CustomerViewType): void => {
+            if (customerViewType === CustomerViewType.CreateAccount && isEmbedded()) {
+                if (window.top) {
+                    window.top.location.replace(createAccountUrl);
+                }
+
+                return;
             }
 
-            return;
-        }
-
-        navigateToStep(CheckoutStepType.Customer);
-        setState(prevState => ({ ...prevState, customerViewType }));
-    }, [createAccountUrl, navigateToStep]);
+            navigateToStep(CheckoutStepType.Customer);
+            setState(prevState => ({ ...prevState, customerViewType }));
+        },
+        [createAccountUrl, navigateToStep],
+    );
 
     const handleCartChangedError = useCallback((): void => {
         navigateToStep(CheckoutStepType.Shipping);
     }, [navigateToStep]);
 
-
-
     const handleConsignmentsUpdated = ({ data }: CheckoutSelectors): void => {
-        const { hasSelectedShippingOptions: prevHasSelectedShippingOptions, activeStepType, defaultStepType } =
-            stateRef.current;
+        const {
+            hasSelectedShippingOptions: prevHasSelectedShippingOptions,
+            activeStepType,
+            defaultStepType,
+        } = stateRef.current;
 
         const newHasSelectedShippingOptions = hasSelectedShippingOptions(
             data.getConsignments() || [],
@@ -265,7 +324,8 @@ const navigateToNextIncompleteStep = useCallback((options?: { isDefault?: boolea
 
         const isShippingStepFinished =
             findIndex(stepsRef.current, { type: CheckoutStepType.Shipping }) <
-            findIndex(stepsRef.current, { type: activeStepType }) || isDefaultStepPaymentOrBilling;
+                findIndex(stepsRef.current, { type: activeStepType }) ||
+            isDefaultStepPaymentOrBilling;
 
         if (
             prevHasSelectedShippingOptions &&
@@ -273,48 +333,55 @@ const navigateToNextIncompleteStep = useCallback((options?: { isDefault?: boolea
             isShippingStepFinished
         ) {
             navigateToStep(CheckoutStepType.Shipping);
-            setState(prevState => ({ ...prevState, error: new ShippingOptionExpiredError() }));
+            setState(prevState => ({
+                ...prevState,
+                error: new ShippingOptionExpiredError(),
+            }));
         }
 
-        setState(prevState => ({ ...prevState, hasSelectedShippingOptions: newHasSelectedShippingOptions }));
+        setState(prevState => ({
+            ...prevState,
+            hasSelectedShippingOptions: newHasSelectedShippingOptions,
+        }));
     };
 
     const handleCloseErrorModal = useCallback((): void => {
         setState(prevState => ({ ...prevState, error: undefined }));
     }, []);
 
-    const handleExpanded = useCallback((type: CheckoutStepType): void => {
-        analyticsTracker.trackStepViewed(type);
-    }, []);
+    const handleExpanded = useCallback(
+        (type: CheckoutStepType): void => {
+            analyticsTracker.trackStepViewed(type);
+        },
+        [analyticsTracker],
+    );
 
-    const handleError = useCallback((error: Error): void => {
-        if (isErrorWithType(error) && error.type === 'empty_cart') {
-            setState(prevState => ({ ...prevState, error }));
+    const handleError = useCallback(
+        (error: Error): void => {
+            if (isErrorWithType(error) && error.type === 'empty_cart') {
+                setState(prevState => ({ ...prevState, error }));
+                return;
+            }
 
-            return;
-        }
+            errorLogger.log(error);
 
-        errorLogger.log(error);
+            if (embeddedMessenger.current) {
+                embeddedMessenger.current.postError(error);
+            }
+        },
+        [errorLogger],
+    );
 
-        if (embeddedMessenger.current) {
-            embeddedMessenger.current.postError(error);
-        }
-    }, []);
+    const handleEditStep = useCallback(
+        (type: CheckoutStepType): void => {
+            if (type === CheckoutStepType.Billing) {
+                setIsBillingFormSubmitted(false);
+            }
 
-    const handleUnhandledError = useCallback((error: Error): void => {
-        handleError(error);
-        setState(prevState => ({ ...prevState, error }));
-    }, []);
-
-const handleEditStep = useCallback((type: CheckoutStepType): void => {
-    // Se l'utente sta modificando lo step di fatturazione, resettiamo il nostro stato
-    // per permettere al form di riaprirsi.
-    if (type === CheckoutStepType.Billing) {
-        setIsBillingFormSubmitted(false);
-    }
-
-    navigateToStep(type);
-}, [navigateToStep]);
+            navigateToStep(type);
+        },
+        [navigateToStep],
+    );
 
     const handleReady = useCallback((): void => {
         navigateToNextIncompleteStep({ isDefault: true });
@@ -322,48 +389,56 @@ const handleEditStep = useCallback((type: CheckoutStepType): void => {
 
     const handleBillingContinue = useCallback((): void => {
         setIsBillingFormSubmitted(true);
-        // Tracciamo il completamento ma non navighiamo via
         analyticsTracker.trackStepCompleted(CheckoutStepType.Billing);
     }, [analyticsTracker]);
-    
+
     const handleNewsletterSubscription = useCallback((subscribed: boolean): void => {
         setState(prevState => ({ ...prevState, isSubscribed: subscribed }));
     }, []);
 
-    const handleSignOut = useCallback(({ isCartEmpty }: CustomerSignOutEvent): void => {
-        if (isPriceHiddenFromGuests && window.top) {
-            window.top.location.href = cartUrl;
-
-            return;
-        }
-
-        if (embeddedMessenger.current) {
-            embeddedMessenger.current.postSignedOut();
-        }
-
-        if (isGuestEnabled) {
-            setCustomerViewType(CustomerViewType.Guest);
-        }
-
-        if (isCartEmpty) {
-            setState(prevState => ({ ...prevState, isCartEmpty: true }));
-
-            if (!isEmbedded() && window.top) {
-                window.top.location.assign(loginUrl);
-
+    const handleSignOut = useCallback(
+        ({ isCartEmpty }: CustomerSignOutEvent): void => {
+            if (isPriceHiddenFromGuests && window.top) {
+                window.top.location.href = cartUrl;
                 return;
             }
-        }
 
-        navigateToStep(CheckoutStepType.Customer);
-    }, [
-        loginUrl, cartUrl, isPriceHiddenFromGuests, isGuestEnabled, setCustomerViewType, navigateToStep
-    ]);
+            if (embeddedMessenger.current) {
+                embeddedMessenger.current.postSignedOut();
+            }
 
-    const handleShippingNextStep = useCallback((isBillingSameAsShipping: boolean): void => {
-        setState(prev => ({ ...prev, isBillingSameAsShipping }));
-        navigateToStep(CheckoutStepType.ShippingMethod);
-    }, [navigateToStep]);
+            if (isGuestEnabled) {
+                setCustomerViewType(CustomerViewType.Guest);
+            }
+
+            if (isCartEmpty) {
+                setState(prevState => ({ ...prevState, isCartEmpty: true }));
+
+                if (!isEmbedded() && window.top) {
+                    window.top.location.assign(loginUrl);
+                    return;
+                }
+            }
+
+            navigateToStep(CheckoutStepType.Customer);
+        },
+        [
+            loginUrl,
+            cartUrl,
+            isPriceHiddenFromGuests,
+            isGuestEnabled,
+            setCustomerViewType,
+            navigateToStep,
+        ],
+    );
+
+    const handleShippingNextStep = useCallback(
+        (isBillingSameAsShipping: boolean): void => {
+            setState(prev => ({ ...prev, isBillingSameAsShipping }));
+            navigateToStep(CheckoutStepType.ShippingMethod);
+        },
+        [navigateToStep],
+    );
 
     const handleShippingMethodNextStep = useCallback((): void => {
         navigateToStep(CheckoutStepType.Billing);
@@ -379,11 +454,14 @@ const handleEditStep = useCallback((type: CheckoutStepType): void => {
 
     const handleBeforeExit = useCallback((): void => {
         analyticsTracker.exitCheckout();
-    }, []);
+    }, [analyticsTracker]);
 
-    const handleWalletButtonClick = useCallback((methodName: string): void => {
-        analyticsTracker.walletButtonClick(methodName);
-    }, []);
+    const handleWalletButtonClick = useCallback(
+        (methodName: string): void => {
+            analyticsTracker.walletButtonClick(methodName);
+        },
+        [analyticsTracker],
+    );
 
     const reloadWindow = useCallback((): void => {
         setState(prevState => ({ ...prevState, error: undefined }));
@@ -404,105 +482,121 @@ const handleEditStep = useCallback((type: CheckoutStepType): void => {
 
         switch (step.type) {
             case CheckoutStepType.Customer:
-                return <CustomerStep
-                    checkEmbeddedSupport={checkEmbeddedSupport}
-                    key={step.type}
-                    isSubscribed={isSubscribed}
-                    isWalletButtonsOnTop={isShowingWalletButtonsOnTop}
-                    onAccountCreated={navigateToNextIncompleteStep}
-                    onChangeViewType={setCustomerViewType}
-                    onContinueAsGuest={navigateToNextIncompleteStep}
-                    onContinueAsGuestError={handleError}
-                    onEdit={handleEditStep}
-                    onExpanded={handleExpanded}
-                    onReady={handleReady}
-                    onSignIn={navigateToNextIncompleteStep}
-                    onSignInError={handleError}
-                    onSignOut={handleSignOut}
-                    onSignOutError={handleError}
-                    onSubscribeToNewsletter={handleNewsletterSubscription}
-                    onUnhandledError={handleUnhandledError}
-                    onWalletButtonClick={handleWalletButtonClick}
-                    step={step}
-                    viewType={customerViewType}
-                />;
+                return (
+                    <CustomerStep
+                        checkEmbeddedSupport={checkEmbeddedSupport}
+                        key={step.type}
+                        isSubscribed={isSubscribed}
+                        isWalletButtonsOnTop={isShowingWalletButtonsOnTop}
+                        onAccountCreated={navigateToNextIncompleteStep}
+                        onChangeViewType={setCustomerViewType}
+                        onContinueAsGuest={navigateToNextIncompleteStep}
+                        onContinueAsGuestError={handleError}
+                        onEdit={handleEditStep}
+                        onExpanded={handleExpanded}
+                        onReady={handleReady}
+                        onSignIn={navigateToNextIncompleteStep}
+                        onSignInError={handleError}
+                        onSignOut={handleSignOut}
+                        onSignOutError={handleError}
+                        onSubscribeToNewsletter={handleNewsletterSubscription}
+                        onUnhandledError={handleUnhandledError}
+                        onWalletButtonClick={handleWalletButtonClick}
+                        step={step}
+                        viewType={customerViewType}
+                    />
+                );
 
             case CheckoutStepType.Shipping:
-                return <ShippingStep
-                    cart={cart}
-                    cartHasChanged={hasCartChanged}
-                    consignments={consignments || []}
-                    key={step.type}
-                    isBillingSameAsShipping={isBillingSameAsShipping}
-                    isMultiShippingMode={isMultiShippingMode}
-                    isShippingDiscountDisplayEnabled={isShippingDiscountDisplayEnabled}
-                    navigateNextStep={handleShippingNextStep}
-                    onCreateAccount={handleShippingCreateAccount}
-                    onEdit={handleEditStep}
-                    onExpanded={handleExpanded}
-                    onReady={handleReady}
-                    onSignIn={handleShippingSignIn}
-                    onToggleMultiShipping={handleToggleMultiShipping}
-                    onUnhandledError={handleUnhandledError}
-                    setIsMultishippingMode={handleSetIsMultishippingMode}
-                    step={step}
-                />;
+                return (
+                    <ShippingStep
+                        cart={cart}
+                        cartHasChanged={hasCartChanged}
+                        consignments={consignments || []}
+                        key={step.type}
+                        isBillingSameAsShipping={isBillingSameAsShipping}
+                        isMultiShippingMode={isMultiShippingMode}
+                        isShippingDiscountDisplayEnabled={isShippingDiscountDisplayEnabled}
+                        navigateNextStep={handleShippingNextStep}
+                        onCreateAccount={handleShippingCreateAccount}
+                        onEdit={handleEditStep}
+                        onExpanded={handleExpanded}
+                        onReady={handleReady}
+                        onSignIn={handleShippingSignIn}
+                        onToggleMultiShipping={handleToggleMultiShipping}
+                        onUnhandledError={handleUnhandledError}
+                        setIsMultishippingMode={handleSetIsMultishippingMode}
+                        step={step}
+                    />
+                );
 
             case CheckoutStepType.ShippingMethod:
-                return <ShippingMethodStep
-                    cart={cart}
-                    consignments={consignments || []}
-                    isBillingSameAsShipping={isBillingSameAsShipping}
-                    isShippingDiscountDisplayEnabled={isShippingDiscountDisplayEnabled}
-                    key={step.type}
-                    navigateNextStep={handleShippingMethodNextStep}
-                    onEdit={handleEditStep}
-                    onExpanded={handleExpanded}
-                    step={step}
-                />;
+                return (
+                    <ShippingMethodStep
+                        cart={cart}
+                        consignments={consignments || []}
+                        isBillingSameAsShipping={isBillingSameAsShipping}
+                        isShippingDiscountDisplayEnabled={isShippingDiscountDisplayEnabled}
+                        key={step.type}
+                        navigateNextStep={handleShippingMethodNextStep}
+                        onEdit={handleEditStep}
+                        onExpanded={handleExpanded}
+                        // SOSTITUIAMO LA PROP CON LA NOSTRA NUOVA FUNZIONE
+                        onSelectShippingOption={handleSelectShippingOption}
+                        step={step}
+                        navigateToStep={navigateToStep} 
+                    />
+                );
 
             case CheckoutStepType.Billing:
-                return <BillingStep
-                    billingAddress={billingAddress}
-                    navigateNextStep={handleBillingContinue}
-                    onEdit={handleEditStep}
-                    key={step.type}
-                    onExpanded={handleExpanded}
-                    onReady={handleReady}
-                    onUnhandledError={handleUnhandledError}
-                    step={step}
-                />;
+                return (
+                    <BillingStep
+                        billingAddress={billingAddress}
+                        navigateNextStep={handleBillingContinue}
+                        onEdit={handleEditStep}
+                        key={step.type}
+                        onExpanded={handleExpanded}
+                        onReady={handleReady}
+                        onUnhandledError={handleUnhandledError}
+                        step={step}
+                    />
+                );
 
             case CheckoutStepType.Payment:
-                return <PaymentStep
-                    cart={cart}
-                    checkEmbeddedSupport={checkEmbeddedSupport}
-                    consignments={consignments}
-                    key={step.type}
-                    errorLogger={errorLogger}
-                    isEmbedded={isEmbedded()}
-                    isUsingMultiShipping={
-                        cart && consignments
-                            ? isUsingMultiShipping(consignments, cart.lineItems)
-                            : false
-                    }
-                    onCartChangedError={handleCartChangedError}
-                    onEdit={handleEditStep}
-                    onExpanded={handleExpanded}
-                    onFinalize={navigateToOrderConfirmation}
-                    onReady={handleReady}
-                    onSubmit={navigateToOrderConfirmation}
-                    onSubmitError={handleError}
-                    onUnhandledError={handleUnhandledError}
-                    step={step}
-                />;
+                return (
+                    <PaymentStep
+                        cart={cart}
+                        checkEmbeddedSupport={checkEmbeddedSupport}
+                        consignments={consignments}
+                        key={step.type}
+                        errorLogger={errorLogger}
+                        isEmbedded={isEmbedded()}
+                        onPaymentMethodSelect={handlePaymentMethodSelect}
+                        isUsingMultiShipping={
+                            cart && consignments
+                                ? isUsingMultiShipping(consignments, cart.lineItems)
+                                : false
+                        }
+                        onCartChangedError={handleCartChangedError}
+                        onEdit={handleEditStep}
+                        onExpanded={handleExpanded}
+                        onFinalize={navigateToOrderConfirmation}
+                        onReady={handleReady}
+                        onSubmit={navigateToOrderConfirmation}
+                        onSubmitError={handleError}
+                        onUnhandledError={handleUnhandledError}
+                        step={step}
+                    />
+                );
 
             default:
                 return null;
         }
-    }
+    };
 
-    const handleConsignmentsUpdatedRef = useRef<(selectors: CheckoutSelectors) => void>(handleConsignmentsUpdated);
+    const handleConsignmentsUpdatedRef = useRef<
+        (selectors: CheckoutSelectors) => void
+    >(handleConsignmentsUpdated);
     const handleBeforeExitRef = useRef<() => void>(handleBeforeExit);
 
     stepsRef.current = steps;
@@ -521,12 +615,16 @@ const handleEditStep = useCallback((type: CheckoutStepType): void => {
 
         const init = async () => {
             try {
-                const providers = data.getConfig()?.checkoutSettings?.remoteCheckoutProviders || [];
+                const providers =
+                    data.getConfig()?.checkoutSettings?.remoteCheckoutProviders || [];
                 const supportedProviders = getSupportedMethodIds(providers);
 
                 if (providers.length > 0) {
                     const configs = await loadPaymentMethodByIds(supportedProviders);
-                    setState(prevState => ({ ...prevState, buttonConfigs: configs.data.getPaymentMethods() || [] }));
+                    setState(prevState => ({
+                        ...prevState,
+                        buttonConfigs: configs.data.getPaymentMethods() || [],
+                    }));
                 }
 
                 const errorFlashMessages = data.getFlashMessages('error') || [];
@@ -534,7 +632,9 @@ const handleEditStep = useCallback((type: CheckoutStepType): void => {
                     setState(prevState => ({
                         ...prevState,
                         error: new CustomError({
-                            title: errorFlashMessages[0].title || language.translate('common.error_heading'),
+                            title:
+                                errorFlashMessages[0].title ||
+                                language.translate('common.error_heading'),
                             message: errorFlashMessages[0].message,
                             data: {},
                             name: 'default',
@@ -544,25 +644,37 @@ const handleEditStep = useCallback((type: CheckoutStepType): void => {
 
                 const { links: { siteLink = '' } = {} } = data.getConfig() || {};
                 const messenger = createEmbeddedMessenger({ parentOrigin: siteLink });
-                messenger.receiveStyles((styles) => embeddedStylesheet.append(styles));
+                messenger.receiveStyles(styles => embeddedStylesheet.append(styles));
                 messenger.postFrameLoaded({ contentId: containerId });
                 messenger.postLoaded();
                 embeddedMessenger.current = messenger;
 
                 if (document.prerendering) {
-                    document.addEventListener('prerenderingchange', () => {
-                        analyticsTracker.checkoutBegin();
-                    }, { once: true });
+                    document.addEventListener(
+                        'prerenderingchange',
+                        () => {
+                            analyticsTracker.checkoutBegin();
+                        },
+                        { once: true },
+                    );
                 } else {
                     analyticsTracker.checkoutBegin();
                 }
 
                 const consignments = data.getConsignments();
                 const cart = data.getCart();
-                const hasMultiShippingEnabled = data.getConfig()?.checkoutSettings.hasMultiShippingEnabled;
-                const checkoutBillingSameAsShippingEnabled = data.getConfig()?.checkoutSettings.checkoutBillingSameAsShippingEnabled ?? true;
-                const defaultNewsletterSignupOption = data.getConfig()?.shopperConfig.defaultNewsletterSignup ?? false;
-                const isMultiShippingMode = !!cart && !!consignments && hasMultiShippingEnabled && isUsingMultiShipping(consignments, cart.lineItems);
+                const hasMultiShippingEnabled =
+                    data.getConfig()?.checkoutSettings.hasMultiShippingEnabled;
+                const checkoutBillingSameAsShippingEnabled =
+                    data.getConfig()?.checkoutSettings
+                        .checkoutBillingSameAsShippingEnabled ?? true;
+                const defaultNewsletterSignupOption =
+                    data.getConfig()?.shopperConfig.defaultNewsletterSignup ?? false;
+                const isMultiShippingMode =
+                    !!cart &&
+                    !!consignments &&
+                    hasMultiShippingEnabled &&
+                    isUsingMultiShipping(consignments, cart.lineItems);
 
                 setState(prevState => ({
                     ...prevState,
@@ -592,7 +704,7 @@ const handleEditStep = useCallback((type: CheckoutStepType): void => {
                 }
                 window.removeEventListener('beforeunload', handleBeforeExitRef.current);
                 handleBeforeExitRef.current();
-            }
+            };
             deInit();
         };
     }, []);
@@ -605,19 +717,46 @@ const handleEditStep = useCallback((type: CheckoutStepType): void => {
 
     if (state.error) {
         if (isCustomError(state.error)) {
-            errorModal = <ErrorModal error={state.error} onClose={handleCloseErrorModal} title={state.error.title} />;
+            errorModal = (
+                <ErrorModal
+                    error={state.error}
+                    onClose={handleCloseErrorModal}
+                    title={state.error.title}
+                />
+            );
         } else {
-            const { message, action } = mapCheckoutComponentErrorMessage(state.error, language.translate.bind(language));
-            errorModal = <ErrorModal error={state.error} message={message} onClose={action === 'reload' ? reloadWindow : handleCloseErrorModal} />;
+            const { message, action } = mapCheckoutComponentErrorMessage(
+                state.error,
+                language.translate.bind(language),
+            );
+            errorModal = (
+                <ErrorModal
+                    error={state.error}
+                    message={message}
+                    onClose={action === 'reload' ? reloadWindow : handleCloseErrorModal}
+                />
+            );
         }
     }
+    
+
+    
 
     return (
-        <div className={classNames('remove-checkout-step-numbers', { 'is-embedded': isEmbedded() }, { 'themeV2': themeV2 })} data-test="checkout-page-container" id="checkout-page-container">
+        <div
+            className={classNames(
+                'remove-checkout-step-numbers',
+                { 'is-embedded': isEmbedded() },
+                { themeV2 },
+            )}
+            data-test="checkout-page-container"
+            id="checkout-page-container"
+        >
             <div className="layout optimizedCheckout-contentPrimary">
-                {state.isCartEmpty ?
+                {state.isCartEmpty ? (
                     <EmptyCartMessage loginUrl={loginUrl} waitInterval={3000} />
-                    : <>
+                ) : (
+                    <>
                         <div className="layout-main">
                             <CheckoutHeader
                                 activeStepType={state.activeStepType}
@@ -628,7 +767,7 @@ const handleEditStep = useCallback((type: CheckoutStepType): void => {
                                 onWalletButtonClick={handleWalletButtonClick}
                             />
 
-                             <ol className="checkout-steps">
+                            <ol className="checkout-steps">
                                 {(() => {
                                     const allSteps: CheckoutStepStatus[] = [];
                                     const originalSteps = stepsRef.current;
@@ -639,7 +778,9 @@ const handleEditStep = useCallback((type: CheckoutStepType): void => {
                                         if (step.type === CheckoutStepType.Shipping) {
                                             allSteps.push({
                                                 type: CheckoutStepType.ShippingMethod,
-                                                isComplete: hasSelectedShippingOptions(consignments || []),
+                                                isComplete: hasSelectedShippingOptions(
+                                                    consignments || [],
+                                                ),
                                                 isEditable: true,
                                                 isRequired: true,
                                                 isActive: false,
@@ -649,33 +790,44 @@ const handleEditStep = useCallback((type: CheckoutStepType): void => {
                                     });
 
                                     return allSteps
-                                        .filter((step) => step.isRequired)
-                                        .map((step) => {
+                                        .filter(step => step.isRequired)
+                                        .map(step => {
                                             const { activeStepType } = state;
                                             const currentStepType = step.type;
 
                                             const isActive = (() => {
                                                 if (
-                                                    currentStepType === CheckoutStepType.Customer ||
-                                                    currentStepType === CheckoutStepType.Shipping
+                                                    currentStepType ===
+                                                        CheckoutStepType.Customer ||
+                                                    currentStepType ===
+                                                        CheckoutStepType.Shipping
                                                 ) {
-                                                    return !activeStepType || activeStepType === CheckoutStepType.Customer || activeStepType === CheckoutStepType.Shipping;
+                                                    return (
+                                                        !activeStepType ||
+                                                        activeStepType ===
+                                                            CheckoutStepType.Customer ||
+                                                        activeStepType ===
+                                                            CheckoutStepType.Shipping
+                                                    );
                                                 }
                                                 if (
-                                                    currentStepType === CheckoutStepType.Billing ||
-                                                    currentStepType === CheckoutStepType.Payment
+                                                    currentStepType ===
+                                                        CheckoutStepType.Billing ||
+                                                    currentStepType ===
+                                                        CheckoutStepType.Payment
                                                 ) {
-                                                    // Se siamo nello step di Fatturazione o Pagamento...
-                                                    const isBillingOrPaymentStep = activeStepType === CheckoutStepType.Billing || activeStepType === CheckoutStepType.Payment;
+                                                    const isBillingOrPaymentStep =
+                                                        activeStepType ===
+                                                            CheckoutStepType.Billing ||
+                                                        activeStepType ===
+                                                            CheckoutStepType.Payment;
 
                                                     if (!isBillingOrPaymentStep) return false;
 
-                                                    // Se lo step corrente è BILLING, è "attivo" (mostra il form) SOLO se non è ancora stato sottomesso.
                                                     if (currentStepType === CheckoutStepType.Billing) {
                                                         return !isBillingFormSubmitted;
                                                     }
 
-                                                    // Se lo step corrente è PAYMENT, è sempre attivo durante questa fase.
                                                     if (currentStepType === CheckoutStepType.Payment) {
                                                         return true;
                                                     }
@@ -683,10 +835,10 @@ const handleEditStep = useCallback((type: CheckoutStepType): void => {
                                                 return activeStepType === currentStepType;
                                             })();
 
-                                            // Un passo è completo o se lo era già, o se abbiamo appena sottomesso il form di fatturazione
-                                            const isComplete = (currentStepType === CheckoutStepType.Billing)
-                                                ? step.isComplete || isBillingFormSubmitted
-                                                : step.isComplete;
+                                            const isComplete =
+                                                currentStepType === CheckoutStepType.Billing
+                                                    ? step.isComplete || isBillingFormSubmitted
+                                                    : step.isComplete;
 
                                             const newStepProps = {
                                                 ...step,
@@ -701,8 +853,11 @@ const handleEditStep = useCallback((type: CheckoutStepType): void => {
                             </ol>
                         </div>
                     </>
-                }
-                <CartSummary isMultiShippingMode={state.isMultiShippingMode} />
+                )}
+                <CartSummary
+                    isMultiShippingMode={state.isMultiShippingMode}
+                    selectedPaymentMethodName={selectedPaymentMethodName}
+                />
             </div>
             {errorModal}
         </div>

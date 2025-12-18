@@ -63,6 +63,7 @@ export interface PaymentProps {
     onSubmit?(): void;
     onSubmitError?(error: Error): void;
     onUnhandledError?(error: Error): void;
+      onPaymentMethodSelect?(method?: PaymentMethod): void;
 }
 
 interface WithCheckoutPaymentProps {
@@ -344,8 +345,11 @@ const Payment= (props: PaymentProps & WithCheckoutPaymentProps & WithLanguagePro
         analyticsTracker.selectedPaymentMethod(methodName, methodId);
     }
 
-    const setSelectedMethod = useCallback((method?: PaymentMethod) : void => {
+   const setSelectedMethod = useCallback((method?: PaymentMethod) : void => {
         const { selectedMethod } = state;
+        
+        // La riga seguente è quella che dobbiamo aggiungere
+        const { onPaymentMethodSelect } = props;
 
         if (selectedMethod === method) {
             return;
@@ -355,9 +359,19 @@ const Payment= (props: PaymentProps & WithCheckoutPaymentProps & WithLanguagePro
             trackSelectedPaymentMethod(method);
         }
 
-        setState(prevState => ({ ...prevState, selectedMethod: method }));
-    }, []);
+        // =================================================================
+        // =========== CHIAMIAMO LA NOSTRA NUOVA CALLBACK QUI ===============
+        // =================================================================
+        // Se la prop `onPaymentMethodSelect` è stata passata da CheckoutPage,
+        // la eseguiamo, notificando il genitore del cambiamento.
+        if (onPaymentMethodSelect) {
+            onPaymentMethodSelect(method);
+        }
+        // =================================================================
 
+        // Manteniamo la logica originale per aggiornare lo stato locale di questo componente
+        setState(prevState => ({ ...prevState, selectedMethod: method }));
+    }, [state.selectedMethod, props.onPaymentMethodSelect]); 
     const setSubmit = (
         method: PaymentMethod,
         fn: (values: PaymentFormValues) => void | null,

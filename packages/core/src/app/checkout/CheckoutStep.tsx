@@ -68,9 +68,6 @@ const CheckoutStep = ({
         return containerOffset - topOffset;
     };
 
-    // For now, we need to find the parent container because `CheckoutStep`
-    // isn't the outer container yet. Once both the header and body are
-    // moved inside this component, we can remove the lookup.
     const getParentContainer = (): HTMLElement | undefined => {
         let container: HTMLElement | null = containerRef.current;
 
@@ -183,15 +180,12 @@ const CheckoutStep = ({
             <MobileView>
                 {(matched) => (
                     <CSSTransition
-                        // 1. Rimuovi addEndListener
                         classNames="checkout-view-content"
                         enter={!matched}
                         exit={!matched}
                         in={isActive}
                         mountOnEnter
                         onExited={onAnimationEnd}
-                        // 2. Fornisci un timeout reale. 300ms è un valore comune, 
-                        //    ma puoi usare la tua funzione getTransitionDelay() se preferisci.
                         timeout={500}
                         unmountOnExit
                         nodeRef={contentRef}
