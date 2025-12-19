@@ -10,7 +10,7 @@ import { TranslatedString, withLanguage, type WithLanguageProps } from '@bigcomm
 import type CheckoutStepStatus from '../checkout/CheckoutStepStatus';
 import { getPrivacyPolicyValidationSchema, PrivacyPolicyField } from '../privacyPolicy';
 import { Button, ButtonVariant } from '../ui/button';
-import { BasicFormField, Fieldset, Form, Legend } from '../ui/form';
+import { BasicFormField, CheckboxFormField, Fieldset, Form, Legend } from '../ui/form';
 
 import { type GuestFormValues } from './GuestForm';
 import SubscribeField from './SubscribeField';
@@ -31,6 +31,9 @@ export interface StripeGuestFormProps {
     deinitialize(options: CustomerRequestOptions): void;
     initialize(options: CustomerInitializeOptions): void;
     onShowLogin(): void;
+    // NUOVE PROPS
+    onBillingSameAsShippingChange?(isSame: boolean): void;
+    isBillingSameAsShipping?: boolean;
 }
 
 const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<GuestFormValues>> = ({
@@ -50,19 +53,25 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
     step,
     status,
     setFieldValue,
+    values, // Aggiunto per accedere ai valori del form
+    // Destruttura nuove props
+    onBillingSameAsShippingChange = () => {},
 }) => {
-
     const [continueAsAGuestButton, setContinueAsAGuestButton] = useState(true);
     const [emailValue, setEmailValue] = useState('');
     const [authentication, setAuthentication] = useState(false);
     const [isStripeLoading, setIsStripeLoading] = useState(true);
     const [isNewAuth, setIsNewAuth] = useState(false);
+    
     const handleOnClickSubmitButton = () => {
+        // CORREZIONE: Passa l'oggetto completo, includendo isBillingSameAsShipping
         onContinueAsGuest({
             email: emailValue,
             shouldSubscribe: !!status?.shouldSubscribe,
+            isBillingSameAsShipping: values.isBillingSameAsShipping,
         });
     };
+
     const setEmailCallback = useCallback((authenticated: boolean, email: string) => {
         setFieldValue('email', email);
         onChangeEmail(email);
@@ -73,13 +82,13 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
         if(!authenticated){
             setIsNewAuth(true);
         }
-    }, [setContinueAsAGuestButton, onChangeEmail]);
+    }, [setFieldValue, onChangeEmail]);
 
     useEffect(() => {
         if ((!step.isComplete || isNewAuth) && emailValue && authentication) {
             handleOnClickSubmitButton();
         }
-    }, [emailValue, authentication, isNewAuth]);
+    }, [emailValue, authentication, isNewAuth, step.isComplete]);
 
     useEffect(() => {
         if (status?.valSuccess) {
@@ -113,7 +122,6 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
 
     useEffect(() => {
         stripeInitialize();
-
         return () => stripeDeinitialize();
     }, []);
 
@@ -122,19 +130,16 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
             'shouldSubscribe',
             requiresMarketingConsent ? false : defaultShouldSubscribe,
         );
-    }, [requiresMarketingConsent, defaultShouldSubscribe]);
+    }, [requiresMarketingConsent, defaultShouldSubscribe, setFieldValue]);
 
     const getStylesFromElement = (
         id: string,
         properties: string[]) => {
         const parentContainer = document.getElementById(id);
-
         if (parentContainer) {
             return getAppliedStyles(parentContainer, properties);
         }
-
-            return undefined;
-
+        return undefined;
     };
 
     const containerId = 'stripe-card-component-field';
@@ -143,7 +148,6 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
         const formInput = getStylesFromElement(`${containerId}--input`, ['color', 'background-color', 'border-color', 'box-shadow']);
         const formLabel = getStylesFromElement(`${containerId}--label`, ['color']);
         const formError = getStylesFromElement(`${containerId}--error`, ['color']);
-
         return formLabel && formInput && formError ? {
             labelText: formLabel.color,
             fieldText: formInput.color,
@@ -155,46 +159,30 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
         } : undefined;
     }, [])
 
-    const renderCheckoutThemeStylesForStripeUPE = () => {
-        return (
-            <div
-                className="optimizedCheckout-form-input"
-                id={ `${containerId}--input` }
-            >
-                <div
-                    className="form-field--error"
-                >
-                    <div
-                        className="optimizedCheckout-form-label"
-                        id={ `${containerId}--error` }
-                    />
-                </div>
-                <div
-                    className="optimizedCheckout-form-label"
-                    id={ `${containerId}--label` }
-                />
+    const renderCheckoutThemeStylesForStripeUPE = () => (
+        <div className="optimizedCheckout-form-input" id={ `${containerId}--input` }>
+            <div className="form-field--error">
+                <div className="optimizedCheckout-form-label" id={ `${containerId}--error` } />
             </div>
-        );
-    };
+            <div className="optimizedCheckout-form-label" id={ `${containerId}--label` } />
+        </div>
+    );
 
     const renderField = useCallback((fieldProps: FieldProps<boolean>) => (
-        <SubscribeField
-            { ...fieldProps }
-            requiresMarketingConsent={ requiresMarketingConsent }
-        />
-    ), [
-        requiresMarketingConsent,
-    ]);
+        <SubscribeField { ...fieldProps } requiresMarketingConsent={ requiresMarketingConsent } />
+    ), [requiresMarketingConsent]);
 
-    const buttonText = authentication && !isNewAuth? 'customer.continue_as_stripe_customer_action' : continueAsGuestButtonLabelId;
+    // NUOVO HANDLER per il checkbox
+    const handleBillingSameAsShippingChange = useCallback((isChecked: boolean) => {
+        setFieldValue('isBillingSameAsShipping', isChecked);
+        onBillingSameAsShippingChange(isChecked);
+    }, [setFieldValue, onBillingSameAsShippingChange]);
+
+    const buttonText = authentication && !isNewAuth ? 'customer.continue_as_stripe_customer_action' : continueAsGuestButtonLabelId;
 
     return (
         <>
-            <Form
-                className="checkout-form"
-                id="checkout-customer-guest"
-                testId="checkout-customer-guest"
-            >
+            <Form className="checkout-form" id="checkout-customer-guest" testId="checkout-customer-guest">
                 <div className="checkout-form" style={ { display: isStripeLoading ? 'none' : undefined } }>
                     <Fieldset
                         legend={ !authentication &&
@@ -228,12 +216,18 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
                             </div>
                         </div>
 
+                        {/* NUOVO COMPONENTE: Il Checkbox per la fatturazione */}
+                        <CheckboxFormField
+                            labelContent={<TranslatedString id="billing.billing_same_as_shipping" />}
+                            name="isBillingSameAsShipping"
+                            onChange={handleBillingSameAsShippingChange}
+                        />
+
                         {privacyPolicyUrl && (
                             <PrivacyPolicyField isExpressPrivacyPolicy={isExpressPrivacyPolicy} url={privacyPolicyUrl} />
                         )}
 
-                        {
-                            !isLoading && <p>
+                        { !isLoading && <p>
                                 <TranslatedString id="customer.login_text"/>
                                 { ' ' }
                                 <a
@@ -258,31 +252,32 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
 
 export default withLanguage(
     withFormik<StripeGuestFormProps, GuestFormValues>({
-            mapPropsToValues: ({
-                email = '',
-                defaultShouldSubscribe = false,
-                requiresMarketingConsent,
-            }) => ({
-                email,
-                shouldSubscribe: requiresMarketingConsent ? false : defaultShouldSubscribe,
-                privacyPolicy: false,
-            }),
-            handleSubmit: ( values, { setStatus }) => {
-                setStatus({
-                    valSuccess: true,
-                    shouldSubscribe: values.shouldSubscribe,
-                  });
-            },
-            validationSchema: ({ language, privacyPolicyUrl, isExpressPrivacyPolicy }: StripeGuestFormProps & WithLanguageProps) => {
-                if (privacyPolicyUrl && !isExpressPrivacyPolicy) {
-                    return getPrivacyPolicyValidationSchema({
-                            isRequired: !!privacyPolicyUrl,
-                            language,
-                        })
-                }
-
-                return object({});
-            },
-        })(memo(StripeGuestForm))
-)
-
+        mapPropsToValues: ({
+            email = '',
+            defaultShouldSubscribe = false,
+            requiresMarketingConsent,
+            isBillingSameAsShipping = true, // CORREZIONE: Usa il valore passato
+        }) => ({
+            email,
+            shouldSubscribe: requiresMarketingConsent ? false : defaultShouldSubscribe,
+            privacyPolicy: false,
+            // CORREZIONE: Aggiungi il campo mancante
+            isBillingSameAsShipping,
+        }),
+        handleSubmit: ( values, { setStatus }) => {
+            setStatus({
+                valSuccess: true,
+                shouldSubscribe: values.shouldSubscribe,
+            });
+        },
+        validationSchema: ({ language, privacyPolicyUrl, isExpressPrivacyPolicy }: StripeGuestFormProps & WithLanguageProps) => {
+            if (privacyPolicyUrl && !isExpressPrivacyPolicy) {
+                return getPrivacyPolicyValidationSchema({
+                    isRequired: !!privacyPolicyUrl,
+                    language,
+                });
+            }
+            return object({});
+        },
+    })(memo(StripeGuestForm))
+);

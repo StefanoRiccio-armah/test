@@ -9,9 +9,16 @@ import { FormField, TextInput } from '../ui/form';
 export interface EmailFieldProps {
     isFloatingLabelEnabled?: boolean;
     onChange?(value: string): void;
+    onBlur?(): void;
+    onFocus?(): void;
 }
 
-const EmailField: FunctionComponent<EmailFieldProps> = ({ onChange, isFloatingLabelEnabled }) => {
+const EmailField: FunctionComponent<EmailFieldProps> = ({ 
+    onChange, 
+    onBlur,
+    onFocus,
+    isFloatingLabelEnabled 
+}) => {
     const { themeV2 } = useThemeContext();
 
     const renderInput = useCallback(
@@ -23,9 +30,23 @@ const EmailField: FunctionComponent<EmailFieldProps> = ({ onChange, isFloatingLa
                 isFloatingLabelEnabled={isFloatingLabelEnabled}
                 themeV2={themeV2}
                 type="email"
+                onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+                    // Chiama il blur handler originale di Formik
+                    props.field.onBlur(e);
+                    // Chiama il nostro custom handler
+                    if (onBlur) {
+                        onBlur();
+                    }
+                }}
+                onFocus={() => {
+                    // Chiama il nostro custom handler
+                    if (onFocus) {
+                        onFocus();
+                    }
+                }}
             />
         ),
-        [isFloatingLabelEnabled],
+        [isFloatingLabelEnabled, themeV2, onBlur, onFocus],
     );
 
     const labelContent = useMemo(() => <TranslatedString id="customer.email_label" />, []);

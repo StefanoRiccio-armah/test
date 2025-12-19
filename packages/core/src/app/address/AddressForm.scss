@@ -5,6 +5,16 @@
     margin-right: -0.5 * $floating-form-field-spacing;
 }
 
+.optimizedCheckout-form-input{
+    background-color:#f7f7f7 !important;
+    border-color:#24849E !important;
+}
+
+.optimizedCheckout-form-select{
+    background-color:#f7f7f7 !important;
+    border-color:#24849E !important;
+}
+
 .checkout-address {
     display: flex;
     flex-flow: row wrap;
@@ -41,9 +51,69 @@
         }
     }
 
-    .dynamic-form-field--postCode {
+     .dynamic-form-field--addres2,
+    .dynamic-form-field--addressLine2 {
+        @include breakpoint("small") {
+            flex-basis: 70%;
+        }
+    }
+
+     .dynamic-form-field--postCode,
+    .dynamic-form-field--postalCode,
+    .dynamic-form-field--zip {
         @include breakpoint("small") {
             flex-basis: 30%;
         }
     }
+
+      // PEC (field_33) + Codice SDI (field_35) → 50 / 50
+    .dynamic-form-field--field_33,
+    .dynamic-form-field--field_35 {
+        @include breakpoint("small") {
+            flex-basis: 50%;
+        }
+    }
+}
+
+.dynamic-form-field.floating-form-field.dynamic-form-field--field_29 {
+    margin-bottom: 0 !important;
+
+}
+
+.invoice-section {
+    background-color: transparent;
+    border-radius: 5px;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    animation: fadeIn 0.5s ease-in-out;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.optimizedCheckout-form-checkbox,
+.optimizedCheckout-form-checkbox input[type="checkbox"],
+.form-checkbox,
+#privacyPolicy {
+    background-color: transparent !important;
+    background: none !important;
+}
+
+// Also target the label and wrapper if needed
+.form-checkbox + label,
+label[for="privacyPolicy"] {
+    background-color: transparent !important;
+}
+
+.optimizedCheckout-form-label{
+background-color:transparent !important;
 }

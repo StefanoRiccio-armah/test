@@ -1,6 +1,8 @@
+// packages/core/src/app/checkout/components/CustomerStep.tsx
+// (Sostituisci l'intero file)
+
 import React, { lazy } from 'react';
 
-import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { LazyContainer } from '@bigcommerce/checkout/ui';
 
 import { retry } from '../../common/utility';
@@ -29,6 +31,9 @@ export interface CustomerStepProps extends CustomerProps {
     onExpanded(type: CheckoutStepType): void;
     onSignOut(event: CustomerSignOutEvent): void;
     onSignOutError(error: Error): void;
+    // NUOVE PROPS PER GESTIRE LO STATO DELLA FATTURAZIONE
+    onBillingSameAsShippingChange(isSame: boolean): void;
+    isBillingSameAsShipping: boolean;
 }
 
 const CustomerStep: React.FC<CustomerStepProps> = ({
@@ -51,11 +56,14 @@ const CustomerStep: React.FC<CustomerStepProps> = ({
     onSubscribeToNewsletter,
     onUnhandledError,
     onWalletButtonClick,
+    // Destruttura le nuove props
+    onBillingSameAsShippingChange,
+    isBillingSameAsShipping,
 }) => {
     return (
         <CheckoutStep
             {...step}
-            heading={<TranslatedString id="customer.customer_heading" />}
+            heading="Dati Personali e Spedizione"
             key={step.type}
             onEdit={onEdit}
             onExpanded={onExpanded}
@@ -70,10 +78,12 @@ const CustomerStep: React.FC<CustomerStepProps> = ({
             <LazyContainer>
                 <Customer
                     checkEmbeddedSupport={checkEmbeddedSupport}
+                    isBillingSameAsShipping={isBillingSameAsShipping}
                     isEmbedded={isEmbedded()}
                     isSubscribed={isSubscribed}
                     isWalletButtonsOnTop={isWalletButtonsOnTop}
                     onAccountCreated={onAccountCreated}
+                    onBillingSameAsShippingChange={onBillingSameAsShippingChange}
                     onChangeViewType={onChangeViewType}
                     onContinueAsGuest={onContinueAsGuest}
                     onContinueAsGuestError={onContinueAsGuestError}

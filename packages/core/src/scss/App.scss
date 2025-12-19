@@ -203,3 +203,66 @@
         font-size: 0.9375rem;
     }
 }
+
+.stepHeader-title {
+white-space: nowrap !important;
+}
+
+
+.checkbox-billing{
+    display:flex;
+    flex-direction: row;
+    gap:5px;
+}
+
+.button--primary{
+    background-color: #24849E;
+    border-color: black;
+}
+
+
+#checkout-payment-continue{
+    background-color: #24849E;
+    border-color: #24849E;
+}
+
+button[data-test="step-edit-button"] {
+    background-color: #ffffff !important;
+    color: #000000 !important; 
+    border: 1px solid #24849E !important; 
+}
+
+
+button[data-test="step-edit-button"]:hover {
+    background-color: #f2f2f2 !important;
+}
+
+
+.header-logo-text{
+    color:white;
+}
+
+.optimizedCheckout-form-label{
+     background-color:#f7f7f7 !important;
+}
+
+.optimizedCheckout-form-checklist{
+    border-color:#24849E !important;
+}
+
+
+.form-checklist-item {
+    border-bottom: 1px solid #24849E;
+}
+
+.checkout-step--shipping_method .stepHeader-body {
+
+       @include breakpoint("small") {
+        margin-left: 65px !important;
+       
+    }
+}
+
+.optimizedCheckout-header{
+    background-color:#24849E !important;
+}

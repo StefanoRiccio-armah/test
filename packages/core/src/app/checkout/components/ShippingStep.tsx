@@ -1,13 +1,14 @@
 import type { Cart, Consignment } from '@bigcommerce/checkout-sdk/essential';
 import React, { lazy } from 'react';
 
-import { TranslatedString } from '@bigcommerce/checkout/locale';
+
 import { AddressFormSkeleton, LazyContainer } from '@bigcommerce/checkout/ui';
 
 import { retry } from '../../common/utility';
-import { type ShippingProps, ShippingSummary } from '../../shipping';
+import { type ShippingProps } from '../../shipping';
 import CheckoutStep from '../CheckoutStep';
 import type CheckoutStepType from '../CheckoutStepType';
+
 
 const Shipping = lazy(() =>
     retry(
@@ -31,10 +32,9 @@ const ShippingStep: React.FC<ShippingStepProps> = ({
     step,
     cartHasChanged,
     cart,
-    consignments,
+ 
     isBillingSameAsShipping,
     isMultiShippingMode,
-    isShippingDiscountDisplayEnabled,
     onEdit,
     onExpanded,
     navigateNextStep,
@@ -52,18 +52,11 @@ const ShippingStep: React.FC<ShippingStepProps> = ({
     return (
         <CheckoutStep
             {...step}
-            heading={<TranslatedString id="shipping.shipping_heading" />}
+            heading="Metodo di Spedizione"
             key={step.type}
             onEdit={onEdit}
             onExpanded={onExpanded}
-            summary={
-                <ShippingSummary
-                    cart={cart}
-                    consignments={consignments}
-                    isMultiShippingMode={isMultiShippingMode}
-                    isShippingDiscountDisplayEnabled={isShippingDiscountDisplayEnabled}
-                />
-            }
+       
         >
             <LazyContainer loadingSkeleton={<AddressFormSkeleton />}>
                 <Shipping
@@ -85,4 +78,3 @@ const ShippingStep: React.FC<ShippingStepProps> = ({
 };
 
 export default ShippingStep;
-
