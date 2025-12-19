@@ -2,7 +2,7 @@ import { type FormField } from '@bigcommerce/checkout-sdk';
 import { forIn, noop } from 'lodash';
 import React, { useCallback, useEffect, useRef } from 'react';
 
-import { useCheckout, useLocale,useThemeContext } from '@bigcommerce/checkout/contexts';
+import { useCheckout, useLocale, useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { DynamicFormField, DynamicFormFieldType } from '@bigcommerce/checkout/ui';
 
@@ -20,30 +20,41 @@ import { GoogleAutocompleteFormField, mapToAddress } from './googleAutocomplete'
 import './AddressForm.scss';
 
 const AddressForm: React.FC<AddressFormProps> = ({
-        formFields,
-        fieldName,
-        countryCode,
-        onAutocompleteToggle,
-        shouldShowSaveAddress,
-        setFieldValue = noop,
-        onChange = noop,
-        type,
-    }) => {
+    formFields,
+    fieldName,
+    countryCode,
+    onAutocompleteToggle,
+    shouldShowSaveAddress,
+    shouldShowCodiceFiscale,
+    setFieldValue = noop,
+    onChange = noop,
+    type,
+    isFloatingLabelEnabled: isFloatingLabelEnabledOverride,
+}) => {
     const { language } = useLocale();
     const { themeV2 } = useThemeContext();
     const {
         checkoutState: {
-            data: { getConfig, getBillingCountries, getShippingCountries }
-        }
+            data: { getConfig, getBillingCountries, getShippingCountries },
+        },
     } = useCheckout();
 
     const config = getConfig();
-    const countries = (type === AddressType.Billing
-        ? getBillingCountries()
-        : getShippingCountries()
-    ) || EMPTY_ARRAY;
+    const countries =
+        (type === AddressType.Billing ? getBillingCountries() : getShippingCountries()) ||
+        EMPTY_ARRAY;
     const googleMapsApiKey = config?.checkoutSettings.googleMapsApiKey || '';
-    const isFloatingLabelEnabledValue = config ? isFloatingLabelEnabled(config.checkoutSettings) : false;
+
+    // Valore di default globale
+    const isFloatingLabelEnabledValue = config
+        ? isFloatingLabelEnabled(config.checkoutSettings)
+        : false;
+
+    // Determina se usare l'override o il valore globale
+    const finalIsFloatingLabelEnabled = typeof isFloatingLabelEnabledOverride === 'boolean'
+        ? isFloatingLabelEnabledOverride
+        : isFloatingLabelEnabledValue;
+
     const countriesWithAutocomplete = ['US', 'CA', 'AU', 'NZ', 'GB'];
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -53,134 +64,203 @@ const AddressForm: React.FC<AddressFormProps> = ({
         const { current } = containerRef;
 
         if (current) {
-            nextElementRef.current = current.querySelector<HTMLElement>('[autocomplete="address-line2"]');
+            nextElementRef.current =
+                current.querySelector<HTMLElement>('[autocomplete="address-line2"]');
         }
     }, []);
 
-    const syncNonFormikValue = useCallback((fieldName: string, value: string | string[]) => {
-        const dateFormFieldNames = formFields
-            .filter((field) => field.custom && field.fieldType === DynamicFormFieldType.DATE)
-            .map((field) => field.name);
+    const syncNonFormikValue = useCallback(
+        (fieldName: string, value: string | string[]) => {
+            const dateFormFieldNames = formFields
+                .filter((field) => field.custom && field.fieldType === DynamicFormFieldType.DATE)
+                .map((field) => field.name);
 
-        if (fieldName === AUTOCOMPLETE_FIELD_NAME || dateFormFieldNames.includes(fieldName)) {
-            setFieldValue(fieldName, value);
-        }
-
-        onChange(fieldName, value);
-    }, [formFields, setFieldValue, onChange]);
-
-    const handleDynamicFormFieldChange = useCallback((name: string) => (value: string | string[]) => {
-        syncNonFormikValue(name, value);
-    }, [syncNonFormikValue]);
-
-    const handleAutocompleteChange = useCallback((value: string, isOpen: boolean) => {
-        if (!isOpen) {
-            syncNonFormikValue(AUTOCOMPLETE_FIELD_NAME, value);
-        }
-    }, [syncNonFormikValue]);
-
-    const handleAutocompleteSelect = useCallback((
-        place: google.maps.places.PlaceResult,
-        item: AutocompleteItem,
-    ) => {
-        const { value: autocompleteValue } = item;
-
-        const address = mapToAddress(place, countries);
-
-        forIn(address, (value, fieldName) => {
-            if (fieldName === AUTOCOMPLETE_FIELD_NAME && value === undefined) {
-                return;
+            if (fieldName === AUTOCOMPLETE_FIELD_NAME || dateFormFieldNames.includes(fieldName)) {
+                setFieldValue(fieldName, value);
             }
 
-            setFieldValue(fieldName, value as string);
-            onChange(fieldName, value as string);
-        });
+            onChange(fieldName, value);
+        },
+        [formFields, setFieldValue, onChange],
+    );
 
-        const address1 = address.address1 ? address.address1 : autocompleteValue;
+    const handleDynamicFormFieldChange = useCallback(
+        (name: string) =>
+            (value: string | string[]) => {
+                syncNonFormikValue(name, value);
+            },
+        [syncNonFormikValue],
+    );
 
-        if (address1) {
-            syncNonFormikValue(AUTOCOMPLETE_FIELD_NAME, address1);
+    const handleAutocompleteChange = useCallback(
+        (value: string, isOpen: boolean) => {
+            if (!isOpen) {
+                syncNonFormikValue(AUTOCOMPLETE_FIELD_NAME, value);
+            }
+        },
+        [syncNonFormikValue],
+    );
+
+    const handleAutocompleteSelect = useCallback(
+        (place: google.maps.places.PlaceResult, item: AutocompleteItem) => {
+            const { value: autocompleteValue } = item;
+            const address = mapToAddress(place, countries);
+
+            forIn(address, (value, fieldName) => {
+                if (fieldName === AUTOCOMPLETE_FIELD_NAME && value === undefined) return;
+                setFieldValue(fieldName, value as string);
+                onChange(fieldName, value as string);
+            });
+
+            const address1 = address.address1 ? address.address1 : autocompleteValue;
+            if (address1) {
+                syncNonFormikValue(AUTOCOMPLETE_FIELD_NAME, address1);
+            }
+        },
+        [countries, setFieldValue, onChange, syncNonFormikValue],
+    );
+
+    const getPlaceholderValue = useCallback(
+        (field: FormField, translatedPlaceholderId: string): string => {
+            if (field.default && field.fieldType !== 'dropdown') {
+                return field.default;
+            }
+            return translatedPlaceholderId && language.translate(translatedPlaceholderId);
+        },
+        [language],
+    );
+
+    const renderFormField = (field: FormField) => {
+        const addressFieldName = field.name;
+        const translatedPlaceholderId = PLACEHOLDER[addressFieldName];
+
+        if (type === AddressType.Shipping) {
+            if (
+                addressFieldName === 'company' ||
+                addressFieldName === 'field_29' ||
+                addressFieldName === 'field_33' ||
+                addressFieldName === 'field_35'
+            ) {
+                return null;
+            }
         }
-    }, [countries, setFieldValue, onChange, syncNonFormikValue]);
 
-    const getPlaceholderValue = useCallback((field: FormField, translatedPlaceholderId: string): string => {
-        if (field.default && field.fieldType !== 'dropdown') {
-            return field.default;
+        if (type === AddressType.Billing && addressFieldName === 'field_29') {
+            if (shouldShowCodiceFiscale) {
+                return (
+                    <DynamicFormField
+                        autocomplete={AUTOCOMPLETE[field.name]}
+                        extraClass={`dynamic-form-field--${getAddressFormFieldLegacyName(
+                            addressFieldName,
+                        )}`}
+                        field={field}
+                        inputId={getAddressFormFieldInputId(addressFieldName)}
+                        isFloatingLabelEnabled={finalIsFloatingLabelEnabled}
+                        key={`${field.id}-${field.name}`}
+                        label={
+                            field.custom ? (
+                                field.label
+                            ) : (
+                                <TranslatedString id={LABEL[field.name]} />
+                            )
+                        }
+                        onChange={handleDynamicFormFieldChange(addressFieldName)}
+                        parentFieldName={
+                            field.custom
+                                ? fieldName
+                                    ? `${fieldName}.customFields`
+                                    : 'customFields'
+                                : fieldName
+                        }
+                        placeholder={getPlaceholderValue(
+                            field,
+                            translatedPlaceholderId,
+                        )}
+                        themeV2={themeV2}
+                    />
+                );
+            }
+
+            return (
+                <div key="codice-fiscale-placeholder" className="form-field">
+                    <label className="form-label optimizedCheckout-form-label">
+                        {field.label}
+                    </label>
+                    <span
+                        style={{
+                            color: 'black',
+                            fontSize: '1.5rem',
+                            display: 'block',
+                        }}
+                    >
+                        ❗ Nel tuo carrello non ci sono prodotti detraibili
+                    </span>
+                </div>
+            );
         }
 
-        return translatedPlaceholderId && language.translate(translatedPlaceholderId);
-    }, [language]);
+        if (
+            addressFieldName === 'address1' &&
+            googleMapsApiKey &&
+            countryCode &&
+            countriesWithAutocomplete.includes(countryCode)
+        ) {
+            return (
+                <GoogleAutocompleteFormField
+                    apiKey={googleMapsApiKey}
+                    countryCode={countryCode}
+                    field={field}
+                    isFloatingLabelEnabled={finalIsFloatingLabelEnabled}
+                    key={field.id}
+                    nextElement={nextElementRef.current || undefined}
+                    onChange={handleAutocompleteChange}
+                    onSelect={handleAutocompleteSelect}
+                    onToggleOpen={onAutocompleteToggle}
+                    parentFieldName={fieldName}
+                    supportedCountries={countriesWithAutocomplete}
+                />
+            );
+        }
+
+        return (
+            <DynamicFormField
+                autocomplete={AUTOCOMPLETE[field.name]}
+                extraClass={`dynamic-form-field--${getAddressFormFieldLegacyName(
+                    addressFieldName,
+                )}`}
+                field={field}
+                inputId={getAddressFormFieldInputId(addressFieldName)}
+                isFloatingLabelEnabled={finalIsFloatingLabelEnabled}
+                key={`${field.id}-${field.name}`}
+                label={
+                    field.custom ? (
+                        field.label
+                    ) : (
+                        <TranslatedString id={LABEL[field.name]} />
+                    )
+                }
+                onChange={handleDynamicFormFieldChange(addressFieldName)}
+                parentFieldName={
+                    field.custom
+                        ? fieldName
+                            ? `${fieldName}.customFields`
+                            : 'customFields'
+                        : fieldName
+                }
+                placeholder={getPlaceholderValue(field, translatedPlaceholderId)}
+                themeV2={themeV2}
+            />
+        );
+    };
 
     return (
         <>
             <Fieldset>
-                <div
-                    className="checkout-address"
-                    ref={containerRef}
-                >
-                    {formFields.map((field) => {
-                        const addressFieldName = field.name;
-                        const translatedPlaceholderId = PLACEHOLDER[addressFieldName];
-
-                        if (
-                            addressFieldName === 'address1' &&
-                            googleMapsApiKey &&
-                            countryCode &&
-                            countriesWithAutocomplete.includes(countryCode)
-                        ) {
-                            return (
-                                <GoogleAutocompleteFormField
-                                    apiKey={googleMapsApiKey}
-                                    countryCode={countryCode}
-                                    field={field}
-                                    isFloatingLabelEnabled={isFloatingLabelEnabledValue}
-                                    key={field.id}
-                                    nextElement={nextElementRef.current || undefined}
-                                    onChange={handleAutocompleteChange}
-                                    onSelect={handleAutocompleteSelect}
-                                    onToggleOpen={onAutocompleteToggle}
-                                    parentFieldName={fieldName}
-                                    supportedCountries={countriesWithAutocomplete}
-                                />
-                            );
-                        }
-
-                        return (
-                            <DynamicFormField
-                                autocomplete={AUTOCOMPLETE[field.name]}
-                                extraClass={`dynamic-form-field--${getAddressFormFieldLegacyName(
-                                    addressFieldName,
-                                )}`}
-                                field={field}
-                                inputId={getAddressFormFieldInputId(addressFieldName)}
-                                // stateOrProvince can sometimes be a dropdown or input, so relying on id is not sufficient
-                                isFloatingLabelEnabled={isFloatingLabelEnabledValue}
-                                key={`${field.id}-${field.name}`}
-                                label={
-                                    field.custom ? (
-                                        field.label
-                                    ) : (
-                                        <TranslatedString id={LABEL[field.name]} />
-                                    )
-                                }
-                                onChange={handleDynamicFormFieldChange(addressFieldName)}
-                                parentFieldName={
-                                    field.custom
-                                        ? fieldName
-                                            ? `${fieldName}.customFields`
-                                            : 'customFields'
-                                        : fieldName
-                                }
-                                placeholder={getPlaceholderValue(
-                                    field,
-                                    translatedPlaceholderId,
-                                )}
-                                themeV2={themeV2}
-                            />
-                        );
-                    })}
+                <div className="checkout-address" ref={containerRef}>
+                    {formFields.map(renderFormField)}
                 </div>
             </Fieldset>
+
             {shouldShowSaveAddress && (
                 <CheckboxFormField
                     labelContent={<TranslatedString id="address.save_in_addressbook" />}

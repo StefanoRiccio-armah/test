@@ -4,7 +4,7 @@ import {
 } from '@bigcommerce/checkout-sdk';
 import { type FormikProps, withFormik } from 'formik';
 import React, { type RefObject, useRef, useState } from 'react';
-import { lazy } from 'yup';
+import * as Yup from 'yup';
 
 import { useCheckout, useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString, withLanguage, type WithLanguageProps } from '@bigcommerce/checkout/locale';
@@ -27,9 +27,12 @@ import { getShippableItemsCount } from '../shipping';
 import { Button, ButtonVariant } from '../ui/button';
 import { Fieldset, Form } from '../ui/form';
 
+import { hasDeductibleProduct } from '../custom/minsan-checker'
+
+
 import StaticBillingAddress from './StaticBillingAddress';
 
-export type BillingFormValues = AddressFormValues & { orderComment: string };
+export type BillingFormValues = AddressFormValues & { orderComment: string,  wantsInvoice: boolean; };
 
 export interface BillingFormProps {
     methodId?: string;
@@ -63,6 +66,8 @@ const BillingForm = ({
     const customer = getCustomer();
     const config = getConfig();
     const cart = getCart();
+    const shouldShowCodiceFiscale = hasDeductibleProduct(cart);
+
 
     if (!config || !customer || !cart) {
         throw new Error('checkout data is not available');
@@ -107,6 +112,17 @@ const BillingForm = ({
         void handleSelectAddress({});
     };
 
+    const handleToggleInvoice = () => {
+        setFieldValue('wantsInvoice', !values.wantsInvoice);
+    };
+
+    const invoiceFieldNames = ['company', 'field_29', 'field_31', 'field_33', 'field_35'];
+
+    // Separiamo i campi: quelli per la fattura e quelli normali
+    const regularAddressFields = editableFormFields.filter(field => !invoiceFieldNames.includes(field.name));
+    const invoiceAddressFields = editableFormFields.filter(field => invoiceFieldNames.includes(field.name));
+
+
     return (
         <Form autoComplete="on">
             {shouldRenderStaticAddress && billingAddress && (
@@ -114,6 +130,36 @@ const BillingForm = ({
                     <StaticBillingAddress address={billingAddress} />
                 </div>
             )}
+
+            {/* Checkbox "Vuoi la fattura?" */}
+            <Fieldset>
+                <div className="checkbox-billing">
+                    <input
+                        id="wantsInvoice"
+                        type="checkbox"
+                        checked={values.wantsInvoice}
+                        onChange={handleToggleInvoice}
+                    />
+                    <label htmlFor="wantsInvoice">
+                        Vuoi la fattura?
+                    </label>
+                </div>
+            </Fieldset>
+
+            {/* Sezione Fattura: appare solo se il checkbox è spuntato */}
+            {values.wantsInvoice && (
+                <div className="invoice-section">
+                    <AddressForm
+                        countryCode={values.countryCode}
+                        formFields={invoiceAddressFields}
+                       
+                        setFieldValue={setFieldValue}
+                        shouldShowCodiceFiscale={shouldShowCodiceFiscale}
+                        type={AddressType.Billing}
+                    />
+                </div>
+            )}
+
 
             <Fieldset id="checkoutBillingAddress" ref={addressFormRef}>
                 {hasAddresses && !shouldRenderStaticAddress && (
@@ -136,10 +182,11 @@ const BillingForm = ({
                     <AddressFormSkeleton isLoading={isResettingAddress}>
                         <AddressForm
                             countryCode={values.countryCode}
-                            formFields={editableFormFields}
+                            formFields={regularAddressFields}
                             setFieldValue={setFieldValue}
                             shouldShowSaveAddress={!isGuest}
                             type={AddressType.Billing}
+                             shouldShowCodiceFiscale={shouldShowCodiceFiscale}
                         />
                     </AddressFormSkeleton>
                 )}
@@ -165,8 +212,9 @@ const BillingForm = ({
 
 export default withLanguage(
     withFormik<BillingFormProps & WithLanguageProps, BillingFormValues>({
-        handleSubmit: (values, { props: { onSubmit } }) => {
-            onSubmit(values);
+        handleSubmit: async (values, { props: { onSubmit, navigateNextStep } }) => {
+            await onSubmit(values);
+            navigateNextStep();
         },
         mapPropsToValues: ({ getFields, customerMessage, billingAddress }) => ({
             ...mapAddressToFormValues(
@@ -174,31 +222,57 @@ export default withLanguage(
                 billingAddress,
             ),
             orderComment: customerMessage,
+            wantsInvoice: false,
         }),
-        isInitialValid: ({ billingAddress, getFields, language }) =>
-            !!billingAddress &&
-            getAddressFormFieldsValidationSchema({
-                language,
-                formFields: getFields(billingAddress.countryCode),
-            }).isValidSync(billingAddress),
+        validateOnMount: true,
         validationSchema: ({
             language,
             getFields,
             methodId,
         }: BillingFormProps & WithLanguageProps) =>
-            methodId === 'amazonpay'
-                ? lazy<Partial<AddressFormValues>>((values) =>
-                      getCustomFormFieldsValidationSchema({
-                          translate: getTranslateAddressError(language),
-                          formFields: getFields(values && values.countryCode),
-                      }),
-                  )
-                : lazy<Partial<AddressFormValues>>((values) =>
-                      getAddressFormFieldsValidationSchema({
-                          language,
-                          formFields: getFields(values && values.countryCode),
-                      }),
-                  ),
+            Yup.lazy<BillingFormValues>((values) => {
+                let baseSchema: any;
+                
+                if (methodId === 'amazonpay') {
+                    baseSchema = getCustomFormFieldsValidationSchema({
+                        translate: getTranslateAddressError(language),
+                        formFields: getFields(values.countryCode),
+                    });
+                } else {
+                    baseSchema = getAddressFormFieldsValidationSchema({
+                        language,
+                        formFields: getFields(values.countryCode),
+                    });
+                }
+
+                const extendedFields = {
+                    ...baseSchema.fields,
+                    wantsInvoice: Yup.boolean(),
+                    customFields: Yup.object().shape({
+                        field_29: Yup.string().test(
+                            'fiscal-code-or-vat',
+                            'Formato non valido: Codice Fiscale (16 caratteri) o Partita IVA (11 cifre)',
+                            function(value) {
+                                if (!value || value.trim() === '') {
+                                    return true;
+                                }
+
+                                const trimmed = value.trim();
+                                const cfRegex = /^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/;
+                                const pivaRegex = /^([Ii][Tt])?\d{11}$/;
+                                
+                                const isCfValid = cfRegex.test(trimmed);
+                                const isPivaValid = pivaRegex.test(trimmed);
+                                const isValid = isCfValid || isPivaValid;
+                                                                
+                                return isValid;
+                            }
+                        )
+                    })
+                };
+
+                return Yup.object(extendedFields);
+            }),
         enableReinitialize: true,
     })(BillingForm),
 );

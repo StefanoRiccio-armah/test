@@ -13,6 +13,8 @@ export interface AddressFormProps {
     onChange?(fieldName: string, value: string | string[]): void;
     setFieldValue?(fieldName: string, value: string | string[]): void;
     type: AddressType;
+     shouldShowCodiceFiscale?: boolean;
+    isFloatingLabelEnabled?: boolean; 
 }
 
 export const LABEL: AddressKeyMap = {
