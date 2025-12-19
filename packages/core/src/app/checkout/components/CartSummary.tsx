@@ -17,21 +17,22 @@ const CartSummaryComponent = lazy(() =>
     ),
 );
 
-const CartSummaryDrawer = lazy(() =>
+const CartSummaryDrawerAccordion = lazy(() =>
     retry(
         () =>
             import(
-                /* webpackChunkName: "cart-summary-drawer" */
-                '../../cart/CartSummaryDrawer'
+                /* webpackChunkName: "cart-summary-accordion" */
+                '../../cart/CartSummaryDrawerAccordion'
             ),
     ),
 );
 
 export interface CartSummaryProps {
     isMultiShippingMode: boolean;
+    selectedPaymentMethodName?:string
 }
 
-export const CartSummary: React.FC<CartSummaryProps> = ({ isMultiShippingMode }) => {
+export const CartSummary: React.FC<CartSummaryProps> = ({ isMultiShippingMode,selectedPaymentMethodName}) => {    
     return (
         <MobileView>
             {(matched) => {
@@ -39,7 +40,7 @@ export const CartSummary: React.FC<CartSummaryProps> = ({ isMultiShippingMode })
                     return (
                         <LazyContainer loadingSkeleton={<></>}>
                             <Extension region={ExtensionRegion.SummaryAfter} />
-                            <CartSummaryDrawer isMultiShippingMode={isMultiShippingMode} />
+                           <CartSummaryDrawerAccordion isMultiShippingMode={isMultiShippingMode}     selectedPaymentMethodName={selectedPaymentMethodName} />
                         </LazyContainer>
                     );
                 }
@@ -47,7 +48,7 @@ export const CartSummary: React.FC<CartSummaryProps> = ({ isMultiShippingMode })
                 return (
                     <LazyContainer loadingSkeleton={<CartSummarySkeleton />}>
                         <aside aria-label="Cart Summary" className="layout-cart">
-                            <CartSummaryComponent isMultiShippingMode={isMultiShippingMode} />
+                            <CartSummaryComponent isMultiShippingMode={isMultiShippingMode}     selectedPaymentMethodName={selectedPaymentMethodName} />
                             <Extension region={ExtensionRegion.SummaryAfter} />
                         </aside>
                     </LazyContainer>

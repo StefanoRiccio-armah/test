@@ -1,8 +1,7 @@
-import type { Cart, Consignment } from '@bigcommerce/checkout-sdk/essential';
+import type { Cart, Consignment, PaymentMethod } from '@bigcommerce/checkout-sdk/essential';
 import React, { lazy ,type  ReactElement } from 'react';
 
 import type { ErrorLogger } from '@bigcommerce/checkout/error-handling-utils';
-import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { ChecklistSkeleton, LazyContainer } from '@bigcommerce/checkout/ui';
 
 import { retry } from '../../common/utility';
@@ -30,6 +29,7 @@ export interface PaymentStepProps extends PaymentProps {
     errorLogger: ErrorLogger;
     onEdit(type: CheckoutStepType): void;
     onExpanded(type: CheckoutStepType): void;
+      onPaymentMethodSelect?(method?: PaymentMethod): void;
 }
 
 const PaymentStep = ({
@@ -45,11 +45,11 @@ const PaymentStep = ({
     onReady,
     onSubmit,
     onSubmitError,
+    onPaymentMethodSelect,
     onUnhandledError,
 }: PaymentStepProps): ReactElement => (
     <CheckoutStep
         {...step}
-        heading={<TranslatedString id="payment.payment_heading" />}
         key={step.type}
         onEdit={onEdit}
         onExpanded={onExpanded}
@@ -68,6 +68,7 @@ const PaymentStep = ({
                 onSubmit={onSubmit}
                 onSubmitError={onSubmitError}
                 onUnhandledError={onUnhandledError}
+                 onPaymentMethodSelect={onPaymentMethodSelect}
             />
         </LazyContainer>
     </CheckoutStep>

@@ -29,6 +29,7 @@ export interface OrderSummaryProps {
     storeCurrency: StoreCurrency;
     shopperCurrency: ShopperCurrency;
     additionalLineItems?: ReactNode;
+    paymentMethodName?: string;
 }
 
 const OrderSummary: FunctionComponent<OrderSummaryProps & OrderSummarySubtotalsProps> = ({
@@ -40,6 +41,7 @@ const OrderSummary: FunctionComponent<OrderSummaryProps & OrderSummarySubtotalsP
     storeCurrency,
     taxes,
     total,
+    paymentMethodName,
     ...orderSummarySubtotalsProps
 }) => {
     const nonBundledLineItems = useMemo(() => removeBundledItems(lineItems), [lineItems]);
@@ -84,6 +86,7 @@ const OrderSummary: FunctionComponent<OrderSummaryProps & OrderSummarySubtotalsP
                     <OrderSummarySubtotals
                         isTaxIncluded={isTaxIncluded}
                         taxes={taxes}
+                          paymentMethodName={paymentMethodName}
                         {...orderSummarySubtotalsProps}
                     />
                     {additionalLineItems}

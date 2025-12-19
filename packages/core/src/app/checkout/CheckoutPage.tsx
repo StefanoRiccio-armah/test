@@ -144,6 +144,7 @@ const Checkout = ({
         isSubscribed: false,
         buttonConfigs: [],
     });
+    const [selectedPaymentMethodName, setSelectedPaymentMethodName] = useState<string | undefined>();
 
     // Initialize refs 1/2
     const stepsRef = useRef<CheckoutStepStatus[]>(steps);
@@ -292,6 +293,11 @@ const Checkout = ({
         if (embeddedMessenger.current) {
             embeddedMessenger.current.postError(error);
         }
+    }, []);
+
+        const handlePaymentMethodSelect = useCallback((method?: PaymentMethod): void => {
+        const displayName = method?.config.displayName;
+        setSelectedPaymentMethodName(displayName);
     }, []);
 
     const handleUnhandledError = useCallback((error: Error): void => {
@@ -450,6 +456,7 @@ const Checkout = ({
                     consignments={consignments}
                     errorLogger={errorLogger}
                     isEmbedded={isEmbedded()}
+                     onPaymentMethodSelect={handlePaymentMethodSelect}
                     isUsingMultiShipping={
                         cart && consignments
                             ? isUsingMultiShipping(consignments, cart.lineItems)
@@ -658,7 +665,7 @@ const Checkout = ({
                         </div>
                     </>
                 }
-                <CartSummary isMultiShippingMode={state.isMultiShippingMode} />
+                <CartSummary isMultiShippingMode={state.isMultiShippingMode}   selectedPaymentMethodName={selectedPaymentMethodName}/>
             </div>
             {errorModal}
         </div>

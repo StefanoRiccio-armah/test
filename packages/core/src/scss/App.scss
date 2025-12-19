@@ -80,3 +80,126 @@
 // =============================================================================
 
 @import "themeV2/themeV2";
+
+//stile accordion mobile per il summary
+.cart-summary-accordion {
+    border: 1px solid #24849E;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--white);
+    margin-bottom: 1rem;
+   
+}
+
+.orderSummaryAccordionContent {
+    padding: 1rem 1.25rem 1.25rem;
+    border:#24849E !important; 
+    box-shadow: 0 4px 12px rgba(36, 132, 158, 0.25);
+}
+
+.orderSummaryAccordionHeader {
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+
+.cart-header{
+    border-bottom-color:#24849E !important;
+}
+
+.optimizedCheckout-orderSummary-cartSection{
+    border-color:#24849E !important;
+}
+
+.optimizedCheckout-headingSecondary{
+    font-weight:bold;
+}
+
+.optimizedCheckout-orderSummary{
+    border-color: #24849E !important;
+       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25) !important;
+}
+
+.accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    background: var(--gray-50);
+    cursor: pointer;
+    user-select: none;
+    gap: 0.75rem;
+}
+
+.accordion-header:hover {
+    background: var(--gray-100);
+}
+
+.accordion-title-section {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.accordion-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+.accordion-edit-section {
+    margin-left: auto;
+}
+
+.accordion-toggle-icon {
+    flex-shrink: 0;
+    padding: 0.25rem;
+    color: var(--gray-500);
+}
+
+.accordion-toggle-icon:hover {
+    color: var(--gray-700);
+}
+
+.accordion-content {
+    padding: 0;
+    animation: accordionSlide 0.2s ease-out;
+}
+
+@keyframes accordionSlide {
+    from {
+        opacity: 0;
+        height: 0;
+    }
+    to {
+        opacity: 1;
+        height: auto;
+    }
+}
+
+.optimizedCheckout-headingPrimary{
+    color:#24849E;
+}
+
+.checkout-view-header{
+    border-bottom-color: #24849E !important;
+}
+
+/* Accessibilità */
+.accordion-header:focus-within {
+    outline: 2px solid var(--blue-500);
+    outline-offset: -2px;
+}
+
+@media (max-width: 768px) {
+    .accordion-header {
+        padding: 0.875rem 1rem;
+    }
+    
+    .accordion-title {
+        font-size: 0.9375rem;
+    }
+}

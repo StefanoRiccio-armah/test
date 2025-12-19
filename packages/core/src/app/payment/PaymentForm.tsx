@@ -1,16 +1,16 @@
 import { ExtensionRegion, type PaymentMethod } from '@bigcommerce/checkout-sdk/essential';
 import { type FormikProps, type FormikState, withFormik, type WithFormikConfig } from 'formik';
 import { isNil, noop, omitBy } from 'lodash';
-import React, { type FunctionComponent, memo, useCallback, useContext, useMemo } from 'react';
+import React, { type FunctionComponent, memo, useCallback, useContext, useMemo, useState } from 'react';
 import { type ObjectSchema } from 'yup';
+import { debounce } from 'lodash';
 
-import { Extension } from '@bigcommerce/checkout/checkout-extension';
 import { useCheckout } from '@bigcommerce/checkout/contexts';
+import { Extension } from '@bigcommerce/checkout/checkout-extension';
 import { TranslatedString, withLanguage, type WithLanguageProps } from '@bigcommerce/checkout/locale';
 import { type PaymentFormValues } from '@bigcommerce/checkout/payment-integration-api';
 import { FormContext } from '@bigcommerce/checkout/ui';
 
-import { isExperimentEnabled } from '../common/utility';
 import { TermsConditions } from '../termsConditions';
 import { Fieldset, Form, Legend } from '../ui/form';
 
@@ -108,10 +108,6 @@ const PaymentForm: FunctionComponent<
         );
     }, [selectedMethod]);
 
-    const { checkoutState } = useCheckout();
-    const { checkoutSettings } = checkoutState.data.getConfig() ?? {};
-    const isMultiCouponEnabled = isExperimentEnabled(checkoutSettings, 'CHECKOUT-9674.multi_coupon_cart_checkout', false);
-
     if (shouldExecuteSpamCheck) {
         return (
             <SpamProtectionField
@@ -145,7 +141,7 @@ const PaymentForm: FunctionComponent<
                 values={values}
             />
 
-            {!isMultiCouponEnabled && <PaymentRedeemables />}
+            <PaymentRedeemables />
 
             {isTermsConditionsRequired && (
                 <TermsConditions
@@ -206,9 +202,70 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
     values,
 }) => {
     const { setSubmitted } = useContext(FormContext);
+    const { checkoutState, checkoutService } = useCheckout();
 
+    // 1. Aggiungiamo il nostro stato per bloccare l'UI
+    const [isUpdatingFee, setIsUpdatingFee] = useState(false);
+
+    // 2. Definiamo la funzione che fa il lavoro pesante (chiamata API + refresh)
+    const updateFeeAndRefresh = async (method: PaymentMethod) => {
+        const checkoutId = checkoutState.data.getCheckout()?.id;
+        if (!checkoutId) {
+            console.log('ID Checkout non trovato, impossibile aggiornare la fee.');
+            return;
+        }
+
+        console.log(`Inizio aggiornamento fee per metodo: ${method.id}`);
+        setIsUpdatingFee(true); // Blocca l'UI
+
+        try {
+            const apiUrl = 'https://glucosic-dylan-ectoblastic.ngrok-free.dev/handle-payment-change';
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    checkoutId,
+                    selectedPaymentMethodId: method.id,
+                }),
+            });
+
+            console.log('Risposta dal server di gestione fee:', response.status);
+
+            if (response.ok) {
+                // Il server ha fatto il suo lavoro, ora aggiorniamo il frontend
+                await checkoutService.loadCheckout(checkoutId);
+                console.log('Stato del checkout del frontend aggiornato.');
+            } else {
+                console.error('Il server ha risposto con un errore:', await response.text());
+            }
+        } catch (error) {
+            console.error('Errore di rete durante l-aggiornamento della fee:', error);
+        } finally {
+            console.log(`Fine aggiornamento fee per metodo: ${method.id}`);
+            setIsUpdatingFee(false); // Sblocca l'UI in ogni caso (successo o fallimento)
+        }
+    };
+
+    // 3. Creiamo la versione "debounced" della nostra funzione
+    // Usiamo `useCallback` per evitare di ricrearla ad ogni render.
+    // Il timer di 300ms parte solo dopo che l'utente ha smesso di cliccare.
+    const debouncedUpdate = useCallback(debounce(updateFeeAndRefresh, 300), [
+        checkoutState,
+        checkoutService,
+    ]);
+
+    // 4. Questa è la funzione che viene chiamata ad ogni click
     const handlePaymentMethodSelect = useCallback(
         (method: PaymentMethod) => {
+            // Se un'operazione è già in corso, ignoriamo i nuovi click.
+            if (isUpdatingFee) {
+                console.log('Aggiornamento già in corso, click ignorato.');
+                return;
+            }
+
+            // Aggiorna la UI istantaneamente (selezione del radio e reset form)
+            onMethodSelect(method);
+
             const updatedValues = {
                 ...values,
                 ccCustomerCode: '',
@@ -227,10 +284,20 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
 
             resetForm({ values: updatedValues });
             setSubmitted(false);
-            onMethodSelect(method);
+
+            // "Programma" l'esecuzione della nostra logica pesante
+            debouncedUpdate(method);
         },
-        [values, onMethodSelect, resetForm, setSubmitted],
+        [
+            isUpdatingFee, // Dipende dallo stato di loading
+            onMethodSelect,
+            resetForm,
+            values,
+            setSubmitted,
+            debouncedUpdate, // Dipende dalla funzione debounced
+        ],
     );
+
 
     return (
         <Fieldset
@@ -258,35 +325,41 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
 
 const paymentFormConfig: WithFormikConfig<PaymentFormProps & WithLanguageProps, PaymentFormValues> =
     {
-        mapPropsToValues: ({ defaultGatewayId, defaultMethodId }) => ({
-            ccCustomerCode: '',
-            ccCvv: '',
-            ccDocument: '',
-            customerEmail: '',
-            customerMobile: '',
-            ccExpiry: '',
-            ccName: '',
-            ccNumber: '',
-            paymentProviderRadio: getUniquePaymentMethodId(defaultMethodId, defaultGatewayId),
-            instrumentId: '',
-            shouldCreateAccount: true,
-            shouldSaveInstrument: false,
-            terms: false,
-            hostedForm: {
-                cardType: '',
-                errors: {
-                    cardCode: '',
-                    cardCodeVerification: '',
-                    cardExpiry: '',
-                    cardName: '',
-                    cardNumber: '',
-                    cardNumberVerification: '',
-                },
-            },
-            accountNumber: '',
-            routingNumber: '',
-        }),
+       mapPropsToValues: ({ defaultGatewayId, defaultMethodId, selectedMethod }) => {
+            // Se c'è un metodo SELEZIONATO passato dalle props (la scelta dell'utente),
+            // usiamo quello. Altrimenti, usiamo il metodo di default.
+            const activeMethod = selectedMethod || { id: defaultMethodId, gateway: defaultGatewayId };
 
+            return {
+                ccCustomerCode: '',
+                ccCvv: '',
+                ccDocument: '',
+                customerEmail: '',
+                customerMobile: '',
+                ccExpiry: '',
+                ccName: '',
+                ccNumber: '',
+                // Usa l'ID del metodo attivo (scelta utente o default) per impostare il radio button
+                paymentProviderRadio: getUniquePaymentMethodId(activeMethod.id, activeMethod.gateway),
+                instrumentId: '',
+                shouldCreateAccount: true,
+                shouldSaveInstrument: false,
+                terms: false,
+                hostedForm: {
+                    cardType: '',
+                    errors: {
+                        cardCode: '',
+                        cardCodeVerification: '',
+                        cardExpiry: '',
+                        cardName: '',
+                        cardNumber: '',
+                        cardNumberVerification: '',
+                    },
+                },
+                accountNumber: '',
+                routingNumber: '',
+            };
+        },
         handleSubmit: (values, { props: { onSubmit = noop } }) => {
             onSubmit(
                 omitBy(
@@ -306,6 +379,8 @@ const paymentFormConfig: WithFormikConfig<PaymentFormProps & WithLanguageProps, 
                 isTermsConditionsRequired,
                 language,
             }),
+             
+        enableReinitialize: true, // Questo è già corretto
     };
 
 export default withLanguage(withFormik(paymentFormConfig)(memo(PaymentForm)));
