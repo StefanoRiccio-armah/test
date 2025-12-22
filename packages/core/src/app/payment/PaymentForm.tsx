@@ -260,41 +260,51 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
     ]);
 
     const handlePaymentMethodSelect = useCallback(
-        (method: PaymentMethod) => {
-            if (isUpdatingFee) {
-                console.log('Aggiornamento già in corso, click ignorato.');
-                return;
+    (method: PaymentMethod) => {
+        if (isUpdatingFee) {
+            console.log('Aggiornamento già in corso, click ignorato.');
+            return;
+        }
+
+        // ✅ SALVA SOLO L'ID UNIVOCO (stringa sicura)
+        const methodId = getUniquePaymentMethodId(method.id, method.gateway);
+        savePaymentMethodSelection(methodId);
+        
+        // ✅ SALVA ANCHE IL DISPLAY NAME per il CartSummary
+        try {
+            const displayName = method.config.displayName;
+            if (displayName) {
+                localStorage.setItem('selectedPaymentMethodName', displayName);
             }
+        } catch (e) {
+            console.warn('Errore salvataggio displayName in localStorage:', e);
+        }
 
-            // ✅ SALVA SOLO L'ID UNIVOCO (stringa sicura)
-            const methodId = getUniquePaymentMethodId(method.id, method.gateway);
-            savePaymentMethodSelection(methodId);
+        onMethodSelect?.(method);
 
-            onMethodSelect?.(method);
+        const updatedValues = {
+            ...values,
+            ccCustomerCode: '',
+            ccCvv: '',
+            ccDocument: '',
+            customerEmail: '',
+            customerMobile: '',
+            ccExpiry: '',
+            ccName: '',
+            ccNumber: '',
+            instrumentId: '',
+            paymentProviderRadio: methodId,
+            shouldCreateAccount: true,
+            shouldSaveInstrument: false,
+        };
 
-            const updatedValues = {
-                ...values,
-                ccCustomerCode: '',
-                ccCvv: '',
-                ccDocument: '',
-                customerEmail: '',
-                customerMobile: '',
-                ccExpiry: '',
-                ccName: '',
-                ccNumber: '',
-                instrumentId: '',
-                paymentProviderRadio: methodId, // ✅ Usa direttamente l'ID univoco
-                shouldCreateAccount: true,
-                shouldSaveInstrument: false,
-            };
+        resetForm({ values: updatedValues });
+        setSubmitted(false);
 
-            resetForm({ values: updatedValues });
-            setSubmitted(false);
-
-            debouncedUpdate(method);
-        },
-        [isUpdatingFee, onMethodSelect, resetForm, values, setSubmitted, debouncedUpdate, savePaymentMethodSelection, getUniquePaymentMethodId],
-    );
+        debouncedUpdate(method);
+    },
+    [isUpdatingFee, onMethodSelect, resetForm, values, setSubmitted, debouncedUpdate, savePaymentMethodSelection],
+);
 
     return (
         <Fieldset

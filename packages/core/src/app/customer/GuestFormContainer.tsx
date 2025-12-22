@@ -1,6 +1,3 @@
-// packages/core/src/app/customer/GuestFormContainer.tsx
-// (Sostituisci l'intero file)
-
 import { type Cart,type Address, type FormField } from '@bigcommerce/checkout-sdk';
 import React from 'react';
 
@@ -67,12 +64,49 @@ export const GuestFormContainer: React.FC<GuestFormContainerProps> = ({
 
     if (!config || !cart) { return null; }
 
-    const { checkoutSettings: { privacyPolicyUrl, requiresMarketingConsent, remoteCheckoutProviders: checkoutButtonIds, providerWithCustomCheckout, isExpressPrivacyPolicy }, shopperConfig: { showNewsletterSignup: canSubscribe } } = config;
+    // Estrai le impostazioni dal file di configurazione
+    const {
+        checkoutSettings: {
+            // Rinomina la variabile originale per evitare conflitti
+            privacyPolicyUrl: originalPrivacyPolicyUrl,
+            requiresMarketingConsent,
+            remoteCheckoutProviders: checkoutButtonIds,
+            providerWithCustomCheckout,
+            isExpressPrivacyPolicy
+        },
+        shopperConfig: {
+            showNewsletterSignup: canSubscribe
+        }
+    } = config;
+
+    // Crea una nuova variabile per l'URL della privacy policy.
+    // Se l'URL dal backend (originalPrivacyPolicyUrl) esiste, usa quello.
+    // Altrimenti, usa l'URL hardcodato come fallback.
+    // Cambia 'https://www.tuo-sito.com/privacy' con il tuo URL effettivo.
+    const privacyPolicyUrl = originalPrivacyPolicyUrl || 'https://www.petroneonline.com/privacy-policy';
+
     const customCheckoutProvider = getProviderWithCustomCheckout(providerWithCustomCheckout);
     const checkoutButtons = isWalletButtonsOnTop || !isPaymentDataRequired() ? null : <CheckoutButtonList checkEmbeddedSupport={checkEmbeddedSupport} deinitialize={deinitializeCustomer} initialize={initializeCustomer} isInitializing={isInitializingCustomer()} methodIds={checkoutButtonIds} onClick={onWalletButtonClick} onError={onUnhandledError} />;
 
     if (shouldRenderStripeForm(cart, customCheckoutProvider)) {
-        return <StripeGuestForm canSubscribe={canSubscribe} checkoutButtons={checkoutButtons} continueAsGuestButtonLabelId="customer.continue" defaultShouldSubscribe={isSubscribed} deinitialize={deinitializeCustomer} email={email} initialize={initializeCustomer} isExpressPrivacyPolicy={isExpressPrivacyPolicy} isLoading={isContinuingAsGuest() || isInitializingCustomer() || isExecutingPaymentMethodCheckout()} onChangeEmail={handleChangeEmail} onContinueAsGuest={handleContinueAsGuest} onShowLogin={handleShowLogin} privacyPolicyUrl={privacyPolicyUrl} requiresMarketingConsent={requiresMarketingConsent} step={step} />;
+        return <StripeGuestForm
+            canSubscribe={canSubscribe}
+            checkoutButtons={checkoutButtons}
+            continueAsGuestButtonLabelId="customer.continue"
+            defaultShouldSubscribe={isSubscribed}
+            deinitialize={deinitializeCustomer}
+            email={email}
+            initialize={initializeCustomer}
+            isExpressPrivacyPolicy={isExpressPrivacyPolicy}
+            isLoading={isContinuingAsGuest() || isInitializingCustomer() || isExecutingPaymentMethodCheckout()}
+            onChangeEmail={handleChangeEmail}
+            onContinueAsGuest={handleContinueAsGuest}
+            onShowLogin={handleShowLogin}
+            // Usa la nuova variabile che ha sempre un valore
+            privacyPolicyUrl={privacyPolicyUrl}
+            requiresMarketingConsent={requiresMarketingConsent}
+            step={step}
+        />;
     }
 
     return <GuestForm
@@ -89,6 +123,7 @@ export const GuestFormContainer: React.FC<GuestFormContainerProps> = ({
         onChangeEmail={handleChangeEmail}
         onContinueAsGuest={handleContinueAsGuest}
         onShowLogin={handleShowLogin}
+        // Usa la nuova variabile che ha sempre un valore
         privacyPolicyUrl={privacyPolicyUrl}
         requiresMarketingConsent={requiresMarketingConsent}
         shippingAddress={shippingAddress}

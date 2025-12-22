@@ -110,6 +110,35 @@ type CheckoutPageProps = CheckoutProps &
     AnalyticsContextProps &
     ExtensionContextProps;
 
+// Utility per ottenere il metodo di pagamento dal localStorage
+const getStoredPaymentMethodName = (): string | null => {
+    try {
+        return localStorage.getItem('selectedPaymentMethodName');
+    } catch (e) {
+        console.warn('Errore lettura selectedPaymentMethodName da localStorage:', e);
+        return null;
+    }
+};
+
+// Utility per salvare il metodo di pagamento nel localStorage
+const setStoredPaymentMethodName = (name: string): void => {
+    try {
+        localStorage.setItem('selectedPaymentMethodName', name);
+    } catch (e) {
+        console.warn('Errore salvataggio selectedPaymentMethodName in localStorage:', e);
+    }
+};
+
+// Utility per verificare se c'è un metodo di pagamento salvato
+{/*const hasStoredPaymentMethod = (): boolean => {
+    try {
+        const storedId = localStorage.getItem('selectedPaymentMethodId');
+        return !!storedId;
+    } catch (e) {
+        return false;
+    }
+};*/}
+
 const Checkout = ({
                       createAccountUrl,
                       createEmbeddedMessenger,
@@ -171,14 +200,37 @@ const Checkout = ({
         if (error) { clearError(error); }
     }, [state.activeStepType, error, clearError]);
 
-    const navigateToNextIncompleteStep = useCallback((options?: { isDefault?: boolean }):void => {
-        const activeStepIndex = findIndex(stepsRef.current, { isActive: true });
-        const activeStep = activeStepIndex >= 0 && stepsRef.current[activeStepIndex];
-        if (!activeStep) { return; }
-        const previousStep = stepsRef.current[Math.max(activeStepIndex - 1, 0)];
-        if (previousStep) { analyticsTracker.trackStepCompleted(previousStep.type); }
-        navigateToStep(activeStep.type, options);
-    }, [analyticsTracker, navigateToStep]);
+const navigateToNextIncompleteStep = useCallback((options?: { isDefault?: boolean }): void => {
+    const nextIncompleteStep = find(stepsRef.current, { isComplete: false });
+
+    if (!nextIncompleteStep) {
+        // 🔴 TUTTI COMPLETI → APRI PAYMENT
+        const paymentStep = find(stepsRef.current, { type: CheckoutStepType.Payment });
+        if (paymentStep) {
+            navigateToStep(CheckoutStepType.Payment, options);
+            return;
+        }
+
+        // fallback estremo
+        const lastStep = stepsRef.current[stepsRef.current.length - 1];
+        if (lastStep) {
+            navigateToStep(lastStep.type, options);
+        }
+        return;
+    }
+
+    const previousStepIndex =
+        findIndex(stepsRef.current, { type: nextIncompleteStep.type }) - 1;
+
+    if (previousStepIndex >= 0) {
+        analyticsTracker.trackStepCompleted(
+            stepsRef.current[previousStepIndex].type
+        );
+    }
+
+    navigateToStep(nextIncompleteStep.type, options);
+}, [analyticsTracker, navigateToStep]);
+
 
     // NUOVA FUNZIONE per essere chiamata dal CustomerStep
     const handleSetBillingSameAsShipping = useCallback((isSame: boolean): void => {
@@ -203,6 +255,13 @@ const Checkout = ({
         analyticsTracker.trackStepCompleted(stepsRef.current[stepsRef.current.length - 1].type);
         if (embeddedMessenger.current) { embeddedMessenger.current.postComplete(); }
         SubscribeSessionStorage.removeSubscribeStatus();
+        // Pulisci il localStorage alla conferma dell'ordine
+        try {
+            localStorage.removeItem('selectedPaymentMethodId');
+            localStorage.removeItem('selectedPaymentMethodName');
+        } catch (e) {
+            console.warn('Errore pulizia localStorage:', e);
+        }
         setState(prevState => ({ ...prevState, isRedirecting: true }));
         void navigateToOrderConfirmationUtility(orderId);
     }, [analyticsTracker]);
@@ -256,6 +315,11 @@ const Checkout = ({
 
     const handlePaymentMethodSelect = useCallback((method?: PaymentMethod): void => {
         const displayName = method?.config.displayName;
+        
+        // Salva nel localStorage E nello stato locale
+        if (displayName) {
+            setStoredPaymentMethodName(displayName);
+        }
         setSelectedPaymentMethodName(displayName);
     }, []);
 
@@ -268,9 +332,10 @@ const Checkout = ({
         navigateToStep(type);
     }, [navigateToStep]);
 
-    const handleReady = useCallback((): void => {
-        navigateToNextIncompleteStep({ isDefault: true });
-    }, [navigateToNextIncompleteStep]);
+const handleReady = useCallback((): void => {
+    navigateToNextIncompleteStep({ isDefault: true });
+}, [navigateToNextIncompleteStep]);
+
 
     const handleNewsletterSubscription = useCallback((subscribed: boolean): void => {
         setState(prevState => ({ ...prevState, isSubscribed: subscribed }));
@@ -294,11 +359,11 @@ const Checkout = ({
     const reloadWindow = useCallback((): void => { setState(prevState => ({ ...prevState, error: undefined })); window.location.reload(); }, []);
     const handleSetIsMultishippingMode = useCallback((value: boolean): void => { setState(prevState => ({ ...prevState, isMultiShippingMode: value })); }, []);
 
-const handleCustomerContinue = useCallback((): void => {
-    // Forza la navigazione allo step di spedizione, garantendo che l'utente lo veda sempre.
-    analyticsTracker.trackStepCompleted(CheckoutStepType.Customer); // Tracciamo il completamento qui
-    navigateToStep(CheckoutStepType.Shipping);
-}, [navigateToStep, analyticsTracker]);
+    const handleCustomerContinue = useCallback((): void => {
+        // Forza la navigazione allo step di spedizione, garantendo che l'utente lo veda sempre.
+        analyticsTracker.trackStepCompleted(CheckoutStepType.Customer);
+        navigateToStep(CheckoutStepType.Shipping);
+    }, [navigateToStep, analyticsTracker]);
 
     const renderStep = (step: CheckoutStepStatus): ReactNode => {
         const { customerViewType = isGuestEnabled ? CustomerViewType.Guest : CustomerViewType.Login, isSubscribed, isBillingSameAsShipping, isMultiShippingMode } = state;
@@ -318,6 +383,7 @@ const handleCustomerContinue = useCallback((): void => {
                     onEdit={handleEditStep}
                     onExpanded={handleExpanded}
                     onReady={handleReady}
+                    key={step.type}
                     onSignIn={navigateToNextIncompleteStep}
                     onSignInError={handleError}
                     onSignOut={handleSignOut}
@@ -340,6 +406,7 @@ const handleCustomerContinue = useCallback((): void => {
                     navigateNextStep={handleShippingNextStep}
                     onCreateAccount={handleShippingCreateAccount}
                     onEdit={handleEditStep}
+                    key={step.type}
                     onExpanded={handleExpanded}
                     onReady={handleReady}
                     onSignIn={handleShippingSignIn}
@@ -356,6 +423,7 @@ const handleCustomerContinue = useCallback((): void => {
                     onEdit={handleEditStep}
                     onExpanded={handleExpanded}
                     onReady={handleReady}
+                    key={step.type}
                     onUnhandledError={handleUnhandledError}
                     step={step}
                 />;
@@ -370,6 +438,7 @@ const handleCustomerContinue = useCallback((): void => {
                     isUsingMultiShipping={cart && consignments ? isUsingMultiShipping(consignments, cart.lineItems) : false}
                     onCartChangedError={handleCartChangedError}
                     onEdit={handleEditStep}
+                    key={step.type}
                     onExpanded={handleExpanded}
                     onFinalize={navigateToOrderConfirmation}
                     onPaymentMethodSelect={handlePaymentMethodSelect}
@@ -393,6 +462,7 @@ const handleCustomerContinue = useCallback((): void => {
     handleConsignmentsUpdatedRef.current = handleConsignmentsUpdated;
     handleBeforeExitRef.current = handleBeforeExit;
 
+    // useEffect principale per l'inizializzazione
     useEffect(() => {
         const unsubscribeFromConsignments = subscribeToConsignments(handleConsignmentsUpdatedRef.current);
         const init = async () => {
@@ -443,6 +513,16 @@ const handleCustomerContinue = useCallback((): void => {
         };
     }, [analyticsTracker, containerId, createEmbeddedMessenger, data, embeddedStylesheet, handleReady, handleUnhandledError, language, loadPaymentMethodByIds, subscribeToConsignments]);
 
+    // useEffect per sincronizzare lo stato del pagamento al mount/refresh
+    useEffect(() => {
+        // Recupera il nome del metodo di pagamento dal localStorage
+        const storedPaymentMethodName = getStoredPaymentMethodName();
+        
+        if (storedPaymentMethodName) {
+            setSelectedPaymentMethodName(storedPaymentMethodName);
+        }
+    }, []);
+
     if (state.isRedirecting){ return <OrderConfirmationPageSkeleton />; }
 
     let errorModal = null;
@@ -463,66 +543,44 @@ const handleCustomerContinue = useCallback((): void => {
                         <div className="layout-main">
                             <CheckoutHeader activeStepType={state.activeStepType} buttonConfigs={state.buttonConfigs} checkEmbeddedSupport={checkEmbeddedSupport} defaultStepType={state.defaultStepType} onUnhandledError={handleUnhandledError} onWalletButtonClick={handleWalletButtonClick} />
                             <ol className="checkout-steps">
-    {stepsRef.current
-        .filter((step) => step.isRequired)
-        .map((step) => {
-            // Logica di base per determinare se uno step è attivo
-            const isActive = state.activeStepType
-                ? state.activeStepType === step.type
-                : state.defaultStepType === step.type;
+                                {stepsRef.current
+                                    .filter((step) => step.isRequired)
+                                    .map((step) => {
+                                        const isActive = state.activeStepType
+                                            ? state.activeStepType === step.type
+                                            : state.defaultStepType === step.type;
+                                        
+                                        if (step.type === CheckoutStepType.Billing) {
+                                            const paymentStep = stepsRef.current.find(s => s.type === CheckoutStepType.Payment);
 
-            // --- INIZIO LOGICA SPECIALE PER BILLING & PAYMENT ---
+                                            if (!paymentStep) {
+                                                return renderStep({ ...step, isActive, isBusy: isPending });
+                                            }
 
-            // Se lo step corrente nel map è Billing...
-            if (step.type === CheckoutStepType.Billing) {
-                // ...trova anche lo step di Payment per poterli renderizzare insieme.
-                const paymentStep = stepsRef.current.find(s => s.type === CheckoutStepType.Payment);
+                                            return (
+                                                <React.Fragment key="billing-payment-fragment">
+                                                    {renderStep({
+                                                        ...step,
+                                                        isActive: state.activeStepType === CheckoutStepType.Billing,
+                                                        isBusy: isPending,
+                                                    })}
 
-                // Se per qualche motivo non troviamo lo step di pagamento, usa la logica normale
-                if (!paymentStep) {
-                    return renderStep({ ...step, isActive, isBusy: isPending });
-                }
+                                                    {renderStep({
+                                                        ...paymentStep,
+                                                        isActive: state.activeStepType === CheckoutStepType.Payment,
+                                                        isBusy: isPending,
+                                                    })}
+                                                </React.Fragment>
+                                            );
+                                        }
 
-                // Renderizza entrambi gli step in un unico blocco.
-                // React.Fragment ci permette di raggrupparli senza aggiungere nodi extra al DOM.
-                return (
-                    <React.Fragment key="billing-payment-fragment">
-                        {/* 
-                            Renderizza Billing. Sarà attivo solo se activeStepType è 'Billing'.
-                            Quando si passa a Payment, questo `isActive` diventerà false, 
-                            e il componente si collasserà correttamente in un riepilogo.
-                        */}
-                        {renderStep({
-                            ...step,
-                            isActive: state.activeStepType === CheckoutStepType.Billing,
-                            isBusy: isPending,
-                        })}
-
-                        {/* 
-                            Renderizza Payment. Sarà attivo solo se activeStepType è 'Payment'.
-                            Inizialmente (quando siamo su Billing), sarà visibile ma inattivo.
-                        */}
-                        {renderStep({
-                            ...paymentStep,
-                            isActive: state.activeStepType === CheckoutStepType.Payment,
-                            isBusy: isPending,
-                        })}
-                    </React.Fragment>
-                );
-            }
-
-            // Se lo step corrente nel map è Payment, lo saltiamo,
-            // perché lo abbiamo già renderizzato insieme a Billing.
-            if (step.type === CheckoutStepType.Payment) {
-                return null;
-            }
-
-            // --- FINE LOGICA SPECIALE ---
-
-            // Per tutti gli altri step (Customer, Shipping), usa la logica standard.
-            return renderStep({ ...step, isActive, isBusy: isPending });
-        })}
-</ol>
+                                        if (step.type === CheckoutStepType.Payment) {
+                                            return null;
+                                        }
+                                        
+                                        return renderStep({ ...step, isActive, isBusy: isPending });
+                                    })}
+                            </ol>
                         </div>
                     </>
                 }

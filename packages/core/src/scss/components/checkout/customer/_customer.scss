@@ -249,3 +249,63 @@ $buttonWidthMap: (
     flex-grow: 2;
     height: $container-border-global-size;
 }
+
+.link-order {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between; 
+  align-items: center;        
+  width: 100%;
+  gap:10px;
+}
+
+/*
+ * Contenitore del checkbox a sinistra.
+ */
+.link-order .form-field {
+    display: flex;
+    align-items: center;
+}
+
+.link-order .form-field .form-label {
+    white-space: nowrap;
+}
+
+/*
+ * Testo del link di login a destra.
+ */
+.link-order .customer-login-link {
+  margin: 0 !important;
+  margin-top:-15px !important;
+  white-space: nowrap; /* Impedisce anche a questo testo di andare a capo */
+}
+
+
+/* --- Layout per Mobile (schermi piccoli) --- */
+@media (max-width: 768px) {
+  .link-order {
+    flex-direction: column;    /* Impila gli elementi */
+    align-items: flex-start;   /* Li allinea a sinistra */
+    gap: 16px;                 /* Aggiunge spazio verticale */
+  }
+
+  /* Su mobile, è meglio permettere al testo di andare a capo se lo schermo è molto stretto. */
+  .link-order .form-field .form-label,
+  .link-order .customer-login-link {
+    white-space: normal;
+    margin-bottom:10px !important;
+  }
+}
+
+.link-order > .form-field {
+  padding-left: 0 !important;
+}
+
+/* 
+ * Aggiungiamo anche una regola per il campo della privacy policy,
+ * per assicurarci che anche lui abbia lo stesso allineamento.
+ * Questo rende il layout più robusto e consistente.
+ */
+.customerEmail-body > .checkout-privacy-policy {
+    padding-left: 0 !important;
+}
