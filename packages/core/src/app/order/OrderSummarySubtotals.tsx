@@ -137,14 +137,6 @@ const OrderSummarySubtotals: FunctionComponent<OrderSummarySubtotalsProps> = ({
                     <span className="cart-priceItem-label">
                         {paymentMethodName === 'Contanti alla Consegna' ? 'Contrassegno' : paymentMethodName}
                     </span>
-                    <span className="cart-priceItem-value">
-                        {/* Aggiungiamo qui la nostra condizione! */}
-                        {paymentMethodName === 'Contanti alla Consegna' && (
-                            <span style={{ marginLeft: '8px'}}>
-                                +5,00€
-                            </span>
-                        )}
-                    </span>
                 </div>
             )}
         </>

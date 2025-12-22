@@ -218,7 +218,7 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
 
                         {/* NUOVO COMPONENTE: Il Checkbox per la fatturazione */}
                         <CheckboxFormField
-                            labelContent={<TranslatedString id="billing.billing_same_as_shipping" />}
+                            labelContent={<TranslatedString id="billing.use_shipping_address_label" />}
                             name="isBillingSameAsShipping"
                             onChange={handleBillingSameAsShippingChange}
                         />

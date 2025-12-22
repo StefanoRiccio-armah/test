@@ -2,7 +2,7 @@
 import { noop } from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { TranslatedString } from '@bigcommerce/checkout/locale';
+//import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { AddressFormSkeleton } from '@bigcommerce/checkout/ui';
 
 import type CheckoutStepStatus from '../checkout/CheckoutStepStatus';
@@ -87,9 +87,6 @@ function Shipping({
             {/* Mostra un riepilogo dell'indirizzo di spedizione */}
             {shippingAddress && (
                 <div className="shipping-address-summary">
-                    <h3>
-                        <TranslatedString id="shipping.shipping_to" />:
-                    </h3>
                     <address>
                         <div>{shippingAddress.firstName} {shippingAddress.lastName}</div>
                         <div>{shippingAddress.address1}</div>

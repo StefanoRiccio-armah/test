@@ -113,7 +113,19 @@ const GuestForm: FunctionComponent<
                     <div className="customerEmail-body">
                         <EmailField isFloatingLabelEnabled={isFloatingLabelEnabled} onChange={onChangeEmail} />
                         {shouldShowEmailWatermark && <PayPalFastlaneWatermark />}
+                        <div className="link-order">
                         {(canSubscribe || requiresMarketingConsent) && (<BasicFormField name="shouldSubscribe" render={renderField} />)}
+                        
+                {!isLoading && (
+                    <p className={classNames('customer-login-link', { 'body-regular': themeV2 })}>
+                        <TranslatedString id="customer.login_text" />{' '}
+                        <a data-test="customer-continue-button" id="checkout-customer-login" onClick={handleLogin} role="button" tabIndex={0}>
+                            <TranslatedString id="customer.login_action" />
+                        </a>
+                    </p>
+                )}
+                {checkoutButtons}
+                </div>
                     </div>
                 </div>
 
@@ -129,7 +141,7 @@ const GuestForm: FunctionComponent<
                 
                 {/* NUOVO COMPONENTE: Il Checkbox per la fatturazione */}
                 <CheckboxFormField
-                    labelContent={<TranslatedString id="billing.billing_same_as_shipping" />}
+                    labelContent={<TranslatedString id="billing.use_shipping_address_label" />}
                     name="isBillingSameAsShipping"
                     onChange={handleBillingSameAsShippingChange}
                 />
@@ -141,16 +153,6 @@ const GuestForm: FunctionComponent<
                         <TranslatedString id="common.continue_action" />
                     </Button>
                 </div>
-
-                {!isLoading && (
-                    <p className={classNames('customer-login-link', { 'body-regular': themeV2 })}>
-                        <TranslatedString id="customer.login_text" />{' '}
-                        <a data-test="customer-continue-button" id="checkout-customer-login" onClick={handleLogin} role="button" tabIndex={0}>
-                            <TranslatedString id="customer.login_action" />
-                        </a>
-                    </p>
-                )}
-                {checkoutButtons}
             </Fieldset>
         </Form>
     );

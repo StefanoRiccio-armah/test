@@ -294,6 +294,12 @@ const Checkout = ({
     const reloadWindow = useCallback((): void => { setState(prevState => ({ ...prevState, error: undefined })); window.location.reload(); }, []);
     const handleSetIsMultishippingMode = useCallback((value: boolean): void => { setState(prevState => ({ ...prevState, isMultiShippingMode: value })); }, []);
 
+const handleCustomerContinue = useCallback((): void => {
+    // Forza la navigazione allo step di spedizione, garantendo che l'utente lo veda sempre.
+    analyticsTracker.trackStepCompleted(CheckoutStepType.Customer); // Tracciamo il completamento qui
+    navigateToStep(CheckoutStepType.Shipping);
+}, [navigateToStep, analyticsTracker]);
+
     const renderStep = (step: CheckoutStepStatus): ReactNode => {
         const { customerViewType = isGuestEnabled ? CustomerViewType.Guest : CustomerViewType.Login, isSubscribed, isBillingSameAsShipping, isMultiShippingMode } = state;
 
@@ -307,7 +313,7 @@ const Checkout = ({
                     onAccountCreated={navigateToNextIncompleteStep}
                     onBillingSameAsShippingChange={handleSetBillingSameAsShipping}
                     onChangeViewType={setCustomerViewType}
-                    onContinueAsGuest={navigateToNextIncompleteStep}
+                    onContinueAsGuest={handleCustomerContinue}
                     onContinueAsGuestError={handleError}
                     onEdit={handleEditStep}
                     onExpanded={handleExpanded}
@@ -457,10 +463,66 @@ const Checkout = ({
                         <div className="layout-main">
                             <CheckoutHeader activeStepType={state.activeStepType} buttonConfigs={state.buttonConfigs} checkEmbeddedSupport={checkEmbeddedSupport} defaultStepType={state.defaultStepType} onUnhandledError={handleUnhandledError} onWalletButtonClick={handleWalletButtonClick} />
                             <ol className="checkout-steps">
-                                {stepsRef.current.filter((step) => step.isRequired).map((step) =>
-                                    renderStep({ ...step, isActive: state.activeStepType ? state.activeStepType === step.type : state.defaultStepType === step.type, isBusy: isPending }),
-                                )}
-                            </ol>
+    {stepsRef.current
+        .filter((step) => step.isRequired)
+        .map((step) => {
+            // Logica di base per determinare se uno step è attivo
+            const isActive = state.activeStepType
+                ? state.activeStepType === step.type
+                : state.defaultStepType === step.type;
+
+            // --- INIZIO LOGICA SPECIALE PER BILLING & PAYMENT ---
+
+            // Se lo step corrente nel map è Billing...
+            if (step.type === CheckoutStepType.Billing) {
+                // ...trova anche lo step di Payment per poterli renderizzare insieme.
+                const paymentStep = stepsRef.current.find(s => s.type === CheckoutStepType.Payment);
+
+                // Se per qualche motivo non troviamo lo step di pagamento, usa la logica normale
+                if (!paymentStep) {
+                    return renderStep({ ...step, isActive, isBusy: isPending });
+                }
+
+                // Renderizza entrambi gli step in un unico blocco.
+                // React.Fragment ci permette di raggrupparli senza aggiungere nodi extra al DOM.
+                return (
+                    <React.Fragment key="billing-payment-fragment">
+                        {/* 
+                            Renderizza Billing. Sarà attivo solo se activeStepType è 'Billing'.
+                            Quando si passa a Payment, questo `isActive` diventerà false, 
+                            e il componente si collasserà correttamente in un riepilogo.
+                        */}
+                        {renderStep({
+                            ...step,
+                            isActive: state.activeStepType === CheckoutStepType.Billing,
+                            isBusy: isPending,
+                        })}
+
+                        {/* 
+                            Renderizza Payment. Sarà attivo solo se activeStepType è 'Payment'.
+                            Inizialmente (quando siamo su Billing), sarà visibile ma inattivo.
+                        */}
+                        {renderStep({
+                            ...paymentStep,
+                            isActive: state.activeStepType === CheckoutStepType.Payment,
+                            isBusy: isPending,
+                        })}
+                    </React.Fragment>
+                );
+            }
+
+            // Se lo step corrente nel map è Payment, lo saltiamo,
+            // perché lo abbiamo già renderizzato insieme a Billing.
+            if (step.type === CheckoutStepType.Payment) {
+                return null;
+            }
+
+            // --- FINE LOGICA SPECIALE ---
+
+            // Per tutti gli altri step (Customer, Shipping), usa la logica standard.
+            return renderStep({ ...step, isActive, isBusy: isPending });
+        })}
+</ol>
                         </div>
                     </>
                 }
