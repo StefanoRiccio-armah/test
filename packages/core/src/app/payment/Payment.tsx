@@ -305,8 +305,6 @@ const Payment= (props: PaymentProps & WithCheckoutPaymentProps & WithLanguagePro
 
     const { selectedMethod = defaultMethod, submitFunctions } = state;
 
-     console.log('Payment.handleSubmit - values:', values); 
-
     // ✅ Aggiungi un controllo: se values è undefined, non inviare analytics
     if (!values) {
         console.warn('Payment.handleSubmit: values is undefined, skipping analytics and submit');

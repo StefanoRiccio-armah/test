@@ -1,6 +1,3 @@
-// packages/core/src/app/customer/Customer.tsx
-// (Versione completa con FIX e console.log per debug)
-
 import {
     type CustomerCredentials,
 } from '@bigcommerce/checkout-sdk';
@@ -100,12 +97,7 @@ useEffect(() => {
     
     const savedEmail = customer?.email || billingAddress?.email;
     
-    console.log('🔍 DEBUG - Email recovery:', {
-        customerEmail: customer?.email,
-        billingEmail: billingAddress?.email,
-        savedEmail,
-        currentDraft: draftEmail
-    });
+
     
     // ✅ AGGIORNA SEMPRE se c'è email salvata
     if (savedEmail && (!draftEmail || draftEmail !== savedEmail)) {
@@ -171,17 +163,12 @@ useEffect(() => {
     }, [customerData.actions, onSignIn, onSignInError]);
 
   const handleContinueAsGuest = useCallback(async (formValues: GuestFormValues) => {
-    console.log('🔍 DEBUG - handleContinueAsGuest START', { 
-        email: formValues.email, 
-        hasShipping: !!formValues.shippingAddress,
-        isBillingSameAsShipping: formValues.isBillingSameAsShipping,
-    });
+
     
     const email = formValues.email.trim();
 
     try {
         // ✅ STEP 1: SALVA SEMPRE EMAIL (punto critico per persistenza)
-        console.log('🔍 DEBUG - 1. Salvo email nel customer');
         await customerData.actions.continueAsGuest({
             email,
             // Non sovrascrivere subscription se già settata
@@ -199,18 +186,14 @@ useEffect(() => {
             const mappedAddress = mapAddressFromFormValues(formValues.shippingAddress);
             
             if (!isEqualAddress(mappedAddress, shippingAddress)) {
-                console.log('🔍 DEBUG - 2. Aggiorno shipping address');
                 await updateShippingAddress(mappedAddress);
                 
                 // Billing same as shipping
                 if (formValues.isBillingSameAsShipping) {
-                    console.log('🔍 DEBUG - 3. Aggiorno billing (same as shipping)');
                     await checkoutService.updateBillingAddress(mappedAddress);
                 }
             }
         }
-
-        console.log('🔍 DEBUG - 4. Customer COMPLETATO - chiamo onContinueAsGuest()');
         
         // ✅ STEP 4: SEMPRE chiama onContinueAsGuest() - NON bloccare mai
         onContinueAsGuest(); // ← QUESTO è il callback del parent che va allo step successivo
@@ -225,7 +208,6 @@ useEffect(() => {
             }
             
             // Tutti gli altri errori: continua comunque
-            console.log('🔍 DEBUG - Errore ignorato, continuo comunque');
             onContinueAsGuest(); // ← CONTINUA SEMPRE
         }
     }
@@ -240,29 +222,23 @@ useEffect(() => {
     checkoutService
 ]);
     const executePaymentMethodCheckoutOrContinue = useCallback(async () => {
-        console.log('🔍 DEBUG - executePaymentMethodCheckoutOrContinue START');
         
         try {
             if (customerData.data.providerWithCustomCheckout && 
                 customerData.data.providerWithCustomCheckout !== PaymentMethodId.StripeUPE) {
-                console.log('🔍 DEBUG - Executing payment method checkout:', 
-                           customerData.data.providerWithCustomCheckout);
                 await customerData.actions.executePaymentMethodCheckout({
                     methodId: customerData.data.providerWithCustomCheckout,
                     continueWithCheckoutCallback: onContinueAsGuest,
                     checkoutPaymentMethodExecuted: (payload) => { 
                         analyticsTracker.customerPaymentMethodExecuted(payload);
-                        console.log('🔍 DEBUG - Payment method executed, calling onContinueAsGuest');
                         onContinueAsGuest();
                     }
                 });
             } else {
-                console.log('🔍 DEBUG - No custom checkout, calling onContinueAsGuest directly');
                 onContinueAsGuest();
             }
         } catch (error) {
             console.error('🔍 DEBUG - Payment checkout failed:', error);
-            console.log('🔍 DEBUG - Fallback: calling onContinueAsGuest anyway');
             onContinueAsGuest();
         }
     }, [customerData.actions, customerData.data.providerWithCustomCheckout, onContinueAsGuest, analyticsTracker]);
@@ -337,9 +313,6 @@ useEffect(() => {
                        customerData.data.email || 
                        currentBilling?.email || 
                        '';
-    
-    console.log('🔍 DEBUG - Rendering Customer with email:', finalEmail);
-
     return (
         <>
             {isEmailLoginFormOpen && ( 

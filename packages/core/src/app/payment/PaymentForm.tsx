@@ -220,14 +220,13 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
     const updateFeeAndRefresh = async (method: PaymentMethod) => {
         const checkoutId = checkoutState.data.getCheckout()?.id;
         if (!checkoutId) {
-            console.log('ID Checkout non trovato, impossibile aggiornare la fee.');
             return;
         }
-
-        console.log(`Inizio aggiornamento fee per metodo: ${method.id}`);
         setIsUpdatingFee(true);
 
         try {
+
+            //cambaire con proprio url backend
             const apiUrl = 'https://glucosic-dylan-ectoblastic.ngrok-free.dev/handle-payment-change';
             const response = await fetch(apiUrl, {
                 method: 'POST',
@@ -238,18 +237,17 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
                 }),
             });
 
-            console.log('Risposta dal server di gestione fee:', response.status);
 
             if (response.ok) {
                 await checkoutService.loadCheckout(checkoutId);
-                console.log('Stato del checkout del frontend aggiornato.');
+             
             } else {
                 console.error('Il server ha risposto con un errore:', await response.text());
             }
         } catch (error) {
             console.error('Errore di rete durante l\'aggiornamento della fee:', error);
         } finally {
-            console.log(`Fine aggiornamento fee per metodo: ${method.id}`);
+         
             setIsUpdatingFee(false);
         }
     };
@@ -262,7 +260,7 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
     const handlePaymentMethodSelect = useCallback(
     (method: PaymentMethod) => {
         if (isUpdatingFee) {
-            console.log('Aggiornamento già in corso, click ignorato.');
+       
             return;
         }
 
@@ -383,7 +381,6 @@ const paymentFormConfig: WithFormikConfig<PaymentFormProps & WithLanguageProps, 
     },
     handleSubmit: (values, { props: { onSubmit = noop } }) => {
         // ✅ Logga i valori prima di passarli
-        console.log('PaymentForm - Valori inviati al backend:', values);
 
         onSubmit(
             omitBy(

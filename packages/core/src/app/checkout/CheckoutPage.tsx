@@ -189,9 +189,9 @@ const Checkout = ({
     });
 
     const navigateToStep = useCallback((type: CheckoutStepType, options?: { isDefault?: boolean }): void => {
-        console.log('[navigateToStep] type=', type, 'options=', options);
+      
         const step = find(stepsRef.current, { type });
-        console.log('[navigateToStep] found step=', step);
+       
         if (!step) { return; }
         if (state.activeStepType === step.type) { return; }
         if (options && options.isDefault) {
@@ -203,9 +203,9 @@ const Checkout = ({
     }, [state.activeStepType, error, clearError]);
 
     const navigateToNextIncompleteStep = useCallback((options?: { isDefault?: boolean }): void => {
-        console.log('[navigateToNextIncompleteStep] stepsRef=', stepsRef.current);
+       
         const nextIncompleteStep = find(stepsRef.current, { isComplete: false });
-        console.log('[navigateToNextIncompleteStep] nextIncompleteStep=', nextIncompleteStep);
+      
 
         if (!nextIncompleteStep) {
             // 🔴 TUTTI COMPLETI → APRI PAYMENT
@@ -338,7 +338,7 @@ const Checkout = ({
 
 
     const handleReady = useCallback((): void => {
-        console.log('[handleReady] called, stepsRef=', stepsRef.current);
+      
         navigateToNextIncompleteStep({ isDefault: true });
     }, [navigateToNextIncompleteStep]);
 
@@ -543,9 +543,7 @@ const Checkout = ({
         }
     }
 
-    console.log('[Checkout render] state.activeStepType=', state.activeStepType,
-        'state.defaultStepType=', state.defaultStepType,
-        'steps=', steps);
+
 
 
     return (
