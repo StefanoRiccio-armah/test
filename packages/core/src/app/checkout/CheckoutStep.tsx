@@ -123,13 +123,13 @@ const CheckoutStep = ({
         }, delay);
     };
 
-    const handleTransitionEnd = (node: HTMLElement, done: () => void): void => {
+    {/*const handleTransitionEnd = (node: HTMLElement, done: () => void): void => {
         node.addEventListener('transitionend', ({ target }) => {
             if (target === node) {
                 done();
             }
         });
-    };
+    };*/}
 
     const onAnimationEnd = useCallback((): void => {
         if (!isActive) {
@@ -151,6 +151,8 @@ const CheckoutStep = ({
             focusStep();
         }
     }, [isActive]);
+
+               const nodeRef=useRef(null)
 
     return (
         <li
@@ -177,10 +179,11 @@ const CheckoutStep = ({
                 </div>
             )}
 
+
             <MobileView>
                 {(matched) => (
                     <CSSTransition
-                        addEndListener={handleTransitionEnd}
+                       nodeRef={nodeRef}
                         classNames="checkout-view-content"
                         enter={!matched}
                         exit={!matched}

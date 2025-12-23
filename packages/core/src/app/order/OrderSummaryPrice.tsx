@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { type FC, type ReactNode, useCallback, useEffect, useState } from 'react';
+import React, { type FC, type ReactNode, useEffect, useState, useRef } from 'react';
 import { CSSTransition } from 'react-transition-group';
 
 import { useCheckout, useThemeContext } from '@bigcommerce/checkout/contexts';
@@ -76,7 +76,7 @@ const OrderSummaryPrice: FC<OrderSummaryPriceProps> = ({
         setPreviousAmount(amount);
     }, [ amount ]);
 
-    const handleTransitionEnd: (node: HTMLElement, done: () => void) => void = useCallback((node, done) => {
+   {/* const handleTransitionEnd: (node: HTMLElement, done: () => void) => void = useCallback((node, done) => {
         node.addEventListener('animationend', ({ target }) => {
             if (target === node) {
                 setHighlight(false);
@@ -84,6 +84,7 @@ const OrderSummaryPrice: FC<OrderSummaryPriceProps> = ({
             }
         });
     }, [ setHighlight ]);
+    */}
 
     const handleActionTrigger = () => {
         if (isActionDisabled || !onActionTriggered) {
@@ -93,10 +94,12 @@ const OrderSummaryPrice: FC<OrderSummaryPriceProps> = ({
         onActionTriggered();
     }
 
+    const nodeRef=useRef(null)
+
     return (
         <div data-test={testId}>
             <CSSTransition
-                addEndListener={handleTransitionEnd}
+              nodeRef={nodeRef}
                 classNames="changeHighlight"
                 in={highlight}
                 timeout={{}}

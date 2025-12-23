@@ -1,8 +1,7 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 
 import { configurePublicPath } from '../common/bundler';
-
 import { type CheckoutAppProps } from './CheckoutApp';
 
 export type RenderCheckoutOptions = CheckoutAppProps;
@@ -15,12 +14,9 @@ export default function renderCheckout({
 }: RenderCheckoutOptions): void {
     const configuredPublicPath = configurePublicPath(publicPath);
 
-    // We want to use `require` here because we want to set up the public path
-    // first before importing the app component and its dependencies.
+    // Import dopo il publicPath
     const { default: CheckoutApp } = require('./CheckoutApp');
 
-    // We want to use `require` here because we only want to import the package
-    // in development mode.
     if (process.env.NODE_ENV === 'development') {
         const whyDidYouRender = require('@welldone-software/why-did-you-render');
 
@@ -29,8 +25,19 @@ export default function renderCheckout({
         });
     }
 
-    ReactDOM.render(
-        <CheckoutApp containerId={containerId} publicPath={configuredPublicPath} {...props} />,
-        document.getElementById(containerId),
+    const container = document.getElementById(containerId);
+
+    if (!container) {
+        throw new Error(`Container with id "${containerId}" not found`);
+    }
+
+    // Nuova API React 18
+    const root = createRoot(container);
+    root.render(
+        <CheckoutApp
+            containerId={containerId}
+            publicPath={configuredPublicPath}
+            {...props}
+        />,
     );
 }

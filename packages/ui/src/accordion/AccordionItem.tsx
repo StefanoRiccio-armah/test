@@ -3,8 +3,8 @@ import React, {
     type FunctionComponent,
     memo,
     type ReactNode,
-    useCallback,
     useContext,
+    useRef
 } from 'react';
 import { CSSTransition } from 'react-transition-group';
 
@@ -39,13 +39,16 @@ const AccordionItem: FunctionComponent<AccordionItemProps> = ({
     const { onToggle, selectedItemId } = useContext(AccordionContext);
     const isSelected = selectedItemId === itemId;
 
-    const transitionEndListener = useCallback((node: Node, done: () => void) => {
+   {/* const transitionEndListener = useCallback((node: Node, done: () => void) => {
         node.addEventListener('transitionend', ({ target }: Event) => {
             if (target === node) {
                 done();
             }
         });
     }, []);
+    */}
+
+    const nodeRef=useRef(null)
 
     return (
         <li className={classNames(className, { [classNameSelected]: isSelected })}>
@@ -55,7 +58,7 @@ const AccordionItem: FunctionComponent<AccordionItemProps> = ({
 
             {children ? (
                 <CSSTransition
-                    addEndListener={transitionEndListener}
+                    nodeRef={nodeRef}
                     classNames={bodyClassName}
                     in={isSelected}
                     mountOnEnter
