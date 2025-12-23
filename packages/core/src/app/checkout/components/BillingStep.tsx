@@ -43,6 +43,7 @@ const BillingStep: React.FC<BillingStepProps> = ({
             key={step.type}
             onEdit={onEdit}
             onExpanded={onExpanded}
+            isActive={step.isActive}
             summary={billingAddress && <StaticBillingAddress address={billingAddress} />}
         >
             <LazyContainer loadingSkeleton={<AddressFormSkeleton />}>

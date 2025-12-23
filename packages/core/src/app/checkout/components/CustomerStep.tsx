@@ -65,6 +65,7 @@ const CustomerStep: React.FC<CustomerStepProps> = ({
             {...step}
             heading="Dati Personali e Spedizione"
             key={step.type}
+            isActive={step.isActive}
             onEdit={onEdit}
             onExpanded={onExpanded}
             suggestion={<CheckoutSuggestion />}

@@ -290,51 +290,61 @@ const Payment= (props: PaymentProps & WithCheckoutPaymentProps & WithLanguagePro
         return onUnhandledError(error);
     }, []);
 
+
     const handleSubmit = useCallback(async (values: PaymentFormValues) => {
-        const {
-            defaultMethod,
-            loadPaymentMethods,
-            isPaymentDataRequired,
-            onCartChangedError = noop,
-            onSubmit = noop,
-            onSubmitError = noop,
-            submitOrder,
-            analyticsTracker
-        } = props;
+    const {
+        defaultMethod,
+        loadPaymentMethods,
+        isPaymentDataRequired,
+        onCartChangedError = noop,
+        onSubmit = noop,
+        onSubmitError = noop,
+        submitOrder,
+        analyticsTracker
+    } = props;
 
-        const { selectedMethod = defaultMethod, submitFunctions } = state;
+    const { selectedMethod = defaultMethod, submitFunctions } = state;
 
-        analyticsTracker.clickPayButton({ shouldCreateAccount: values.shouldCreateAccount });
+     console.log('Payment.handleSubmit - values:', values); 
 
-        const customSubmit =
-            selectedMethod &&
-            submitFunctions[getUniquePaymentMethodId(selectedMethod.id, selectedMethod.gateway)];
+    // ✅ Aggiungi un controllo: se values è undefined, non inviare analytics
+    if (!values) {
+        console.warn('Payment.handleSubmit: values is undefined, skipping analytics and submit');
+        return;
+    }
 
-        if (customSubmit) {
-            return customSubmit(values);
+    // ✅ Usa optional chaining per evitare l’errore
+    analyticsTracker.clickPayButton({ shouldCreateAccount: values.shouldCreateAccount ?? false });
+
+    const customSubmit =
+        selectedMethod &&
+        submitFunctions[getUniquePaymentMethodId(selectedMethod.id, selectedMethod.gateway)];
+
+    if (customSubmit) {
+        return customSubmit(values);
+    }
+
+    try {
+        const state = await submitOrder(mapToOrderRequestBody(values, isPaymentDataRequired()));
+        const order = state.data.getOrder();
+
+        analyticsTracker.paymentComplete();
+
+        onSubmit(order?.orderId);
+    } catch (error) {
+        analyticsTracker.paymentRejected();
+
+        if (isErrorWithType(error) && error.type === 'payment_method_invalid') {
+            return loadPaymentMethods();
         }
 
-        try {
-            const state = await submitOrder(mapToOrderRequestBody(values, isPaymentDataRequired()));
-            const order = state.data.getOrder();
-
-            analyticsTracker.paymentComplete();
-
-            onSubmit(order?.orderId);
-        } catch (error) {
-            analyticsTracker.paymentRejected();
-
-            if (isErrorWithType(error) && error.type === 'payment_method_invalid') {
-                return loadPaymentMethods();
-            }
-
-            if (isCartChangedError(error)) {
-                return onCartChangedError();
-            }
-
-            onSubmitError(error);
+        if (isCartChangedError(error)) {
+            return onCartChangedError();
         }
-    }, [props.defaultMethod, state.selectedMethod, props.isPaymentDataRequired()]);
+
+        onSubmitError(error);
+    }
+}, [props.defaultMethod, state.selectedMethod, props.isPaymentDataRequired()]);
 
     const trackSelectedPaymentMethod = (method: PaymentMethod) => {
         const { analyticsTracker } = props;

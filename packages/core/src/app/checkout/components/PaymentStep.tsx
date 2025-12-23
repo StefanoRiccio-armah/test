@@ -50,6 +50,7 @@ const PaymentStep = ({
 }: PaymentStepProps): ReactElement => (
     <CheckoutStep
         {...step}
+        isActive={step.isActive}
         key={step.type}
         onEdit={onEdit}
         onExpanded={onExpanded}

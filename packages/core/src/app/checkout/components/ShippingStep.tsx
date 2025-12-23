@@ -54,6 +54,7 @@ const ShippingStep: React.FC<ShippingStepProps> = ({
             {...step}
             heading="Metodo di Spedizione"
             key={step.type}
+            isActive={step.isActive}
             onEdit={onEdit}
             onExpanded={onExpanded}
        

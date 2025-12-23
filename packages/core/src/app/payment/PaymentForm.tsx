@@ -382,6 +382,9 @@ const paymentFormConfig: WithFormikConfig<PaymentFormProps & WithLanguageProps, 
         };
     },
     handleSubmit: (values, { props: { onSubmit = noop } }) => {
+        // ✅ Logga i valori prima di passarli
+        console.log('PaymentForm - Valori inviati al backend:', values);
+
         onSubmit(
             omitBy(
                 values,
@@ -389,7 +392,6 @@ const paymentFormConfig: WithFormikConfig<PaymentFormProps & WithLanguageProps, 
             ),
         );
     },
-
     validationSchema: ({
         language,
         isTermsConditionsRequired = false,
@@ -400,8 +402,7 @@ const paymentFormConfig: WithFormikConfig<PaymentFormProps & WithLanguageProps, 
             isTermsConditionsRequired,
             language,
         }),
-
-    enableReinitialize: true, // ✅ Abilitato per aggiornamenti dinamici
+    enableReinitialize: true,
 };
 
 export default withLanguage(withFormik(paymentFormConfig)(memo(PaymentForm)));
