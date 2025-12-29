@@ -1,6 +1,6 @@
 //import { type CheckoutSelectors } from '@bigcommerce/checkout-sdk';
 import { noop } from 'lodash';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState,useRef } from 'react';
 
 //import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { AddressFormSkeleton } from '@bigcommerce/checkout/ui';
@@ -42,25 +42,31 @@ function Shipping({
         updateCheckout,
     } = useShipping();
 
-    useEffect(() => {
-        const initializeShipping = async () => {
-            try {
-                // Carica solo le opzioni di spedizione
-                // L'indirizzo è già stato salvato nello step Customer
-                await loadShippingOptions();
+const hasInitialized = useRef(false);
 
-                onReady();
-            } catch (error) {
-                if (error instanceof Error) {
-                    onUnhandledError(error);
-                }
-            } finally {
-                setIsInitializing(false);
+useEffect(() => {
+    if (hasInitialized.current) {
+        return;
+    }
+
+    hasInitialized.current = true;
+
+    const initializeShipping = async () => {
+        try {
+            await loadShippingOptions();
+            onReady();
+        } catch (error) {
+            if (error instanceof Error) {
+                onUnhandledError(error);
             }
-        };
+        } finally {
+            setIsInitializing(false);
+        }
+    };
 
-        void initializeShipping();
-    }, []);
+    void initializeShipping();
+}, []);
+
 
     const handleSubmit = useCallback(async (orderComment?: string) => {
         try {
