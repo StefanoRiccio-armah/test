@@ -70,7 +70,12 @@
 .cart-section-heading {
     @include headingStyle("h5");
 
+    font-weight: fontWeight("normal");
     margin-bottom: spacing("single");
+}
+
+.optimizedCheckout-headingSecondary{
+    font-weight: bolder !important;
 }
 
 .cart-actions {
@@ -136,7 +141,7 @@
 }
 
 .cart-priceItem--subtotal {
-    font-weight: fontWeight("semibold");
+    font-weight: fontWeight("normal");
 }
 
 @media print {

@@ -6,13 +6,15 @@
 }
 
 .optimizedCheckout-form-input{
-    background-color:#f7f7f7 !important;
+    background-color:#fcfcfc !important;
     border-color:#24849E !important;
+    border-radius: 13px !important;
 }
 
 .optimizedCheckout-form-select{
-    background-color:#f7f7f7 !important;
+    background-color:#fcfcfc !important;
     border-color:#24849E !important;
+    border-radius: 13px !important;
 }
 
 .checkout-address {
@@ -116,4 +118,5 @@ label[for="privacyPolicy"] {
 
 .optimizedCheckout-form-label{
 background-color:transparent !important;
+border-radius: 13px !important;
 }

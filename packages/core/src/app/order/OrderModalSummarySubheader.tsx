@@ -7,9 +7,9 @@ import getItemsCount from './getItemsCount';
 
 export interface OrderModalSummarySubheaderProps {
     items: LineItemMap
-    amountWithCurrency: ReactNode;
-    shopperCurrencyCode: string;
-    storeCurrencyCode: string;
+    amountWithCurrency?: ReactNode;
+    shopperCurrencyCode?: string;
+    storeCurrencyCode?: string;
 }
 
 const OrderModalSummarySubheader: FunctionComponent<OrderModalSummarySubheaderProps> = ({
@@ -23,7 +23,7 @@ const OrderModalSummarySubheader: FunctionComponent<OrderModalSummarySubheaderPr
     const itemsText = itemsCount === 1 ? 'cart.item' : 'cart.items';
 
     return <>
-        {itemsCount} <TranslatedString id={itemsText} /> | {amountWithCurrency} {
+        {itemsCount} <TranslatedString id={itemsText} />  {amountWithCurrency} {
             hasDifferentCurrency && <span>({shopperCurrencyCode})</span>
         }
     </>;

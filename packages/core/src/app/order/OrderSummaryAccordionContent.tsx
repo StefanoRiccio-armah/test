@@ -8,7 +8,7 @@ import React, { type FunctionComponent, type ReactNode } from 'react';
 
 import { TranslatedString } from '@bigcommerce/checkout/locale';
 
-import { ShopperCurrency } from '../currency';
+//import { ShopperCurrency } from '../currency';
 
 import OrderModalSummarySubheader from './OrderModalSummarySubheader';
 import OrderSummaryItems from './OrderSummaryItems';
@@ -44,7 +44,6 @@ const OrderSummaryAccordionContent: FunctionComponent<OrderSummaryAccordionConte
 
     const subHeaderText = (
         <OrderModalSummarySubheader
-            amountWithCurrency={<ShopperCurrency amount={total} />}
             items={items}
             shopperCurrencyCode={shopperCurrency.code}
             storeCurrencyCode={storeCurrency.code}
@@ -53,17 +52,8 @@ const OrderSummaryAccordionContent: FunctionComponent<OrderSummaryAccordionConte
 
     return (
         <div className="orderSummaryAccordionContent">
-            {/* Header tipo modal, ma senza overlay */}
-            <div className="orderSummaryAccordionHeader">
-                <div>
-                    <h3 className="cart-modal-title optimizedCheckout-headingSecondary">
-                        <TranslatedString id="cart.cart_heading" />
-                    </h3>
-                    <div className="cart-heading-subheader">{subHeaderText}</div>
-                </div>
-            </div>
-
             <OrderSummarySection>
+{subHeaderText}
                 <OrderSummaryItems displayLineItemsCount={false} items={items} />
             </OrderSummarySection>
 

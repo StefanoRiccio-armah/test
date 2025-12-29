@@ -84,24 +84,16 @@
 //stile accordion mobile per il summary
 .cart-summary-accordion {
     border: 1px solid #24849E;
-    border-radius: 8px;
+    border-radius: 13px;
     overflow: hidden;
-    background: var(--white);
     margin-bottom: 1rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25) !important;
    
 }
 
 .orderSummaryAccordionContent {
-    padding: 1rem 1.25rem 1.25rem;
     border:#24849E !important; 
     box-shadow: 0 4px 12px rgba(36, 132, 158, 0.25);
-}
-
-.orderSummaryAccordionHeader {
-    margin-bottom: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
 }
 
 
@@ -127,14 +119,17 @@
     justify-content: space-between;
     align-items: center;
     padding: 1rem 1.25rem;
-    background: var(--gray-50);
     cursor: pointer;
     user-select: none;
     gap: 0.75rem;
+    margin-left:22px;
+
 }
 
-.accordion-header:hover {
-    background: var(--gray-100);
+.cart-section:first-child{
+    border-top: none !important;
+    display:grid;
+    gap:8px;
 }
 
 .accordion-title-section {
@@ -147,7 +142,7 @@
 .accordion-title {
     font-size: 1rem;
     font-weight: 600;
-    color: var(--gray-900);
+
 }
 
 .accordion-edit-section {
@@ -157,7 +152,7 @@
 .accordion-toggle-icon {
     flex-shrink: 0;
     padding: 0.25rem;
-    color: var(--gray-500);
+
 }
 
 .accordion-toggle-icon:hover {
@@ -168,6 +163,14 @@
     padding: 0;
     animation: accordionSlide 0.2s ease-out;
 }
+
+    .cart-heading-subheader {
+        font-weight: fontWeight("medium");;
+        font-size: fontSize("base");
+        margin-top: spacing("quarter");
+        padding:1.5rem !important;
+        margin-bottom: spacing("quarter");
+    }
 
 @keyframes accordionSlide {
     from {
@@ -218,6 +221,7 @@ white-space: nowrap !important;
 .button--primary{
     background-color: #24849E;
     border-color: black;
+    border-radius: 13px !important;
 }
 
 
@@ -230,6 +234,7 @@ button[data-test="step-edit-button"] {
     background-color: #ffffff !important;
     color: #000000 !important; 
     border: 1px solid #24849E !important; 
+    border-radius: 13px !important;
 }
 
 
