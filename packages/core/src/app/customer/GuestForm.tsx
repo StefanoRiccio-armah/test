@@ -1,6 +1,3 @@
-// packages/core/src/app/customer/GuestForm.tsx
-// (Sostituisci l'intero file)
-
 import classNames from 'classnames';
 import { type FieldProps, type FormikProps, withFormik } from 'formik';
 import React, { type FunctionComponent, memo, type ReactNode, useCallback, useEffect } from 'react';
@@ -14,6 +11,7 @@ import { getPrivacyPolicyValidationSchema, PrivacyPolicyField } from '../privacy
 import { Button, ButtonVariant } from '../ui/button';
 import { BasicFormField, CheckboxFormField, Fieldset, Form, Legend } from '../ui/form';
 import { AddressForm, AddressType } from '../address';
+import { hasDeductibleProduct } from '../custom/minsan-checker';
 import type { Address } from '@bigcommerce/checkout-sdk';
 
 import EmailField from './EmailField';
@@ -76,10 +74,12 @@ const GuestForm: FunctionComponent<
     // Destruttura
     onBillingSameAsShippingChange = () => { },
 }) => {
-        const { checkoutState: { data: { getConfig } } } = useCheckout();
+        const { checkoutState: { data: { getConfig,getCart } } } = useCheckout();
         const { themeV2 } = useThemeContext();
 
         const config = getConfig();
+            const cart = getCart();
+        const shouldShowCodiceFiscale = hasDeductibleProduct(cart);
 
         const renderField = useCallback((fieldProps: FieldProps<boolean>) => (
             <SubscribeField {...fieldProps} requiresMarketingConsent={requiresMarketingConsent} />
@@ -135,6 +135,7 @@ const GuestForm: FunctionComponent<
                             countryCode={values.shippingAddress?.countryCode || shippingAddress?.countryCode}
                             fieldName="shippingAddress"
                             formFields={shippingAddressFields}
+                             shouldShowCodiceFiscale={shouldShowCodiceFiscale}
                             shouldShowSaveAddress={false}
                             type={AddressType.Shipping}
                         />

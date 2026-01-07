@@ -116,7 +116,7 @@ const BillingForm = ({
         setFieldValue('wantsInvoice', !values.wantsInvoice);
     };
 
-    const invoiceFieldNames = ['company', 'field_29', 'field_31', 'field_33', 'field_35'];
+    const invoiceFieldNames = ['company', 'field_29', 'field_31', 'field_33', 'field_35', 'field_37'];
 
     // Separiamo i campi: quelli per la fattura e quelli normali
     const regularAddressFields = editableFormFields.filter(field => !invoiceFieldNames.includes(field.name));

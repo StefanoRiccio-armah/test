@@ -137,11 +137,66 @@ const AddressForm: React.FC<AddressFormProps> = ({
         if (type === AddressType.Shipping) {
             if (
                 addressFieldName === 'company' ||
-                addressFieldName === 'field_29' ||
                 addressFieldName === 'field_33' ||
-                addressFieldName === 'field_35'
+                addressFieldName === 'field_35' ||
+                addressFieldName === 'field_37'
             ) {
                 return null;
+            }
+            
+            // Logica per field_29 in Shipping
+            if (addressFieldName === 'field_29') {
+                if (shouldShowCodiceFiscale) {
+                    return (
+                        <DynamicFormField
+                            autocomplete={AUTOCOMPLETE[field.name]}
+                            extraClass={`dynamic-form-field--${getAddressFormFieldLegacyName(
+                                addressFieldName,
+                            )}`}
+                            field={field}
+                            inputId={getAddressFormFieldInputId(addressFieldName)}
+                            isFloatingLabelEnabled={finalIsFloatingLabelEnabled}
+                            key={`${field.id}-${field.name}`}
+                            label={
+                                field.custom ? (
+                                    field.label
+                                ) : (
+                                    <TranslatedString id={LABEL[field.name]} />
+                                )
+                            }
+                            onChange={handleDynamicFormFieldChange(addressFieldName)}
+                            parentFieldName={
+                                field.custom
+                                    ? fieldName
+                                        ? `${fieldName}.customFields`
+                                        : 'customFields'
+                                    : fieldName
+                            }
+                            placeholder={getPlaceholderValue(
+                                field,
+                                translatedPlaceholderId,
+                            )}
+                            themeV2={themeV2}
+                        />
+                    );
+                }
+
+                return (
+                    <div key="codice-fiscale-placeholder" className="form-field">
+                        <label className="form-label optimizedCheckout-form-label">
+                            {field.label}
+                        </label>
+                        <span
+                            style={{
+                                color: 'black',
+                                fontSize: '1.5rem',
+                                display: 'block',
+                            }}
+                        >
+                            ❗ Nel tuo carrello non ci sono prodotti detraibili
+                        </span>
+                    </div>
+                );
             }
         }
 
