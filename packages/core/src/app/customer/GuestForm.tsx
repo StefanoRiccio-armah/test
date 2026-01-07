@@ -140,8 +140,6 @@ const GuestForm: FunctionComponent<
                             type={AddressType.Shipping}
                         />
                     </Fieldset>
-
-                    {/* NUOVO COMPONENTE: Il Checkbox per la fatturazione */}
                     <CheckboxFormField
                         labelContent={<TranslatedString id="billing.use_shipping_address_label" />}
                         name="isBillingSameAsShipping"

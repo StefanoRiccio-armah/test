@@ -134,7 +134,9 @@ const AddressForm: React.FC<AddressFormProps> = ({
         const addressFieldName = field.name;
         const translatedPlaceholderId = PLACEHOLDER[addressFieldName];
 
+        // SOLO per AddressType.Shipping: nascondi i campi fattura e mostra banner per field_29
         if (type === AddressType.Shipping) {
+            // Nascondi completamente i campi fattura
             if (
                 addressFieldName === 'company' ||
                 addressFieldName === 'field_33' ||
@@ -143,10 +145,11 @@ const AddressForm: React.FC<AddressFormProps> = ({
             ) {
                 return null;
             }
-            
-            // Logica per field_29 in Shipping
+
+            // Logica condizionale SOLO per field_29 in Shipping
             if (addressFieldName === 'field_29') {
                 if (shouldShowCodiceFiscale) {
+                    // Mostra il campo normale se ci sono prodotti detraibili
                     return (
                         <DynamicFormField
                             autocomplete={AUTOCOMPLETE[field.name]}
@@ -181,79 +184,27 @@ const AddressForm: React.FC<AddressFormProps> = ({
                     );
                 }
 
+                // Mostra il banner informativo se NON ci sono prodotti detraibili
                 return (
                     <div key="codice-fiscale-placeholder" className="form-field">
                         <label className="form-label optimizedCheckout-form-label">
                             {field.label}
                         </label>
-                        <span
-                            style={{
-                                color: 'black',
-                                fontSize: '1.5rem',
-                                display: 'block',
-                            }}
-                        >
-                            ❗ Nel tuo carrello non ci sono prodotti detraibili
-                        </span>
+                        <div className="info-banner">
+                            <span className="info-banner-icon">ℹ️</span>
+                            <span className="info-banner-text">
+                               Nel tuo carrello non ci sono prodotti detraibili.
+                            </span>
+                        </div>
                     </div>
                 );
             }
         }
 
-        if (type === AddressType.Billing && addressFieldName === 'field_29') {
-            if (shouldShowCodiceFiscale) {
-                return (
-                    <DynamicFormField
-                        autocomplete={AUTOCOMPLETE[field.name]}
-                        extraClass={`dynamic-form-field--${getAddressFormFieldLegacyName(
-                            addressFieldName,
-                        )}`}
-                        field={field}
-                        inputId={getAddressFormFieldInputId(addressFieldName)}
-                        isFloatingLabelEnabled={finalIsFloatingLabelEnabled}
-                        key={`${field.id}-${field.name}`}
-                        label={
-                            field.custom ? (
-                                field.label
-                            ) : (
-                                <TranslatedString id={LABEL[field.name]} />
-                            )
-                        }
-                        onChange={handleDynamicFormFieldChange(addressFieldName)}
-                        parentFieldName={
-                            field.custom
-                                ? fieldName
-                                    ? `${fieldName}.customFields`
-                                    : 'customFields'
-                                : fieldName
-                        }
-                        placeholder={getPlaceholderValue(
-                            field,
-                            translatedPlaceholderId,
-                        )}
-                        themeV2={themeV2}
-                    />
-                );
-            }
+        // Per AddressType.Billing: nessun rendering condizionale, mostra sempre tutti i campi normalmente
+        // (incluso field_29, field_33, field_35, field_37, company)
 
-            return (
-                <div key="codice-fiscale-placeholder" className="form-field">
-                    <label className="form-label optimizedCheckout-form-label">
-                        {field.label}
-                    </label>
-                    <span
-                        style={{
-                            color: 'black',
-                            fontSize: '1.5rem',
-                            display: 'block',
-                        }}
-                    >
-                        ❗ Nel tuo carrello non ci sono prodotti detraibili
-                    </span>
-                </div>
-            );
-        }
-
+        // Google Autocomplete per address1
         if (
             addressFieldName === 'address1' &&
             googleMapsApiKey &&
@@ -277,6 +228,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
             );
         }
 
+        // Rendering normale per tutti gli altri campi (inclusi tutti i campi in Billing)
         return (
             <DynamicFormField
                 autocomplete={AUTOCOMPLETE[field.name]}

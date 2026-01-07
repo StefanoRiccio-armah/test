@@ -231,8 +231,10 @@ export default withLanguage(
             methodId,
         }: BillingFormProps & WithLanguageProps) =>
             Yup.lazy<BillingFormValues>((values) => {
-                let baseSchema: any;
+                const INVOICE_REQUIRED_MESSAGE = 'Inserire la Partita IVA o il Codice Fiscale.';
                 
+                let baseSchema: any;
+
                 if (methodId === 'amazonpay') {
                     baseSchema = getCustomFormFieldsValidationSchema({
                         translate: getTranslateAddressError(language),
@@ -248,27 +250,41 @@ export default withLanguage(
                 const extendedFields = {
                     ...baseSchema.fields,
                     wantsInvoice: Yup.boolean(),
-                    customFields: Yup.object().shape({
-                        field_29: Yup.string().test(
-                            'fiscal-code-or-vat',
-                            'Formato non valido: Codice Fiscale (16 caratteri) o Partita IVA (11 cifre)',
-                            function(value) {
-                                if (!value || value.trim() === '') {
+                    customFields: Yup.object()
+                        .shape({
+                            field_29: Yup.string().matches(
+                                /^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/i,
+                                {
+                                    message: 'Il formato del Codice Fiscale non è valido (16 caratteri)',
+                                    excludeEmptyString: true,
+                                }
+                            ),
+                            field_37: Yup.string(),
+                        })
+                        .test(
+                            'at-least-one-required-for-invoice',
+                            INVOICE_REQUIRED_MESSAGE,
+                            function (value) {
+                                const { wantsInvoice } = this.parent;
+                                const { field_29, field_37 } = value || {};
+
+                                if (!wantsInvoice) {
                                     return true;
                                 }
 
-                                const trimmed = value.trim();
-                                const cfRegex = /^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/;
-                                const pivaRegex = /^([Ii][Tt])?\d{11}$/;
-                                
-                                const isCfValid = cfRegex.test(trimmed);
-                                const isPivaValid = pivaRegex.test(trimmed);
-                                const isValid = isCfValid || isPivaValid;
-                                                                
-                                return isValid;
+                                const isField29Present = field_29 && field_29.trim() !== '';
+                                const isField37Present = field_37 && field_37.trim() !== '';
+
+                                if (!isField29Present && !isField37Present) {
+                                    return this.createError({
+                                        path: `${this.path}.field_37`,
+                                        message: INVOICE_REQUIRED_MESSAGE,
+                                    });
+                                }
+
+                                return true;
                             }
-                        )
-                    })
+                        ),
                 };
 
                 return Yup.object(extendedFields);

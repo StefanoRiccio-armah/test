@@ -437,6 +437,7 @@ const Checkout = ({
                 />;
 
             case CheckoutStepType.Payment:
+                 console.log('Dati del checkout nella fase di pagamento:', data.getCheckout());
                 return <PaymentStep
                     cart={cart}
                     checkEmbeddedSupport={checkEmbeddedSupport}
