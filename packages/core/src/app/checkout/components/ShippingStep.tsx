@@ -6,6 +6,7 @@ import { AddressFormSkeleton, LazyContainer } from '@bigcommerce/checkout/ui';
 
 import { retry } from '../../common/utility';
 import { type ShippingProps } from '../../shipping';
+import { TranslatedString } from '@bigcommerce/checkout/locale';
 import CheckoutStep from '../CheckoutStep';
 import type CheckoutStepType from '../CheckoutStepType';
 
@@ -52,7 +53,7 @@ const ShippingStep: React.FC<ShippingStepProps> = ({
     return (
         <CheckoutStep
             {...step}
-            heading="Metodo di Spedizione"
+            heading={<TranslatedString id="shipping.shipping_method_label" />}
             key={step.type}
             isActive={step.isActive}
             onEdit={onEdit}

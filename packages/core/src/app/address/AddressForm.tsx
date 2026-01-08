@@ -193,7 +193,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
                         <div className="info-banner">
                             <span className="info-banner-icon">ℹ️</span>
                             <span className="info-banner-text">
-                               Nel tuo carrello non ci sono prodotti detraibili.
+                                <TranslatedString id="customer.fiscal_code_tooltip" />
                             </span>
                         </div>
                     </div>

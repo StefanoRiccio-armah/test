@@ -1,6 +1,3 @@
-// packages/core/src/app/checkout/components/CustomerStep.tsx
-// (Sostituisci l'intero file)
-
 import React, { lazy } from 'react';
 
 import { LazyContainer } from '@bigcommerce/checkout/ui';
@@ -12,9 +9,11 @@ import {
     type CustomerProps,
     type CustomerSignOutEvent,
 } from '../../customer';
+import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { isEmbedded } from '../../embeddedCheckout';
 import CheckoutStep from '../CheckoutStep';
 import type CheckoutStepType from '../CheckoutStepType';
+
 
 const Customer = lazy(() =>
     retry(
@@ -63,7 +62,7 @@ const CustomerStep: React.FC<CustomerStepProps> = ({
     return (
         <CheckoutStep
             {...step}
-            heading="Dati Personali e Spedizione"
+            heading={<TranslatedString id="customer.customer_heading" />}
             key={step.type}
             isActive={step.isActive}
             onEdit={onEdit}

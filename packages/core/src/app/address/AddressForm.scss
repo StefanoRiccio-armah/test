@@ -56,10 +56,9 @@
      .dynamic-form-field--addres2,
     .dynamic-form-field--addressLine2 {
         @include breakpoint("small") {
-            flex-basis: 20%;
+            flex-basis: 70%;
         }
     }
-    .dynamic-form-field--countryCode,
     .dynamic-form-field--addres1,
     .dynamic-form-field--addressLine1{
         @include breakpoint("small") {
@@ -72,8 +71,18 @@
     .dynamic-form-field--zip {
         @include breakpoint("small") {
             flex-basis: 30%;
+      
+      
         }
     }
+
+        .dynamic-form-field--countryCode{
+             @include breakpoint("small") {
+            flex-basis: 50%;
+      
+      
+        }
+        }
 
       // PEC (field_33) + Codice SDI (field_35) → 50 / 50
     .dynamic-form-field--field_33,

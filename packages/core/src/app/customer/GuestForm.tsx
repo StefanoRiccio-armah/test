@@ -7,6 +7,7 @@ import { useCheckout, useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString, withLanguage, type WithLanguageProps } from '@bigcommerce/checkout/locale';
 import { PayPalFastlaneWatermark } from '@bigcommerce/checkout/paypal-fastlane-integration';
 
+
 import { getPrivacyPolicyValidationSchema, PrivacyPolicyField } from '../privacyPolicy';
 import { Button, ButtonVariant } from '../ui/button';
 import { BasicFormField, CheckboxFormField, Fieldset, Form, Legend } from '../ui/form';
@@ -130,7 +131,7 @@ const GuestForm: FunctionComponent<
                         </div>
                     </div>
 
-                    <Fieldset legend={<Legend>Dati Personali e Indirizzo di Spedizione</Legend>}>
+                    <Fieldset legend={<Legend><TranslatedString id="shipping.shipping_address_heading" /></Legend>}>
                         <AddressForm
                             countryCode={values.shippingAddress?.countryCode || shippingAddress?.countryCode}
                             fieldName="shippingAddress"

@@ -10,6 +10,7 @@ import  {
 import OrderSummaryAccordionContent, {
     type OrderSummaryAccordionContentProps,
 } from '../order/OrderSummaryAccordionContent';
+import { TranslatedString } from '@bigcommerce/checkout/locale';
 
 import { type WithCheckoutCartSummaryProps } from './CartSummary';
 import EditLink from './EditLink';
@@ -123,7 +124,7 @@ const CartSummaryDrawerAccordion: FunctionComponent<CartSummaryAccordionProps> =
                         className="accordion-title"
                         style={{ fontWeight: 600, fontSize: '1rem', color: '#1a1a1a' }}
                     >
-                        Riepilogo Carrello
+                       <TranslatedString id="cart.cart_heading" />
                     </span>
                     {headerLink && (
                         <div className="accordion-edit-section" style={{ marginLeft: 'auto' }}>

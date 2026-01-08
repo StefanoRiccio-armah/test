@@ -3,7 +3,7 @@
         "address": {
             "address_line_1_label": "Indirizzo",
             "address_line_1_required_error": "L'indirizzo è obbligatorio",
-            "address_line_2_label": "Civico",
+            "address_line_2_label": "Appartamento/Edificio",
             "address_line_2_required_error": "Il Civico è obbligatorio",
             "address_not_recognized_heading": "L'indirizzo non è stato riconosciuto",
             "consignment_address_updated_text": "All'elemento è stato assegnato il nuovo indirizzo.",
@@ -44,7 +44,7 @@
         },
         "billing": {
             "billing_address_heading": "Indirizzo di fatturazione",
-            "billing_heading": "Fatturazione",
+            "billing_heading": "Pagamento e Fatturazione",
             "save_billing_address_error": "Si è verificato un errore durante il salvataggio dell'indirizzo di fatturazione nel preventivo. Riprova.",
             "billing_address_amazonpay": "Gestito da Amazon Pay",
             "use_shipping_address_label": "L'indirizzo di fatturazione corrisponde all'indirizzo di spedizione."
@@ -119,7 +119,7 @@
             "required_error": "{label} è obbligatoria/o",
             "min_error": "{label} deve essere maggiore di {min}",
             "max_error": "{label} deve essere minore di {max}",
-            "invalid_characters_error": "{label} contiene caratteri non validi",
+            "invalid_characters_error": "{label} contiene caratteri non validi", 
             "create_account_error": "Si è verificato un errore durante la creazione del tuo account. Riprova.",
             "create_address_error": "Tuttavia, si è verificato un errore durante il salvataggio dell'indirizzo nella rubrica.",
             "create_account_requirements_error_heading": "La password non soddisfa i requisiti",
@@ -132,7 +132,7 @@
             "guest_could_login": "Sembra che tu abbia già un account. Accedi con {email} per un checkout più rapido.",
             "guest_must_login": "Sembra che tu abbia già un account. Accedi per continuare con {email} o utilizza un'altra e-mail.",
             "guest_temporary_disabled": "Il checkout come ospite è temporaneamente disattivato. Accedi o <a href=\"{url}\" target=\"_blank\">crea un account</a> per continuare.",
-            "customer_heading": "Cliente",
+            "customer_heading": "Dati Personali e Spedizione",
             "email_invalid_error": "L'indirizzo e-mail deve essere valido",
             "email_label": "E-mail",
             "email_required_error": "L'indirizzo e-mail è obbligatorio",
@@ -164,7 +164,8 @@
             "sign_out_error": "Si è verificato un errore durante la disconnessione. Riprova.",
             "subscribe_to_newsletter_text": "Sì, vorrei ricevere aggiornamenti.",
             "suggestion_text": "Sembra che tu abbia un account {provider}. Accedi con {providerFlow} per un checkout più rapido.",
-            "suggestion_action": "{providerFlow}"
+            "suggestion_action": "{providerFlow}",
+            "fiscal_code_tooltip":"Nel tuo carrello non ci sono prodotti detraibili"
         },
         "login_email": {
             "error_server": "Non è stato possibile inviarti un link per l'accesso. Riprova.",
@@ -509,7 +510,7 @@
         "shipping": {
             "cart_change_error": "È stato rilevato un aggiornamento del carrello e i costi di spedizione disponibili sono stati aggiornati. Per continuare, seleziona di nuovo un metodo di spedizione.",
             "enter_shipping_address_text": "Inserisci un indirizzo di spedizione per visualizzare i relativi costi",
-            "order_comment_label": "Commenti sull'ordine",
+            "order_comment_label": "Note per il corriere",
             "assign_item_error": "Si è verificato un errore nell'assegnare l'articolo all'indirizzo inserito. Riprova.",
             "assign_item_invalid_address_error_heading": "Indirizzo non valido",
             "assign_item_invalid_address_error": "L'indirizzo selezionato non è valido. Vai sulla pagina del tuo account e aggiornalo.",

@@ -139,6 +139,7 @@ const PaymentForm: FunctionComponent<
                 onUnhandledError={onUnhandledError}
                 resetForm={resetForm}
                 values={values}
+                language={language} // ✅ MODIFICA 2: Passa la prop "language" al componente figlio.
             />
 
             <PaymentRedeemables />
@@ -184,6 +185,7 @@ interface PaymentMethodListFieldsetProps {
     isUsingMultiShipping?: boolean;
     methods: PaymentMethod[];
     values: PaymentFormValues;
+    language: WithLanguageProps['language']; // ✅ MODIFICA 1: Aggiungi la prop "language" all'interfaccia.
     isPaymentDataRequired(): boolean;
     onMethodSelect?(method: PaymentMethod): void;
     onUnhandledError?(error: Error): void;
@@ -200,15 +202,13 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
     onUnhandledError,
     resetForm,
     values,
+    language, // Destruttura la nuova prop "language"
 }) => {
     const { setSubmitted } = useContext(FormContext);
     const { checkoutState, checkoutService } = useCheckout();
 
     const [isUpdatingFee, setIsUpdatingFee] = useState(false);
 
-
-
-    // ✅ NUOVO: Salva solo l'ID univoco nel localStorage
     const savePaymentMethodSelection = useCallback((methodId: string) => {
         try {
             localStorage.setItem('selectedPaymentMethodId', methodId);
@@ -225,29 +225,33 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
         setIsUpdatingFee(true);
 
         try {
-
+            // ✅ MODIFICA 3: Usa il metodo corretto "language.getLocale()" per ottenere la lingua.
+            const currentLanguage = language.getLocale().split('-')[0] || 'it';
+            
             //cambaire con proprio url backend
             const apiUrl = 'https://glucosic-dylan-ectoblastic.ngrok-free.dev/handle-payment-change';
+            
+            console.log(`Invio richiesta di aggiornamento fee per lingua: ${currentLanguage}`);
+
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     checkoutId,
                     selectedPaymentMethodId: method.id,
+                    language: currentLanguage, // Ora questo valore è corretto
                 }),
             });
 
 
             if (response.ok) {
                 await checkoutService.loadCheckout(checkoutId);
-             
             } else {
                 console.error('Il server ha risposto con un errore:', await response.text());
             }
         } catch (error) {
             console.error('Errore di rete durante l\'aggiornamento della fee:', error);
         } finally {
-         
             setIsUpdatingFee(false);
         }
     };
@@ -255,20 +259,18 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
     const debouncedUpdate = useCallback(debounce(updateFeeAndRefresh, 100), [
         checkoutState,
         checkoutService,
+        language, // Aggiungi "language" all'array di dipendenze
     ]);
 
     const handlePaymentMethodSelect = useCallback(
     (method: PaymentMethod) => {
         if (isUpdatingFee) {
-       
             return;
         }
 
-        // ✅ SALVA SOLO L'ID UNIVOCO (stringa sicura)
         const methodId = getUniquePaymentMethodId(method.id, method.gateway);
         savePaymentMethodSelection(methodId);
         
-        // ✅ SALVA ANCHE IL DISPLAY NAME per il CartSummary
         try {
             const displayName = method.config.displayName;
             if (displayName) {
@@ -330,7 +332,6 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
 
 const paymentFormConfig: WithFormikConfig<PaymentFormProps & WithLanguageProps, PaymentFormValues> = {
     mapPropsToValues: ({ defaultGatewayId, defaultMethodId, methods }) => {
-        // ✅ RECUPERA dall'ID salvato in localStorage
         let savedMethodId: string | null = null;
         try {
             savedMethodId = localStorage.getItem('selectedPaymentMethodId');
@@ -338,10 +339,8 @@ const paymentFormConfig: WithFormikConfig<PaymentFormProps & WithLanguageProps, 
             console.warn('Errore lettura localStorage:', e);
         }
 
-        // Verifica se il metodo salvato esiste tra quelli disponibili
         let activeMethodId = defaultMethodId;
         if (savedMethodId) {
-            // Controlla se c'è un metodo con questo ID univoco
             const methodMatch = methods.find(method => 
                 getUniquePaymentMethodId(method.id, method.gateway) === savedMethodId
             );
@@ -380,8 +379,6 @@ const paymentFormConfig: WithFormikConfig<PaymentFormProps & WithLanguageProps, 
         };
     },
     handleSubmit: (values, { props: { onSubmit = noop } }) => {
-        // ✅ Logga i valori prima di passarli
-
         onSubmit(
             omitBy(
                 values,
