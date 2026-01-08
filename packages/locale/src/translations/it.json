@@ -3,8 +3,8 @@
         "address": {
             "address_line_1_label": "Indirizzo",
             "address_line_1_required_error": "L'indirizzo è obbligatorio",
-            "address_line_2_label": "Appartamento/Edificio",
-            "address_line_2_required_error": "Appartamento/Edificio è obbligatorio",
+            "address_line_2_label": "Civico",
+            "address_line_2_required_error": "Il Civico è obbligatorio",
             "address_not_recognized_heading": "L'indirizzo non è stato riconosciuto",
             "consignment_address_updated_text": "All'elemento è stato assegnato il nuovo indirizzo.",
             "city_label": "Città",

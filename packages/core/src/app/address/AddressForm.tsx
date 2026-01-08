@@ -55,7 +55,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
         ? isFloatingLabelEnabledOverride
         : isFloatingLabelEnabledValue;
 
-    const countriesWithAutocomplete = ['US', 'CA', 'AU', 'NZ', 'GB'];
+    const countriesWithAutocomplete = ['US', 'CA', 'AU', 'NZ', 'GB','IT','FR','DE','ES','NL'];
 
     const containerRef = useRef<HTMLDivElement>(null);
     const nextElementRef = useRef<HTMLElement | null>(null);

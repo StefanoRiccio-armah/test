@@ -3,8 +3,8 @@
         "address": {
             "address_line_1_label": "Address",
             "address_line_1_required_error": "Address is required",
-            "address_line_2_label": "Apartment/Suite/Building",
-            "address_line_2_required_error": "Apartment/Suite/Building is required",
+            "address_line_2_label": "Civic",
+            "address_line_2_required_error": "Civic is required",
             "address_not_recognized_heading": "We did not recognize your address",
             "consignment_address_updated_text": "The item was successfully assigned the new address.",
             "city_label": "City",

@@ -56,7 +56,14 @@
      .dynamic-form-field--addres2,
     .dynamic-form-field--addressLine2 {
         @include breakpoint("small") {
-            flex-basis: 70%;
+            flex-basis: 20%;
+        }
+    }
+    .dynamic-form-field--countryCode,
+    .dynamic-form-field--addres1,
+    .dynamic-form-field--addressLine1{
+        @include breakpoint("small") {
+            flex-basis: 50%;
         }
     }
 
@@ -85,13 +92,6 @@
 
 }
 
-.dynamic-form-field.floating-form-field.dynamic-form-field--field_37 {
-    margin-bottom: 0 !important;
-
-} .dynamic-form-field.floating-form-field.dynamic-form-field--field_29 {
-    margin-bottom: 0 !important;
-
-}
 
 .invoice-section {
     border-radius: 5px;
