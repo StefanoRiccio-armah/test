@@ -236,9 +236,23 @@ validationSchema: ({
     methodId,
 }: BillingFormProps & WithLanguageProps) =>
     Yup.lazy<BillingFormValues>((values) => {
-        const INVOICE_REQUIRED_MESSAGE = 'Inserire la Partita IVA o il Codice Fiscale.';
-        const CF_ERROR = 'Il Codice Fiscale non è valido';
-        const PIVA_ERROR = 'La Partita IVA non è valida';
+        // MODIFICA: Oggetto con i messaggi di errore tradotti
+        const errorMessages = {
+            it: {
+                INVOICE_REQUIRED_MESSAGE: 'Inserire la Partita IVA o il Codice Fiscale.',
+                CF_ERROR: 'Il Codice Fiscale non è valido',
+                PIVA_ERROR: 'La Partita IVA non è valida',
+            },
+            en: {
+                INVOICE_REQUIRED_MESSAGE: 'Please enter your VAT number or Fiscal Code.',
+                CF_ERROR: 'The Fiscal Code is not valid',
+                PIVA_ERROR: 'The VAT number is not valid',
+            },
+        };
+
+        // MODIFICA: Rileva la lingua del browser e seleziona i messaggi appropriati
+        const browserLanguage = navigator.language.slice(0, 2);
+        const messages = browserLanguage === 'it' ? errorMessages.it : errorMessages.en;
 
         let baseSchema: any;
 
@@ -261,14 +275,14 @@ validationSchema: ({
                 .shape({
                     field_29: Yup.string()
                         .nullable()
-                        .test('cf-valid', CF_ERROR, (value) => !value || isCodiceFiscaleValid(value)),
+                        .test('cf-valid', messages.CF_ERROR, (value) => !value || isCodiceFiscaleValid(value)), // MODIFICA
                     field_37: Yup.string()
                         .nullable()
-                        .test('piva-valid', PIVA_ERROR, (value) => !value || isPartitaIvaValid(value)),
+                        .test('piva-valid', messages.PIVA_ERROR, (value) => !value || isPartitaIvaValid(value)), // MODIFICA
                 })
                 .test(
                     'at-least-one-required-for-invoice',
-                    INVOICE_REQUIRED_MESSAGE,
+                    messages.INVOICE_REQUIRED_MESSAGE, // MODIFICA
                     function (value) {
                         const { wantsInvoice } = this.parent;
                         const { field_29, field_37 } = value || {};
@@ -281,7 +295,7 @@ validationSchema: ({
                         if (!cf && !piva) {
                             return this.createError({
                                 path: `${this.path}.field_37`,
-                                message: INVOICE_REQUIRED_MESSAGE,
+                                message: messages.INVOICE_REQUIRED_MESSAGE, // MODIFICA
                             });
                         }
 
@@ -289,14 +303,14 @@ validationSchema: ({
                         if (cf && !isCodiceFiscaleValid(cf)) {
                             return this.createError({
                                 path: `${this.path}.field_29`,
-                                message: CF_ERROR,
+                                message: messages.CF_ERROR, // MODIFICA
                             });
                         }
 
                         if (piva && !isPartitaIvaValid(piva)) {
                             return this.createError({
                                 path: `${this.path}.field_37`,
-                                message: PIVA_ERROR,
+                                message: messages.PIVA_ERROR, // MODIFICA
                             });
                         }
 

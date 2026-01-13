@@ -21,6 +21,19 @@ export const CODICE_FISCALE_ERROR =
  */
 export const PARTITA_IVA_ERROR = "Partita IVA non valida. Deve contenere 11 cifre.";
 
+ export const errorMessages = {
+            it: {
+                INVOICE_REQUIRED_MESSAGE: 'Inserire la Partita IVA o il Codice Fiscale.',
+                CF_ERROR: 'Il Codice Fiscale non è valido',
+                PIVA_ERROR: 'La Partita IVA non è valida',
+            },
+            en: {
+                INVOICE_REQUIRED_MESSAGE: 'Please enter your VAT number or Fiscal Code.',
+                CF_ERROR: 'The Fiscal Code is not valid',
+                PIVA_ERROR: 'The VAT number is not valid',
+            },
+        };
+
 /**
  * Controlla se il Codice Fiscale è valido
  * Include:
