@@ -73,6 +73,7 @@
     "@welldone-software/why-did-you-render": "^3.2.3",
     "card-validator": "^6.1.0",
     "classnames": "^2.3.2",
+    "codice-fiscale-js": "^2.3.23",
     "credit-card-type": "^8.0.0",
     "dompurify": "^3.2.4",
     "downshift": "^7.6.0",

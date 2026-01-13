@@ -1,69 +1,145 @@
-/**
- * Validazioni per il Codice Fiscale italiano
- */
+import CodiceFiscale from "codice-fiscale-js";
 
 /**
- * Regex per Codice Fiscale italiano
- * Formato: 6 lettere + 2 cifre + 1 lettera + 2 cifre + 1 lettera + 3 cifre + 1 lettera
- * Totale: 16 caratteri
- * Esempio: RSSMRA90A01H501U
- */
-const CODICE_FISCALE_REGEX = /^[A-Z]{6}[0-9]{2}[A-Z][0-9]{2}[A-Z][0-9]{3}[A-Z]$/i;
-
-/**
- * Regex alternativa per P.IVA italiana (11 cifre)
- * Formato: 11 cifre
- * Esempio: 12345678901
+ * Regex per P.IVA italiana (11 cifre)
  */
 const PARTITA_IVA_REGEX = /^[0-9]{11}$/;
 
 /**
- * Controlla se il codice fiscale è valido
- * @param codiceFiscale - Stringa da validare
- * @returns true se valido, false altrimenti
+ * Regex per formato Codice Fiscale (16 caratteri alfanumerici)
  */
-export function isCodiceFiscaleValid(codiceFiscale: string): boolean {
-    if (!codiceFiscale) return false;
-    
-    const cleaned = codiceFiscale.trim().toUpperCase();
-    return CODICE_FISCALE_REGEX.test(cleaned);
-}
-
-/**
- * Controlla se la P.IVA è valida (formato base)
- * @param partitaIva - Stringa da validare
- * @returns true se valido, false altrimenti
- */
-export function isPartitaIvaValid(partitaIva: string): boolean {
-    if (!partitaIva) return false;
-    
-    const cleaned = partitaIva.trim();
-    return PARTITA_IVA_REGEX.test(cleaned);
-}
-
-/**
- * Normalizza il Codice Fiscale (uppercase, trim)
- * @param codiceFiscale - Stringa da normalizzare
- * @returns Codice Fiscale normalizzato
- */
-export function normalizeCodiceFiscale(codiceFiscale: string): string {
-    return codiceFiscale.trim().toUpperCase();
-}
+const CODICE_FISCALE_REGEX = /^[A-Z]{6}[0-9]{2}[A-Z][0-9]{2}[A-Z][0-9]{3}[A-Z]$/;
 
 /**
  * Messaggio di errore per validazione Codice Fiscale
  */
-export const CODICE_FISCALE_ERROR = 'Codice Fiscale non valido. Formato: RSSMRA90A01H501U (16 caratteri)';
+export const CODICE_FISCALE_ERROR =
+  "Codice Fiscale non valido. Formato: RSSMRA90A01H501U (16 caratteri)";
 
 /**
  * Messaggio di errore per validazione P.IVA
  */
-export const PARTITA_IVA_ERROR = 'Partita IVA non valida. Deve contenere 11 cifre.';
+export const PARTITA_IVA_ERROR = "Partita IVA non valida. Deve contenere 11 cifre.";
+
+/**
+ * Controlla se il Codice Fiscale è valido
+ * Include:
+ * - Controllo formato (16 caratteri alfanumerici)
+ * - Verifica carattere di controllo e validità complessiva
+ *
+ * @param codiceFiscale - Stringa da validare
+ * @returns true se valido, false altrimenti
+ */
+export function isCodiceFiscaleValid(codiceFiscale?: string): boolean {
+  if (!codiceFiscale || codiceFiscale.trim() === "") {
+    return true; // Yup .required() gestisce il vuoto
+  }
+
+  const cleaned = codiceFiscale.trim().toUpperCase();
+
+  // 1. Controllo formato base
+  if (!CODICE_FISCALE_REGEX.test(cleaned)) {
+    return false;
+  }
+
+  try {
+    // 2. Verifica carattere di controllo e validità complessiva
+    return CodiceFiscale.check(cleaned);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Controlla se la Partita IVA è valida
+ * Include:
+ * - Controllo formato (11 cifre)
+ * - Verifica algoritmo checksum (Luhn modificato)
+ *
+ * @param partitaIva - Stringa da validare
+ * @returns true se valido, false altrimenti
+ */
+export function isPartitaIvaValid(partitaIva?: string): boolean {
+  if (!partitaIva || partitaIva.trim() === "") {
+    return true; // Yup .required() gestisce il vuoto
+  }
+
+  const cleaned = partitaIva.trim();
+
+  // 1. Controllo formato base
+  if (!PARTITA_IVA_REGEX.test(cleaned)) {
+    return false;
+  }
+
+  // 2. Algoritmo di checksum per P.IVA italiana
+  let sum = 0;
+
+  for (let i = 0; i < 11; i++) {
+    let digit = parseInt(cleaned[i], 10);
+
+    if (i % 2 === 0) {
+      // Posizioni pari (0,2,4,6,8,10): somma diretta
+      sum += digit;
+    } else {
+      // Posizioni dispari (1,3,5,7,9): moltiplica per 2 e somma le cifre
+      let doubled = digit * 2;
+      sum += doubled > 9 ? doubled - 9 : doubled;
+    }
+  }
+
+  // La P.IVA è valida se la somma è divisibile per 10
+  return sum % 10 === 0;
+}
+
+/**
+ * Normalizza il Codice Fiscale (uppercase, trim)
+ *
+ * @param codiceFiscale - Stringa da normalizzare
+ * @returns Codice Fiscale normalizzato
+ */
+export function normalizeCodiceFiscale(codiceFiscale: string): string {
+  return codiceFiscale.trim().toUpperCase();
+}
+
+/**
+ * Estrae informazioni dal Codice Fiscale (se valido)
+ *
+ * @param codiceFiscale - Codice Fiscale da analizzare
+ * @returns Oggetto con dati estratti o null se non valido
+ */
+export function parseCodiceFiscale(codiceFiscale: string): {
+  nome: string;
+  cognome: string;
+  sesso: "M" | "F";
+  annoNascita: number;
+  meseNascita: number;
+  giornoNascita: number;
+  luogoNascita: string;
+} | null {
+  if (!isCodiceFiscaleValid(codiceFiscale)) {
+    return null;
+  }
+
+  try {
+    const cf = new CodiceFiscale(codiceFiscale.trim().toUpperCase());
+    return {
+      nome: cf.name,
+      cognome: cf.surname,
+      sesso: cf.gender,
+      annoNascita: cf.birthday.getFullYear(),
+      meseNascita: cf.birthday.getMonth() + 1,
+      giornoNascita: cf.birthday.getDate(),
+      luogoNascita: cf.birthplace.nome,
+    };
+  } catch {
+    return null;
+  }
+}
 
 export function isCodiceFiscaleOrPartitaIvaValid(value?: string): boolean {
     if (!value || value.trim() === '') {
         // Lascia che la regola .required() di Yup gestisca i campi vuoti.
-        return true; 
+        return true;
     }
 
     return isCodiceFiscaleValid(value) || isPartitaIvaValid(value);

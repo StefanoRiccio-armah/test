@@ -22,13 +22,13 @@ export type WithCheckoutCartSummaryProps = {
 const CartSummary: FunctionComponent<
     WithCheckoutCartSummaryProps & {
         isMultiShippingMode: boolean;
-        selectedPaymentMethodName?: string; // <-- 1. MODIFICA QUI
+        selectedPaymentMethodName?: string;
     }
 > = ({ 
     cartUrl, 
     isMultiShippingMode, 
     isBuyNowCart, 
-    selectedPaymentMethodName, // <-- 2. MODIFICA QUI
+    selectedPaymentMethodName,
     ...props 
 }) => {
     const headerLink = isBuyNowCart ? null : (
@@ -43,7 +43,7 @@ const CartSummary: FunctionComponent<
         cartUrl,
         isBuyNowCart,
         headerLink,
-        paymentMethodName: selectedPaymentMethodName, // <-- 3. MODIFICA QUI
+        paymentMethodName: selectedPaymentMethodName,
     });
 };
 

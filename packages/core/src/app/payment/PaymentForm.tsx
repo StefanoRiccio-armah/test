@@ -139,7 +139,7 @@ const PaymentForm: FunctionComponent<
                 onUnhandledError={onUnhandledError}
                 resetForm={resetForm}
                 values={values}
-                language={language} // ✅ MODIFICA 2: Passa la prop "language" al componente figlio.
+                language={language}
             />
 
             <PaymentRedeemables />
@@ -185,7 +185,7 @@ interface PaymentMethodListFieldsetProps {
     isUsingMultiShipping?: boolean;
     methods: PaymentMethod[];
     values: PaymentFormValues;
-    language: WithLanguageProps['language']; // ✅ MODIFICA 1: Aggiungi la prop "language" all'interfaccia.
+    language: WithLanguageProps['language'];
     isPaymentDataRequired(): boolean;
     onMethodSelect?(method: PaymentMethod): void;
     onUnhandledError?(error: Error): void;
@@ -202,7 +202,7 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
     onUnhandledError,
     resetForm,
     values,
-    language, // Destruttura la nuova prop "language"
+    language,
 }) => {
     const { setSubmitted } = useContext(FormContext);
     const { checkoutState, checkoutService } = useCheckout();
@@ -225,10 +225,9 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
         setIsUpdatingFee(true);
 
         try {
-            // ✅ MODIFICA 3: Usa il metodo corretto "language.getLocale()" per ottenere la lingua.
             const currentLanguage = language.getLocale().split('-')[0] || 'it';
             
-            //cambaire con proprio url backend
+            //cambiare con proprio url backend
             const apiUrl = 'https://glucosic-dylan-ectoblastic.ngrok-free.dev/handle-payment-change';
             
             console.log(`Invio richiesta di aggiornamento fee per lingua: ${currentLanguage}`);
@@ -239,7 +238,7 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
                 body: JSON.stringify({
                     checkoutId,
                     selectedPaymentMethodId: method.id,
-                    language: currentLanguage, // Ora questo valore è corretto
+                    language: currentLanguage,
                 }),
             });
 
@@ -259,7 +258,7 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
     const debouncedUpdate = useCallback(debounce(updateFeeAndRefresh, 100), [
         checkoutState,
         checkoutService,
-        language, // Aggiungi "language" all'array di dipendenze
+        language,
     ]);
 
     const handlePaymentMethodSelect = useCallback(

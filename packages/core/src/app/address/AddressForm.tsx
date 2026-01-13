@@ -18,6 +18,7 @@ import {
 } from './getAddressFormFieldInputId';
 import { GoogleAutocompleteFormField, mapToAddress } from './googleAutocomplete';
 import './AddressForm.scss';
+import classNames from 'classnames';
 
 const AddressForm: React.FC<AddressFormProps> = ({
     formFields,
@@ -134,9 +135,9 @@ const AddressForm: React.FC<AddressFormProps> = ({
         const addressFieldName = field.name;
         const translatedPlaceholderId = PLACEHOLDER[addressFieldName];
 
-        // SOLO per AddressType.Shipping: nascondi i campi fattura e mostra banner per field_29
+        // SOLO per AddressType.Shipping: nascondi i campi fattura e mostra banner per field_29 (o Codice Fiscale)
         if (type === AddressType.Shipping) {
-            // Nascondi completamente i campi fattura
+            // Nascondi completamente i campi fattura (sostituire con gli id propri dei campi)
             if (
                 addressFieldName === 'company' ||
                 addressFieldName === 'field_33' ||
@@ -146,7 +147,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
                 return null;
             }
 
-            // Logica condizionale SOLO per field_29 in Shipping
+            // Logica condizionale SOLO per field_29(codice fiscale) in Shipping
             if (addressFieldName === 'field_29') {
                 if (shouldShowCodiceFiscale) {
                     // Mostra il campo normale se ci sono prodotti detraibili
@@ -185,11 +186,14 @@ const AddressForm: React.FC<AddressFormProps> = ({
                 }
 
                 // Mostra il banner informativo se NON ci sono prodotti detraibili
-                return (
-                    <div key="codice-fiscale-placeholder" className="form-field">
-                        <label className="form-label optimizedCheckout-form-label">
-                            {field.label}
-                        </label>
+              return (
+                    <div
+                        key="codice-fiscale-placeholder"
+                        className={classNames(
+                            'dynamic-form-field',
+                            `dynamic-form-field--${getAddressFormFieldLegacyName(addressFieldName)}`,
+                        )}
+                    >
                         <div className="info-banner">
                             <span className="info-banner-icon">ℹ️</span>
                             <span className="info-banner-text">
@@ -198,6 +202,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
                         </div>
                     </div>
                 );
+
             }
         }
 

@@ -5,6 +5,7 @@ import {
 import { type FormikProps, withFormik } from 'formik';
 import React, { type RefObject, useRef, useState } from 'react';
 import * as Yup from 'yup';
+import { isCodiceFiscaleValid, isPartitaIvaValid } from '../custom/codice-fiscale-validator';
 
 import { useCheckout, useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString, withLanguage, type WithLanguageProps } from '@bigcommerce/checkout/locale';
@@ -43,6 +44,9 @@ export interface BillingFormProps {
     onUnhandledError(error: Error): void;
     getFields(countryCode?: string): FormField[];
 }
+
+
+
 
 const BillingForm = ({
     methodId,
@@ -116,6 +120,7 @@ const BillingForm = ({
         setFieldValue('wantsInvoice', !values.wantsInvoice);
     };
 
+    //da sostituire anche sotto con gli id corretti dei propri campi
     const invoiceFieldNames = ['company', 'field_29', 'field_31', 'field_33', 'field_35', 'field_37'];
 
     // Separiamo i campi: quelli per la fattura e quelli normali
@@ -225,70 +230,83 @@ export default withLanguage(
             wantsInvoice: false,
         }),
         validateOnMount: true,
-        validationSchema: ({
-            language,
-            getFields,
-            methodId,
-        }: BillingFormProps & WithLanguageProps) =>
-            Yup.lazy<BillingFormValues>((values) => {
-                const INVOICE_REQUIRED_MESSAGE = 'Inserire la Partita IVA o il Codice Fiscale.';
-                
-                let baseSchema: any;
+validationSchema: ({
+    language,
+    getFields,
+    methodId,
+}: BillingFormProps & WithLanguageProps) =>
+    Yup.lazy<BillingFormValues>((values) => {
+        const INVOICE_REQUIRED_MESSAGE = 'Inserire la Partita IVA o il Codice Fiscale.';
+        const CF_ERROR = 'Il Codice Fiscale non è valido';
+        const PIVA_ERROR = 'La Partita IVA non è valida';
 
-                if (methodId === 'amazonpay') {
-                    baseSchema = getCustomFormFieldsValidationSchema({
-                        translate: getTranslateAddressError(language),
-                        formFields: getFields(values.countryCode),
-                    });
-                } else {
-                    baseSchema = getAddressFormFieldsValidationSchema({
-                        language,
-                        formFields: getFields(values.countryCode),
-                    });
-                }
+        let baseSchema: any;
 
-                const extendedFields = {
-                    ...baseSchema.fields,
-                    wantsInvoice: Yup.boolean(),
-                    customFields: Yup.object()
-                        .shape({
-                            field_29: Yup.string().matches(
-                                /^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/i,
-                                {
-                                    message: 'Il formato del Codice Fiscale non è valido (16 caratteri)',
-                                    excludeEmptyString: true,
-                                }
-                            ),
-                            field_37: Yup.string(),
-                        })
-                        .test(
-                            'at-least-one-required-for-invoice',
-                            INVOICE_REQUIRED_MESSAGE,
-                            function (value) {
-                                const { wantsInvoice } = this.parent;
-                                const { field_29, field_37 } = value || {};
+        if (methodId === 'amazonpay') {
+            baseSchema = getCustomFormFieldsValidationSchema({
+                translate: getTranslateAddressError(language),
+                formFields: getFields(values.countryCode),
+            });
+        } else {
+            baseSchema = getAddressFormFieldsValidationSchema({
+                language,
+                formFields: getFields(values.countryCode),
+            });
+        }
 
-                                if (!wantsInvoice) {
-                                    return true;
-                                }
+        const extendedFields = {
+            ...baseSchema.fields,
+            wantsInvoice: Yup.boolean(),
+            customFields: Yup.object()
+                .shape({
+                    field_29: Yup.string()
+                        .nullable()
+                        .test('cf-valid', CF_ERROR, (value) => !value || isCodiceFiscaleValid(value)),
+                    field_37: Yup.string()
+                        .nullable()
+                        .test('piva-valid', PIVA_ERROR, (value) => !value || isPartitaIvaValid(value)),
+                })
+                .test(
+                    'at-least-one-required-for-invoice',
+                    INVOICE_REQUIRED_MESSAGE,
+                    function (value) {
+                        const { wantsInvoice } = this.parent;
+                        const { field_29, field_37 } = value || {};
 
-                                const isField29Present = field_29 && field_29.trim() !== '';
-                                const isField37Present = field_37 && field_37.trim() !== '';
+                        if (!wantsInvoice) return true;
 
-                                if (!isField29Present && !isField37Present) {
-                                    return this.createError({
-                                        path: `${this.path}.field_37`,
-                                        message: INVOICE_REQUIRED_MESSAGE,
-                                    });
-                                }
+                        const cf = field_29?.trim();
+                        const piva = field_37?.trim();
 
-                                return true;
-                            }
-                        ),
-                };
+                        if (!cf && !piva) {
+                            return this.createError({
+                                path: `${this.path}.field_37`,
+                                message: INVOICE_REQUIRED_MESSAGE,
+                            });
+                        }
 
-                return Yup.object(extendedFields);
-            }),
+                        // Controlli aggiuntivi: se compilato, deve essere valido
+                        if (cf && !isCodiceFiscaleValid(cf)) {
+                            return this.createError({
+                                path: `${this.path}.field_29`,
+                                message: CF_ERROR,
+                            });
+                        }
+
+                        if (piva && !isPartitaIvaValid(piva)) {
+                            return this.createError({
+                                path: `${this.path}.field_37`,
+                                message: PIVA_ERROR,
+                            });
+                        }
+
+                        return true;
+                    }
+                ),
+        };
+
+        return Yup.object(extendedFields);
+    }),
         enableReinitialize: true,
     })(BillingForm),
 );

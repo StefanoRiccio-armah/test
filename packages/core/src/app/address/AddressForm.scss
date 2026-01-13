@@ -92,7 +92,8 @@
         }
     }
 
-        .dynamic-form-field--field_29,
+    //Codice Fiscale (field_29) + Partita IVA (field_37) → 50 / 50
+    .dynamic-form-field--field_29,
     .dynamic-form-field--field_37 {
         @include breakpoint("small") {
             flex-basis: 50%;
@@ -100,7 +101,6 @@
     }
 
 }
-
 
 .invoice-section {
     border-radius: 5px;
@@ -120,16 +120,23 @@
     }
 }
 
+    .dynamic-form-field:has(.info-banner) {
+        display: flex;
+        padding: 0 4px !important;
+    }
+
+
 .info-banner {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 12px;
+    gap: 12px;
+    padding: 6px 8px;
     background-color: #e8f4f8;
     border-radius: 13px;
-    margin-bottom: 8px;
-    font-size: 13px;
+    border: 1px solid #24849E !important;
+    font-size: 1rem;
     color: #333;
+    flex-grow: 1;
     
     .info-banner-icon {
         font-size: 16px;
@@ -137,7 +144,7 @@
     }
     
     .info-banner-text {
-        line-height: 1.4;
+        line-height: 1.3;
     }
 }
 
