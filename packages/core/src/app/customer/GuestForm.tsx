@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import { type FieldProps, type FormikProps, withFormik } from 'formik';
 import React, { type FunctionComponent, memo, type ReactNode, useCallback, useEffect } from 'react';
-import { object, string } from 'yup';
+import { object, string, lazy } from 'yup';
 
 import { useCheckout, useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString, withLanguage, type WithLanguageProps } from '@bigcommerce/checkout/locale';
@@ -18,6 +18,7 @@ import type { Address } from '@bigcommerce/checkout-sdk';
 import EmailField from './EmailField';
 import SubscribeField from './SubscribeField';
 import { SubscribeSessionStorage } from './SubscribeSessionStorage';
+import { isCodiceFiscaleValid } from '../custom/codice-fiscale-validator';
 
 function getShouldSubscribeValue(requiresMarketingConsent: boolean, defaultShouldSubscribe: boolean) {
     if (SubscribeSessionStorage.getSubscribeStatus()) { return true; }
@@ -41,7 +42,7 @@ export interface GuestFormProps {
     onChangeEmail(email: string): void;
     onContinueAsGuest(data: GuestFormValues): void;
     onShowLogin(): void;
-    // NUOVE PROPS
+    shouldShowCodiceFiscale?: boolean;
     onBillingSameAsShippingChange?(isSame: boolean): void;
     isBillingSameAsShipping?: boolean;
 }
@@ -52,6 +53,7 @@ export interface GuestFormValues {
     shippingAddress?: any;
     privacyPolicy?: boolean;
     isBillingSameAsShipping: boolean;
+    shouldShowCodiceFiscale?: boolean;
 }
 
 const GuestForm: FunctionComponent<
@@ -72,14 +74,13 @@ const GuestForm: FunctionComponent<
     shippingAddressFields = [],
     setFieldValue,
     values,
-    // Destruttura
     onBillingSameAsShippingChange = () => { },
 }) => {
-        const { checkoutState: { data: { getConfig,getCart } } } = useCheckout();
+        const { checkoutState: { data: { getConfig, getCart } } } = useCheckout();
         const { themeV2 } = useThemeContext();
 
         const config = getConfig();
-            const cart = getCart();
+        const cart = getCart();
         const shouldShowCodiceFiscale = hasDeductibleProduct(cart);
 
         const renderField = useCallback((fieldProps: FieldProps<boolean>) => (
@@ -99,7 +100,6 @@ const GuestForm: FunctionComponent<
             }
         };
 
-        // NUOVO HANDLER per il checkbox
         const handleBillingSameAsShippingChange = useCallback((isChecked: boolean) => {
             setFieldValue('isBillingSameAsShipping', isChecked);
             onBillingSameAsShippingChange(isChecked);
@@ -112,7 +112,7 @@ const GuestForm: FunctionComponent<
                 <Fieldset legend={<Legend hidden><TranslatedString id="customer.guest_customer_text" /></Legend>}>
                     <div className="customerEmail-container">
                         <div className="customerEmail-body">
-                            <EmailField isFloatingLabelEnabled={isFloatingLabelEnabled} onChange={onChangeEmail} />
+                            <EmailField isFloatingLabelEnabled={isFloatingLabelEnabled} onChange={onChangeEmail} value={values.email || ''} />
                             {shouldShowEmailWatermark && <PayPalFastlaneWatermark />}
                             <div className="link-order">
                                 {(canSubscribe || requiresMarketingConsent) && (<BasicFormField name="shouldSubscribe" render={renderField} />)}
@@ -136,7 +136,7 @@ const GuestForm: FunctionComponent<
                             countryCode={values.shippingAddress?.countryCode || shippingAddress?.countryCode}
                             fieldName="shippingAddress"
                             formFields={shippingAddressFields}
-                             shouldShowCodiceFiscale={shouldShowCodiceFiscale}
+                            shouldShowCodiceFiscale={shouldShowCodiceFiscale}
                             shouldShowSaveAddress={false}
                             type={AddressType.Shipping}
                         />
@@ -163,24 +163,118 @@ export default withLanguage(
             defaultShouldSubscribe = false,
             requiresMarketingConsent,
             shippingAddress,
-            isBillingSameAsShipping = true, // Usa il valore passato come prop
+            isBillingSameAsShipping = true,
+            shouldShowCodiceFiscale = false,
         }) => ({
-            email,
+            email: email || '',
             shouldSubscribe: getShouldSubscribeValue(requiresMarketingConsent, defaultShouldSubscribe),
             privacyPolicy: false,
-            shippingAddress: shippingAddress || {},
-            isBillingSameAsShipping, // Imposta il valore iniziale per Formik
+            shouldShowCodiceFiscale,
+            shippingAddress: {
+                ...shippingAddress,
+                countryCode: shippingAddress?.countryCode || '',
+                customFields: (shippingAddress?.customFields ?? []).reduce((acc, f) => {
+                    const value = Array.isArray(f.fieldValue)
+                        ? f.fieldValue.join(',')
+                        : String(f.fieldValue || '');
+                    acc[f.fieldId] = value;
+                    return acc;
+                }, {} as Record<string, string>),
+            },
+            isBillingSameAsShipping,
         }),
+
         handleSubmit: (values, { props: { onContinueAsGuest } }) => {
             onContinueAsGuest(values);
         },
-        validationSchema: ({ language, privacyPolicyUrl, isExpressPrivacyPolicy }: GuestFormProps & WithLanguageProps) => {
-            const email = string().email(language.translate('customer.email_invalid_error')).max(256).required(language.translate('customer.email_required_error'));
-            const baseSchema = object({ email });
-            if (privacyPolicyUrl && !isExpressPrivacyPolicy) {
-                return baseSchema.concat(getPrivacyPolicyValidationSchema({ isRequired: !!privacyPolicyUrl, language }));
-            }
-            return baseSchema;
-        },
+
+        validationSchema: ({
+            language,
+            privacyPolicyUrl,
+            isExpressPrivacyPolicy,
+        }: GuestFormProps & WithLanguageProps) =>
+            lazy((values: any) => {
+                /* =======================
+                 *  LINGUA (browser → CF)
+                 * ======================= */
+                const errorMessages = {
+                    it: {
+                        REQUIRED: 'Inserire il Codice Fiscale.',
+                        INVALID: 'Codice Fiscale non valido.',
+                    },
+                    en: {
+                        REQUIRED: 'Please enter your Fiscal Code.',
+                        INVALID: 'The Fiscal Code is not valid.',
+                    },
+                };
+
+                const browserLanguage =
+                    typeof navigator !== 'undefined'
+                        ? navigator.language.toLowerCase()
+                        : 'en';
+
+                const lang = browserLanguage.startsWith('it') ? 'it' : 'en';
+                const messages = errorMessages[lang];
+
+                /* =======================
+                 *  EMAIL (BigCommerce)
+                 * ======================= */
+                const email = string()
+                    .email(language.translate('customer.email_invalid_error'))
+                    .max(256)
+                    .required(language.translate('customer.email_required_error'));
+
+                /* =======================
+                 *  CALCOLA shouldShowCodiceFiscale
+                 * ======================= */
+                const shouldShowCodiceFiscale = values.shouldShowCodiceFiscale || false;
+
+                /* =======================
+                 *  SHIPPING ADDRESS
+                 * ======================= */
+                const customFieldsValidation = shouldShowCodiceFiscale
+                    ? object().shape({
+                        field_29: string()
+                            .required(messages.REQUIRED)
+                            .test(
+                                'cf-valid',
+                                messages.INVALID,
+                                (value) => !value || isCodiceFiscaleValid(value)
+                            ),
+                    })
+                    : object().shape({
+                        field_29: string()
+                            .nullable()
+                            .test(
+                                'cf-valid',
+                                messages.INVALID,
+                                (value) => !value || isCodiceFiscaleValid(value)
+                            ),
+                    });
+
+                const shippingAddress = object({
+                    customFields: customFieldsValidation,
+                });
+
+                let schema = object({
+                    email,
+                    shippingAddress,
+                });
+
+                /* =======================
+                 *  PRIVACY POLICY
+                 * ======================= */
+                if (privacyPolicyUrl && !isExpressPrivacyPolicy) {
+                    schema = schema.concat(
+                        getPrivacyPolicyValidationSchema({
+                            isRequired: true,
+                            language,
+                        }),
+                    );
+                }
+
+                return schema;
+            }),
+
     })(memo(GuestForm)),
 );

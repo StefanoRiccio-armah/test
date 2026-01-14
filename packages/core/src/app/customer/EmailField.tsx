@@ -8,12 +8,14 @@ import { FormField, TextInput } from '../ui/form';
 
 export interface EmailFieldProps {
     isFloatingLabelEnabled?: boolean;
+    value?: string; // aggiunto value
     onChange?(value: string): void;
     onBlur?(): void;
     onFocus?(): void;
 }
 
 const EmailField: FunctionComponent<EmailFieldProps> = ({ 
+    value = '', // fallback a stringa vuota
     onChange, 
     onBlur,
     onFocus,
@@ -25,28 +27,22 @@ const EmailField: FunctionComponent<EmailFieldProps> = ({
         (props: FieldProps) => (
             <TextInput
                 {...props.field}
+                value={props.field.value ?? value} // fallback se Formik non ha ancora il valore
                 autoComplete={props.field.name}
                 id={props.field.name}
                 isFloatingLabelEnabled={isFloatingLabelEnabled}
                 themeV2={themeV2}
                 type="email"
                 onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
-                    // Chiama il blur handler originale di Formik
                     props.field.onBlur(e);
-                    // Chiama il nostro custom handler
-                    if (onBlur) {
-                        onBlur();
-                    }
+                    if (onBlur) onBlur();
                 }}
                 onFocus={() => {
-                    // Chiama il nostro custom handler
-                    if (onFocus) {
-                        onFocus();
-                    }
+                    if (onFocus) onFocus();
                 }}
             />
         ),
-        [isFloatingLabelEnabled, themeV2, onBlur, onFocus],
+        [isFloatingLabelEnabled, themeV2, onBlur, onFocus, value],
     );
 
     const labelContent = useMemo(() => <TranslatedString id="customer.email_label" />, []);
