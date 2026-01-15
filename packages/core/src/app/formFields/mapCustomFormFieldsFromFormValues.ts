@@ -3,6 +3,7 @@ import { forIn, isDate, padStart } from 'lodash';
 export default function mapCustomFormFieldsFromFormValues(customFieldsObject: {
     [id: string]: any;
 }): Array<{ fieldId: string; fieldValue: string }> {
+
     const customFields: Array<{ fieldId: string; fieldValue: string }> = [];
 
     forIn(customFieldsObject, (value, key) => {

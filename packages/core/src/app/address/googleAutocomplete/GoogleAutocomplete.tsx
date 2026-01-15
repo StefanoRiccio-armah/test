@@ -1,9 +1,10 @@
+// GoogleAutocomplete.tsx
+
 import { noop } from 'lodash';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 
 import { Autocomplete, type AutocompleteItem } from '../../ui/autocomplete';
-
-import GoogleAutocompleteService from './GoogleAutocompleteService';
+import GoogleAutocompleteService, { type AutocompleteSuggestion } from './GoogleAutocompleteService';
 import { type GoogleAutocompleteOptionTypes } from './googleAutocompleteTypes';
 import './GoogleAutocomplete.scss';
 
@@ -21,15 +22,39 @@ export interface GoogleAutocompleteProps {
     onChange?(value: string, isOpen: boolean): void;
 }
 
+// MODIFICATO: Questa funzione è ora aggiornata per la nuova struttura della risposta.
 const toAutocompleteItems = (
-    results?: google.maps.places.AutocompletePrediction[],
+    suggestions?: AutocompleteSuggestion[],
 ): AutocompleteItem[] => {
-    return (results || []).map((result) => ({
-        label: result.description,
-        value: result.structured_formatting.main_text,
-        highlightedSlices: result.matched_substrings,
-        id: result.place_id,
-    }));
+    if (!suggestions) {
+        return [];
+    }
+
+    return suggestions.reduce<AutocompleteItem[]>((acc, suggestion) => {
+        const { placePrediction } = suggestion;
+
+        // Se per qualche motivo non c'è placePrediction, lo saltiamo
+        if (!placePrediction) {
+            return acc;
+        }
+
+        acc.push({
+            id: placePrediction.placeId,
+            // La descrizione completa ora è in `placePrediction.text.text`
+            label: placePrediction.text.text,
+            // Il valore principale (es. "Via Roma") è in `placePrediction.mainText.text`
+            value: placePrediction.mainText?.text || '',
+            // Gli `highlightedSlices` vengono calcolati dai `matches`
+            highlightedSlices: placePrediction.mainText?.matches.map(
+                (match) => ({
+                    offset: match.startOffset,
+                    length: match.endOffset - match.startOffset,
+                }),
+            ) || [],
+        });
+
+        return acc;
+    }, []);
 };
 
 const GoogleAutocomplete: React.FC<GoogleAutocompleteProps> = ({
@@ -47,80 +72,74 @@ const GoogleAutocomplete: React.FC<GoogleAutocompleteProps> = ({
 }) => {
     const [items, setItems] = useState<AutocompleteItem[]>([]);
     const [autoComplete, setAutoComplete] = useState<string>('off');
-    const googleAutocompleteServiceRef = useRef<GoogleAutocompleteService>();
 
-    if (!googleAutocompleteServiceRef.current) {
-        googleAutocompleteServiceRef.current = new GoogleAutocompleteService(apiKey);
-    }
+    // Manteniamo una singola istanza del servizio per tutta la vita del componente
+    const googleAutocompleteServiceRef = useRef<GoogleAutocompleteService>(
+        new GoogleAutocompleteService(apiKey)
+    );
 
-    const onSelectHandler = (item: AutocompleteItem) => {
+    // MODIFICATO: Logica di selezione aggiornata
+    const onSelectHandler = useCallback((item: AutocompleteItem) => {
         const service = googleAutocompleteServiceRef.current;
-        
-        if (!service) return;
 
-        service.getPlacesServices().then((placesService) => {
+        service.getPlacesService().then((placesService: google.maps.places.PlacesService) => {
             placesService.getDetails(
                 {
                     placeId: item.id,
-                    fields: fields || ['address_components', 'name'],
+                    fields: fields || ['address_components', 'name', 'geometry'],
                 },
-                (result) => {
-                    if (nextElement) {
-                        nextElement.focus();
+                (
+                    result: google.maps.places.PlaceResult | null,
+                    status: google.maps.places.PlacesServiceStatus,
+                ) => {
+                    if (status === google.maps.places.PlacesServiceStatus.OK && result) {
+                        if (nextElement) {
+                            nextElement.focus();
+                        }
+                        onSelect(result, item);
+                    } else {
+                        console.error('Errore nel recupero dei dettagli del luogo:', status);
                     }
-
-                    onSelect(result, item);
+                    
+                    // IMPORTANTE: Rinnova il token per la prossima sessione di ricerca.
+                    // Questo conclude la sessione di fatturazione corrente.
+                    service.renewSessionToken();
                 },
             );
         });
-    };
+    }, [fields, nextElement, onSelect]);
 
-    const resetAutocomplete = (): void => {
+    {/*const resetAutocomplete = useCallback((): void => {
         setItems([]);
         setAutoComplete('off');
-    };
-
-    const setAutocompleteValue = (input: string): void => {
-        setAutoComplete(input && input.length ? 'nope' : 'off');
-    };
-
-    const setItemsFromInput = (input: string): void => {
-        if (!input) {
+    }, []);
+    */}
+    
+    // NUOVO: La logica di fetch è stata leggermente aggiornata per chiarezza
+    const fetchAndSetItems = useCallback(async (input: string): Promise<void> => {
+        if (!isAutocompleteEnabled || !input) {
             setItems([]);
-
             return;
         }
 
         const service = googleAutocompleteServiceRef.current;
-        
-        if (!service) return;
-
-        service.getAutocompleteService().then((autocompleteService) => {
-            autocompleteService.getPlacePredictions(
-                {
-                    input,
-                    types: types || ['geocode'],
-                    componentRestrictions,
-                },
-                (results) => {
-                    const autocompleteItems = toAutocompleteItems(results ?? undefined);
-
-                    setItems(autocompleteItems);
-                }
-            );
+        const suggestions = await service.fetchSuggestions(input, {
+            types: types || ['geocode'],
+            componentRestrictions,
         });
-    };
 
-    const onChangeHandler = (input: string) => {
+        const autocompleteItems = toAutocompleteItems(suggestions);
+        setItems(autocompleteItems);
+    }, [isAutocompleteEnabled, types, componentRestrictions]);
+
+
+    const onChangeHandler = useCallback((input: string) => {
         onChange(input, false);
-
-        if (!isAutocompleteEnabled) {
-            return resetAutocomplete();
-        }
-
-        setAutocompleteValue(input);
-        setItemsFromInput(input);
-    };
+        // Questo fa sì che l'autocomplete del browser non interferisca
+        setAutoComplete(input ? 'nope' : 'off');
+        // Chiama la funzione per recuperare i suggerimenti
+        void fetchAndSetItems(input);
+    }, [onChange, fetchAndSetItems]);
 
     return (
         <Autocomplete

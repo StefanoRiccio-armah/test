@@ -29,11 +29,9 @@ import { Button, ButtonVariant } from '../ui/button';
 import { Fieldset, Form } from '../ui/form';
 
 import { hasDeductibleProduct } from '../custom/minsan-checker'
-
-
 import StaticBillingAddress from './StaticBillingAddress';
 
-export type BillingFormValues = AddressFormValues & { orderComment: string,  wantsInvoice: boolean; };
+export type BillingFormValues = AddressFormValues & { orderComment: string, wantsInvoice: boolean; };
 
 export interface BillingFormProps {
     methodId?: string;
@@ -44,9 +42,6 @@ export interface BillingFormProps {
     onUnhandledError(error: Error): void;
     getFields(countryCode?: string): FormField[];
 }
-
-
-
 
 const BillingForm = ({
     methodId,
@@ -67,11 +62,11 @@ const BillingForm = ({
         data: { getCustomer, getConfig, getCart },
         statuses: { isUpdatingBillingAddress, isUpdatingCheckout },
     } = checkoutState;
+
     const customer = getCustomer();
     const config = getConfig();
     const cart = getCart();
     const shouldShowCodiceFiscale = hasDeductibleProduct(cart);
-
 
     if (!config || !customer || !cart) {
         throw new Error('checkout data is not available');
@@ -104,6 +99,7 @@ const BillingForm = ({
         try {
             await checkoutService.updateBillingAddress(address);
         } catch (error) {
+            console.error('updateBillingAddress failed', error);
             if (error instanceof Error) {
                 onUnhandledError(error);
             }
@@ -120,13 +116,9 @@ const BillingForm = ({
         setFieldValue('wantsInvoice', !values.wantsInvoice);
     };
 
-    //da sostituire anche sotto con gli id corretti dei propri campi
     const invoiceFieldNames = ['company', 'field_29', 'field_31', 'field_33', 'field_35', 'field_37'];
-
-    // Separiamo i campi: quelli per la fattura e quelli normali
     const regularAddressFields = editableFormFields.filter(field => !invoiceFieldNames.includes(field.name));
     const invoiceAddressFields = editableFormFields.filter(field => invoiceFieldNames.includes(field.name));
-
 
     return (
         <Form autoComplete="on">
@@ -145,26 +137,22 @@ const BillingForm = ({
                         checked={values.wantsInvoice}
                         onChange={handleToggleInvoice}
                     />
-                    <label htmlFor="wantsInvoice">
-                        Vuoi la fattura?
-                    </label>
+                    <label htmlFor="wantsInvoice">Vuoi la fattura?</label>
                 </div>
             </Fieldset>
 
-            {/* Sezione Fattura: appare solo se il checkbox è spuntato */}
+            {/* Sezione Fattura */}
             {values.wantsInvoice && (
                 <div className="invoice-section">
                     <AddressForm
                         countryCode={values.countryCode}
                         formFields={invoiceAddressFields}
-                       
                         setFieldValue={setFieldValue}
                         shouldShowCodiceFiscale={shouldShowCodiceFiscale}
                         type={AddressType.Billing}
                     />
                 </div>
             )}
-
 
             <Fieldset id="checkoutBillingAddress" ref={addressFormRef}>
                 {hasAddresses && !shouldRenderStaticAddress && (
@@ -174,9 +162,7 @@ const BillingForm = ({
                                 addresses={billingAddresses}
                                 onSelectAddress={handleSelectAddress}
                                 onUseNewAddress={handleUseNewAddress}
-                                selectedAddress={
-                                    hasValidCustomerAddress ? billingAddress : undefined
-                                }
+                                selectedAddress={hasValidCustomerAddress ? billingAddress : undefined}
                                 type={AddressType.Billing}
                             />
                         </LoadingOverlay>
@@ -191,7 +177,7 @@ const BillingForm = ({
                             setFieldValue={setFieldValue}
                             shouldShowSaveAddress={!isGuest}
                             type={AddressType.Billing}
-                             shouldShowCodiceFiscale={shouldShowCodiceFiscale}
+                            shouldShowCodiceFiscale={shouldShowCodiceFiscale}
                         />
                     </AddressFormSkeleton>
                 )}
@@ -217,110 +203,106 @@ const BillingForm = ({
 
 export default withLanguage(
     withFormik<BillingFormProps & WithLanguageProps, BillingFormValues>({
-        handleSubmit: async (values, { props: { onSubmit, navigateNextStep } }) => {
-            await onSubmit(values);
-            navigateNextStep();
+        // ✅ SOLUZIONE: Rimuovi il custom handleSubmit e torna alla versione semplice
+        handleSubmit: (values, { props: { onSubmit } }) => {
+            // Il componente padre (Billing.tsx) gestisce già:
+            // 1. La trasformazione di customFields da oggetto ad array
+            // 2. La navigazione al prossimo step
+            // 3. La gestione degli errori
+            onSubmit(values);
         },
-        mapPropsToValues: ({ getFields, customerMessage, billingAddress }) => ({
-            ...mapAddressToFormValues(
-                getFields(billingAddress && billingAddress.countryCode),
-                billingAddress,
-            ),
-            orderComment: customerMessage,
-            wantsInvoice: false,
-        }),
-        validateOnMount: true,
-validationSchema: ({
-    language,
-    getFields,
-    methodId,
-}: BillingFormProps & WithLanguageProps) =>
-    Yup.lazy<BillingFormValues>((values) => {
-        // MODIFICA: Oggetto con i messaggi di errore tradotti
-        const errorMessages = {
-            it: {
-                INVOICE_REQUIRED_MESSAGE: 'Inserire la Partita IVA o il Codice Fiscale.',
-                CF_ERROR: 'Il Codice Fiscale non è valido',
-                PIVA_ERROR: 'La Partita IVA non è valida',
-            },
-            en: {
-                INVOICE_REQUIRED_MESSAGE: 'Please enter your VAT number or Fiscal Code.',
-                CF_ERROR: 'The Fiscal Code is not valid',
-                PIVA_ERROR: 'The VAT number is not valid',
-            },
-        };
-
-        // MODIFICA: Rileva la lingua del browser e seleziona i messaggi appropriati
-        const browserLanguage = navigator.language.slice(0, 2);
-        const messages = browserLanguage === 'it' ? errorMessages.it : errorMessages.en;
-
-        let baseSchema: any;
-
-        if (methodId === 'amazonpay') {
-            baseSchema = getCustomFormFieldsValidationSchema({
-                translate: getTranslateAddressError(language),
-                formFields: getFields(values.countryCode),
-            });
-        } else {
-            baseSchema = getAddressFormFieldsValidationSchema({
-                language,
-                formFields: getFields(values.countryCode),
-            });
-        }
-
-        const extendedFields = {
-            ...baseSchema.fields,
-            wantsInvoice: Yup.boolean(),
-            customFields: Yup.object()
-                .shape({
-                    field_29: Yup.string()
-                        .nullable()
-                        .test('cf-valid', messages.CF_ERROR, (value) => !value || isCodiceFiscaleValid(value)), // MODIFICA
-                    field_37: Yup.string()
-                        .nullable()
-                        .test('piva-valid', messages.PIVA_ERROR, (value) => !value || isPartitaIvaValid(value)), // MODIFICA
-                })
-                .test(
-                    'at-least-one-required-for-invoice',
-                    messages.INVOICE_REQUIRED_MESSAGE, // MODIFICA
-                    function (value) {
-                        const { wantsInvoice } = this.parent;
-                        const { field_29, field_37 } = value || {};
-
-                        if (!wantsInvoice) return true;
-
-                        const cf = field_29?.trim();
-                        const piva = field_37?.trim();
-
-                        if (!cf && !piva) {
-                            return this.createError({
-                                path: `${this.path}.field_37`,
-                                message: messages.INVOICE_REQUIRED_MESSAGE, // MODIFICA
-                            });
-                        }
-
-                        // Controlli aggiuntivi: se compilato, deve essere valido
-                        if (cf && !isCodiceFiscaleValid(cf)) {
-                            return this.createError({
-                                path: `${this.path}.field_29`,
-                                message: messages.CF_ERROR, // MODIFICA
-                            });
-                        }
-
-                        if (piva && !isPartitaIvaValid(piva)) {
-                            return this.createError({
-                                path: `${this.path}.field_37`,
-                                message: messages.PIVA_ERROR, // MODIFICA
-                            });
-                        }
-
-                        return true;
-                    }
+        
+        mapPropsToValues: ({ getFields, customerMessage, billingAddress }) => {
+            const initialValues = {
+                ...mapAddressToFormValues(
+                    getFields(billingAddress && billingAddress.countryCode),
+                    billingAddress,
                 ),
-        };
+                orderComment: customerMessage,
+                wantsInvoice: false,
+            };
+            return initialValues;
+        },
+        validateOnMount: true,
+        validationSchema: ({
+            language,
+            getFields,
+            methodId,
+        }: BillingFormProps & WithLanguageProps) =>
+            Yup.lazy<BillingFormValues>((values) => {
+                const errorMessages = {
+                    it: {
+                        INVOICE_REQUIRED_MESSAGE: 'Inserire la Partita IVA o il Codice Fiscale.',
+                        CF_ERROR: 'Il Codice Fiscale non è valido',
+                        PIVA_ERROR: 'La Partita IVA non è valida',
+                    },
+                    en: {
+                        INVOICE_REQUIRED_MESSAGE: 'Please enter your VAT number or Fiscal Code.',
+                        CF_ERROR: 'The Fiscal Code is not valid',
+                        PIVA_ERROR: 'The VAT number is not valid',
+                    },
+                };
+                const browserLanguage = navigator.language.slice(0, 2);
+                const messages = browserLanguage === 'it' ? errorMessages.it : errorMessages.en;
 
-        return Yup.object(extendedFields);
-    }),
+                let baseSchema: any;
+                if (methodId === 'amazonpay') {
+                    baseSchema = getCustomFormFieldsValidationSchema({
+                        translate: getTranslateAddressError(language),
+                        formFields: getFields(values.countryCode),
+                    });
+                } else {
+                    baseSchema = getAddressFormFieldsValidationSchema({
+                        language,
+                        formFields: getFields(values.countryCode),
+                    });
+                }
+
+                const extendedFields = {
+                    ...baseSchema.fields,
+                    wantsInvoice: Yup.boolean(),
+                    customFields: Yup.object()
+                        .shape({
+                            field_29: Yup.string()
+                                .nullable()
+                                .test('cf-valid', messages.CF_ERROR, (value) => !value || isCodiceFiscaleValid(value)),
+                            field_37: Yup.string()
+                                .nullable()
+                                .test('piva-valid', messages.PIVA_ERROR, (value) => !value || isPartitaIvaValid(value)),
+                        })
+                        .test(
+                            'at-least-one-required-for-invoice',
+                            messages.INVOICE_REQUIRED_MESSAGE,
+                            function (value) {
+                                const { wantsInvoice } = this.parent;
+                                const { field_29, field_37 } = value || {};
+                                if (!wantsInvoice) return true;
+                                const cf = field_29?.trim();
+                                const piva = field_37?.trim();
+                                if (!cf && !piva) {
+                                    return this.createError({
+                                        path: `${this.path}.field_37`,
+                                        message: messages.INVOICE_REQUIRED_MESSAGE,
+                                    });
+                                }
+                                if (cf && !isCodiceFiscaleValid(cf)) {
+                                    return this.createError({
+                                        path: `${this.path}.field_29`,
+                                        message: messages.CF_ERROR,
+                                    });
+                                }
+                                if (piva && !isPartitaIvaValid(piva)) {
+                                    return this.createError({
+                                        path: `${this.path}.field_37`,
+                                        message: messages.PIVA_ERROR,
+                                    });
+                                }
+                                return true;
+                            }
+                        ),
+                };
+                return Yup.object(extendedFields);
+            }),
         enableReinitialize: true,
     })(BillingForm),
 );

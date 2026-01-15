@@ -1,9 +1,6 @@
 import CodiceFiscale from "codice-fiscale-js";
 
-/**
- * Regex per P.IVA italiana (11 cifre)
- */
-const PARTITA_IVA_REGEX = /^[0-9]{11}$/;
+
 
 /**
  * Regex per formato Codice Fiscale (16 caratteri alfanumerici)
@@ -72,19 +69,33 @@ export function isCodiceFiscaleValid(codiceFiscale?: string): boolean {
  * @param partitaIva - Stringa da validare
  * @returns true se valido, false altrimenti
  */
+const PARTITA_IVA_REGEX = /^(IT|it)?[0-9]{11}$/;
+
+/**
+ * Controlla se la Partita IVA è valida
+ * Include:
+ * - Controllo formato (11 cifre, con "IT" opzionale)
+ * - Verifica algoritmo checksum (Luhn modificato)
+ *
+ * @param partitaIva - Stringa da validare
+ * @returns true se valido, false altrimenti
+ */
 export function isPartitaIvaValid(partitaIva?: string): boolean {
   if (!partitaIva || partitaIva.trim() === "") {
     return true; // Yup .required() gestisce il vuoto
   }
 
-  const cleaned = partitaIva.trim();
+  const trimmed = partitaIva.trim();
 
-  // 1. Controllo formato base
-  if (!PARTITA_IVA_REGEX.test(cleaned)) {
+  // 1. Controllo formato base con la nuova regex
+  if (!PARTITA_IVA_REGEX.test(trimmed)) {
     return false;
   }
 
-  // 2. Algoritmo di checksum per P.IVA italiana
+  // Rimuove il prefisso "IT" se presente per il calcolo del checksum
+  const cleaned = trimmed.replace(/^(IT|it)/, '');
+
+  // 2. Algoritmo di checksum per P.IVA italiana (invariato)
   let sum = 0;
 
   for (let i = 0; i < 11; i++) {

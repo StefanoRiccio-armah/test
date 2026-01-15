@@ -1,59 +1,45 @@
-import { getScriptLoader, type ScriptLoader } from '@bigcommerce/script-loader';
+// GoogleAutocompleteScriptLoader.ts
 
-import { type GoogleAutocompleteWindow, type GoogleMapsSdk } from './googleAutocompleteTypes';
+import { getScriptLoader, type ScriptLoader } from '@bigcommerce/script-loader';
+import type { GoogleMapsSdk } from './googleAutocompleteTypes';
 
 export default class GoogleAutocompleteScriptLoader {
     private _scriptLoader: ScriptLoader;
-    private _googleAutoComplete?: Promise<GoogleMapsSdk>;
+    private _googleMapsPromise?: Promise<GoogleMapsSdk>;
 
     constructor() {
         this._scriptLoader = getScriptLoader();
     }
 
+    /**
+     * Carica Google Maps SDK con la libreria Places inclusa.
+     * La promise si risolve solo quando lo script è completamente caricato.
+     */
     loadMapsSdk(apiKey: string): Promise<GoogleMapsSdk> {
-        if (this._googleAutoComplete) {
-            return this._googleAutoComplete;
+        if (this._googleMapsPromise) {
+            return this._googleMapsPromise;
         }
 
-        this._googleAutoComplete = new Promise((resolve, reject) => {
-            const callbackName = 'initAutoComplete';
-            const params = [
-                'language=en',
-                `key=${apiKey}`,
-                'libraries=places',
-                `callback=${callbackName}`,
-            ].join('&');
+        this._googleMapsPromise = new Promise((resolve, reject) => {
+            const callbackName = '__initGoogleMaps';
 
-            (window as GoogleCallbackWindow)[callbackName] = () => {
-                if (isAutocompleteWindow(window)) {
+            // Callback globale chiamato da Google Maps quando lo script è pronto
+            (window as any)[callbackName] = () => {
+                if (window.google && window.google.maps) {
                     resolve(window.google.maps);
+                } else {
+                    reject(new Error('Google Maps SDK loaded but window.google.maps is undefined.'));
                 }
-
-                reject(new Error('Failed to initialize Google Maps Autocomplete SDK.'));
+                delete (window as any)[callbackName];
             };
 
-            this._scriptLoader
-                .loadScript(`//maps.googleapis.com/maps/api/js?${params}`)
-                .catch((e) => {
-                    this._googleAutoComplete = undefined;
-                    throw e;
-                });
+            const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&v=weekly&callback=${callbackName}`;
+
+            this._scriptLoader.loadScript(scriptUrl).catch((err) => {
+                reject(new Error('Failed to load Google Maps SDK: ' + err));
+            });
         });
 
-        return this._googleAutoComplete;
+        return this._googleMapsPromise;
     }
-}
-
-function isAutocompleteWindow(window: Window): window is GoogleAutocompleteWindow {
-    const autocompleteWindow = window as GoogleAutocompleteWindow;
-
-    return Boolean(
-        autocompleteWindow.google &&
-            autocompleteWindow.google.maps &&
-            autocompleteWindow.google.maps.places,
-    );
-}
-
-export interface GoogleCallbackWindow extends Window {
-    initAutoComplete?(): void;
 }

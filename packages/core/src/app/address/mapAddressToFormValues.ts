@@ -1,5 +1,4 @@
 import { type Address, type AddressKey, type FormField } from '@bigcommerce/checkout-sdk';
-
 import { DynamicFormFieldType } from '@bigcommerce/checkout/ui';
 
 export type AddressFormValues = Pick<Address, Exclude<AddressKey, 'customFields'>> & {
@@ -53,7 +52,7 @@ export default function mapAddressToFormValues(
     values.shouldSaveAddress =
         address && address.shouldSaveAddress !== undefined ? address.shouldSaveAddress : true;
 
-    // Manually backfill stateOrProvince to avoid Formik warning (uncontrolled to controlled input)
+    // Manually backfill stateOrProvince to avoid Formik warning
     if (values.stateOrProvince === undefined) {
         values.stateOrProvince = '';
     }
@@ -77,7 +76,6 @@ function getValue(
     if (fieldType === DynamicFormFieldType.DATE && typeof fieldValue === 'string') {
         if (fieldValue) {
             const [year, month, day] = fieldValue.split('-');
-
             return new Date(Number(year), Number(month)-1, Number(day));
         }
 
