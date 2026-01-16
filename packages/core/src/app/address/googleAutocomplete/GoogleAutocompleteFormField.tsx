@@ -18,12 +18,13 @@ import GoogleAutocomplete from './GoogleAutocomplete';
 export interface GoogleAutocompleteFormFieldProps {
     apiKey: string;
     field: FormFieldType;
+    value?: string; // valore controllato
     countryCode?: string;
     supportedCountries: string[];
     nextElement?: HTMLElement;
     parentFieldName?: string;
     isFloatingLabelEnabled?: boolean;
-    onSelect(place: google.maps.places.PlaceResult, item: AutocompleteItem): void;
+    onSelect?: (place: google.maps.places.Place, item: AutocompleteItem) => void;
     onToggleOpen?(state: { inputValue: string; isOpen: boolean }): void;
     onChange(value: string, isOpen: boolean): void;
 }
@@ -38,13 +39,12 @@ const GoogleAutocompleteFormField: FunctionComponent<GoogleAutocompleteFormField
     onSelect,
     onChange,
     onToggleOpen,
+    value, // Questa prop è la chiave
     isFloatingLabelEnabled,
 }) => {
     const fieldName = parentFieldName ? `${parentFieldName}.${name}` : name;
-
     const { themeV2 } = useThemeContext();
     const labelContent = useMemo(() => <TranslatedString id="address.address_line_1_label" />, []);
-
     const labelId = getAddressFormFieldLabelId(name);
 
     const inputProps = useMemo(
@@ -60,7 +60,7 @@ const GoogleAutocompleteFormField: FunctionComponent<GoogleAutocompleteFormField
             labelText: isFloatingLabelEnabled ? labelContent : null,
             maxLength: maxLength || undefined,
         }),
-        [name, labelId, placeholder, labelContent, maxLength],
+        [name, labelId, placeholder, labelContent, maxLength, isFloatingLabelEnabled, themeV2],
     );
 
     const renderInput = useCallback(
@@ -68,7 +68,8 @@ const GoogleAutocompleteFormField: FunctionComponent<GoogleAutocompleteFormField
             <GoogleAutocomplete
                 apiKey={apiKey}
                 componentRestrictions={countryCode ? { country: countryCode } : undefined}
-                initialValue={field.value}
+                // La prop `value` controllata ha la precedenza sul valore di Formik.
+                value={value ?? field.value}
                 inputProps={inputProps}
                 isAutocompleteEnabled={
                     countryCode ? supportedCountries.includes(countryCode) : false
@@ -88,12 +89,17 @@ const GoogleAutocompleteFormField: FunctionComponent<GoogleAutocompleteFormField
             onSelect,
             onToggleOpen,
             supportedCountries,
+            value, // AGGIUNTO: `value` come dipendenza
         ],
     );
 
     const renderLabel = isFloatingLabelEnabled ? null : (
-        <Label additionalClassName={themeV2 ? 'body-regular' : ''} htmlFor={inputProps.id} id={labelId}
-            isFloatingLabelEnabled={isFloatingLabelEnabled}>
+        <Label
+            additionalClassName={themeV2 ? 'body-regular' : ''}
+            htmlFor={inputProps.id}
+            id={labelId}
+            isFloatingLabelEnabled={isFloatingLabelEnabled}
+        >
             {labelContent}
         </Label>
     );

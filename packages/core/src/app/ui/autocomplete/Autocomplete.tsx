@@ -1,6 +1,6 @@
 import Downshift, { type DownshiftState, type StateChangeOptions } from 'downshift';
 import { noop } from 'lodash';
-import React, { type ReactNode, useCallback } from 'react';
+import React, { type ReactNode, useCallback, FunctionComponent } from 'react';
 
 import type AutocompleteItem from './autocomplete-item';
 import AutocompleteContent from './AutocompleteContent';
@@ -16,6 +16,7 @@ export interface InputPropsType {
 }
 
 export interface AutocompleteProps {
+    value?: string;
     initialValue?: string;
     initialHighlightedIndex?: number;
     defaultHighlightedIndex?: number;
@@ -28,7 +29,8 @@ export interface AutocompleteProps {
     onChange?(value: string, isOpen: boolean): void;
 }
 
-const Autocomplete: React.FC<AutocompleteProps> = ({
+const Autocomplete: FunctionComponent<AutocompleteProps> = ({
+    value,
     inputProps,
     initialValue,
     initialHighlightedIndex,
@@ -46,25 +48,16 @@ const Autocomplete: React.FC<AutocompleteProps> = ({
             changes: StateChangeOptions<AutocompleteItem>,
         ): Partial<StateChangeOptions<AutocompleteItem>> => {
             switch (changes.type) {
-                case Downshift.stateChangeTypes.blurInput:
-                case Downshift.stateChangeTypes.blurButton:
-                case Downshift.stateChangeTypes.mouseUp:
-                case Downshift.stateChangeTypes.touchEnd:
-                    return {
-                        ...changes,
-                        inputValue: state.inputValue,
-                    };
-
                 case Downshift.stateChangeTypes.changeInput:
                     if (changes.inputValue !== state.inputValue && onChange) {
                         onChange(changes.inputValue || '', state.isOpen);
                     }
-
                     return changes;
 
-                case Downshift.stateChangeTypes.keyDownEnter:
-                    return changes;
-
+                // Per tutti gli altri casi (inclusi blur, mouseUp, etc.),
+                // accetta semplicemente le modifiche proposte da Downshift
+                // senza imporre il vecchio stato. Questo permette al componente
+                // di essere pienamente controllato dalla prop `inputValue`.
                 default:
                     return changes;
             }
@@ -85,7 +78,7 @@ const Autocomplete: React.FC<AutocompleteProps> = ({
         <Downshift
             defaultHighlightedIndex={defaultHighlightedIndex}
             initialHighlightedIndex={initialHighlightedIndex}
-            initialInputValue={initialValue}
+            inputValue={value}
             itemToString={itemToString}
             labelId={inputProps && inputProps['aria-labelledby']}
             onChange={onSelect}

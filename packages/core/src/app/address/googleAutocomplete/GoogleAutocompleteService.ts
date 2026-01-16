@@ -3,11 +3,20 @@
 import getGoogleAutocompleteScriptLoader from './getGoogleAutocompleteScriptLoader';
 import type GoogleAutocompleteScriptLoader from './GoogleAutocompleteScriptLoader';
 
-// Esportiamo i tipi ufficiali per chiarezza
 export type AutocompleteSuggestion = google.maps.places.AutocompleteSuggestion;
 export type AutocompleteSessionToken = google.maps.places.AutocompleteSessionToken;
 
-// L'interfaccia delle opzioni rimane la stessa per non modificare il codice che la usa
+/**
+ * Campi supportati dalla Place API (New)
+ * https://developers.google.com/maps/documentation/javascript/place-data-fields
+ */
+export type PlaceField =
+    | 'addressComponents'
+    | 'displayName'
+    | 'location'
+    | 'formattedAddress'
+    | 'postalAddress';
+
 interface FetchSuggestionsOptions {
     types?: string[];
     componentRestrictions?: google.maps.places.ComponentRestrictions;
@@ -26,31 +35,29 @@ export default class GoogleAutocompleteService {
     }
 
     /**
-     * Carica lo script dell'API di Google Maps.
+     * Carica Google Maps SDK + Places Library (NUOVA API)
      */
     private async _loadMapsSdk(): Promise<typeof google.maps> {
         if (!this._mapsSdkPromise) {
             this._mapsSdkPromise = this._scriptLoader.loadMapsSdk(this._apiKey);
         }
+
         await this._mapsSdkPromise;
-        // La libreria 'places' è richiesta per AutocompleteSessionToken
-        if (!google.maps.places?.AutocompleteSessionToken) {
-            await google.maps.importLibrary('places');
-        }
+
+        // Places API (New): import obbligatorio
+        await google.maps.importLibrary('places');
+
         return window.google.maps;
     }
 
-    /**
-     * Inizializza o rinnova il session token.
-     */
     private _ensureSessionToken(): void {
         if (!this._sessionToken) {
             this._sessionToken = new google.maps.places.AutocompleteSessionToken();
         }
     }
-    
+
     /**
-     * Recupera suggerimenti di autocompletamento usando la nuova API.
+     * Autocomplete — Places API (New)
      */
     public async fetchSuggestions(
         input: string,
@@ -61,56 +68,83 @@ export default class GoogleAutocompleteService {
         }
 
         try {
-            // Assicurati che l'SDK e la libreria 'places' siano carichi
             await this._loadMapsSdk();
-            const { AutocompleteSuggestion } = await google.maps.importLibrary('places') as google.maps.PlacesLibrary;
-            
+
+            const { AutocompleteSuggestion } =
+                (await google.maps.importLibrary(
+                    'places',
+                )) as google.maps.PlacesLibrary;
+
             this._ensureSessionToken();
 
-            // Costruisci la richiesta con i parametri della NUOVA API
             const request: google.maps.places.AutocompleteRequest = {
                 input,
                 sessionToken: this._sessionToken,
-                // Mappa i vecchi nomi ai nuovi
-                includedPrimaryTypes: options.types, 
+                includedPrimaryTypes: options.types,
             };
 
-            // Converte `componentRestrictions` nel nuovo `includedRegionCodes`
             if (options.componentRestrictions?.country) {
-                request.includedRegionCodes = Array.isArray(options.componentRestrictions.country)
+                request.includedRegionCodes = Array.isArray(
+                    options.componentRestrictions.country,
+                )
                     ? options.componentRestrictions.country
                     : [options.componentRestrictions.country];
             }
 
-            const { suggestions } = await AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
-            
-            return suggestions || [];
+            const { suggestions } =
+                await AutocompleteSuggestion.fetchAutocompleteSuggestions(
+                    request,
+                );
+
+            return suggestions ?? [];
         } catch (error) {
-            console.error('Errore durante il recupero dei suggerimenti di autocompletamento:', error);
-            // In caso di errore, è buona norma invalidare il token
-            this.renewSessionToken(); 
+            console.error(
+                '[GoogleAutocompleteService] fetchSuggestions error',
+                error,
+            );
+            this.renewSessionToken();
             return [];
         }
     }
 
     /**
-     * Ottiene un'istanza di PlacesService.
+     * Place Details — Places API (New)
      */
-    public async getPlacesService(): Promise<google.maps.places.PlacesService> {
-        await this._loadMapsSdk();
-        const { PlacesService } = await google.maps.importLibrary('places') as google.maps.PlacesLibrary;
-        const node = document.createElement('div');
-        return new PlacesService(node);
+    public async getPlaceDetails(
+        placeId: string,
+        fields: PlaceField[] = [
+            'addressComponents',
+            'displayName',
+            'location',
+        ],
+    ): Promise<google.maps.places.Place | null> {
+        try {
+            await this._loadMapsSdk();
+
+            const { Place } =
+                (await google.maps.importLibrary(
+                    'places',
+                )) as google.maps.PlacesLibrary;
+
+            const place = new Place({ id: placeId });
+
+            await place.fetchFields({ fields });
+
+            return place;
+        } catch (error) {
+            console.error(
+                '[GoogleAutocompleteService] getPlaceDetails error',
+                error,
+            );
+            return null;
+        }
     }
 
     /**
-     * Rinnova il session token. Va chiamato dopo aver ottenuto i dettagli di un luogo.
+     * Session token lifecycle (best practice Google)
      */
     public renewSessionToken(): void {
-        if (google.maps.places?.AutocompleteSessionToken) {
-            this._sessionToken = new google.maps.places.AutocompleteSessionToken();
-        } else {
-            this._sessionToken = undefined;
-        }
+        this._sessionToken =
+            new google.maps.places.AutocompleteSessionToken();
     }
 }

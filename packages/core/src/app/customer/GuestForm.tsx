@@ -100,6 +100,13 @@ const GuestForm: FunctionComponent<
             }
         };
 
+            const handleShippingAddressChange = useCallback(
+        (fieldName: string, value: string | string[]) => {
+            setFieldValue(`shippingAddress.${fieldName}`, value);
+        },
+        [setFieldValue],
+    );
+    
         const handleBillingSameAsShippingChange = useCallback((isChecked: boolean) => {
             setFieldValue('isBillingSameAsShipping', isChecked);
             onBillingSameAsShippingChange(isChecked);
@@ -133,12 +140,16 @@ const GuestForm: FunctionComponent<
 
                     <Fieldset legend={<Legend><TranslatedString id="shipping.shipping_address_heading" /></Legend>}>
                         <AddressForm
-                            countryCode={values.shippingAddress?.countryCode || shippingAddress?.countryCode}
-                            fieldName="shippingAddress"
-                            formFields={shippingAddressFields}
-                            shouldShowCodiceFiscale={shouldShowCodiceFiscale}
-                            shouldShowSaveAddress={false}
-                            type={AddressType.Shipping}
+ countryCode={values.shippingAddress?.countryCode || shippingAddress?.countryCode}
+                        fieldName="shippingAddress"
+                        formFields={shippingAddressFields}
+                        /* Passa la funzione `setFieldValue` direttamente per l'autocomplete */
+                        setFieldValue={setFieldValue}
+                        /* Usa il nostro "ponte" per i campi individuali */
+                        onChange={handleShippingAddressChange}
+                        shouldShowCodiceFiscale={shouldShowCodiceFiscale}
+                        shouldShowSaveAddress={false}
+                        type={AddressType.Shipping}
                         />
                     </Fieldset>
                     <CheckboxFormField

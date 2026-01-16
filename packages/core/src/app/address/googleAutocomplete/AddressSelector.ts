@@ -1,3 +1,5 @@
+// packages/core/src/app/address/googleAutocomplete/AddressSelector.ts
+
 import { type GoogleAddressFieldType } from './googleAutocompleteTypes';
 
 export default class AddressSelector {
@@ -11,7 +13,23 @@ export default class AddressSelector {
         this._address = address_components;
     }
 
+    public getComponent(
+        type: GoogleAddressFieldType,
+    ): google.maps.GeocoderAddressComponent | undefined {
+        return this._address?.find((field) => field.types.includes(type));
+    }
+
     getState(): string {
+        // SOLUZIONE DEFINITIVA PER LA PROVINCIA ITALIANA
+        if (this.getCountry() === 'IT') {
+            const province = this._get('administrative_area_level_2', 'short_name'); // Es. "NA"
+            // Se troviamo la provincia, usiamo quella.
+            if (province) {
+                return province;
+            }
+        }
+
+        // Per tutti gli altri paesi, o come fallback per l'Italia, usiamo level_1
         return this._get('administrative_area_level_1', 'short_name');
     }
 
@@ -47,13 +65,10 @@ export default class AddressSelector {
         type: GoogleAddressFieldType,
         access: Exclude<keyof google.maps.GeocoderAddressComponent, 'types'>,
     ): string {
-        const element =
-            this._address && this._address.find((field) => field.types.includes(type));
-
+        const element = this.getComponent(type);
         if (element) {
             return element[access];
         }
-
         return '';
     }
 }

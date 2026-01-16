@@ -102,8 +102,8 @@ const AddressForm: React.FC<AddressFormProps> = ({
         [syncNonFormikValue],
     );
 
-    const handleAutocompleteSelect = useCallback(
-        (place: google.maps.places.PlaceResult, item: AutocompleteItem) => {
+const handleAutocompleteSelect = useCallback(
+        (place: google.maps.places.Place, item: AutocompleteItem) => {
             const { value: autocompleteValue } = item;
             const address = mapToAddress(place, countries);
 
