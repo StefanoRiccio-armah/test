@@ -16,6 +16,7 @@ export interface AddressFormProps {
      shouldShowCodiceFiscale?: boolean;
     isFloatingLabelEnabled?: boolean; 
     onAddressSelect?(address: Partial<Address>): void; 
+     addressValues?: Partial<Address> | any;
 }
 
 export const LABEL: AddressKeyMap = {

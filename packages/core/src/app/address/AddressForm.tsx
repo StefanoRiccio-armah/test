@@ -28,6 +28,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
     shouldShowSaveAddress,
     shouldShowCodiceFiscale,
     setFieldValue = noop,
+    addressValues,
     onChange = noop,
     type,
     isFloatingLabelEnabled: isFloatingLabelEnabledOverride,
@@ -92,15 +93,14 @@ const AddressForm: React.FC<AddressFormProps> = ({
             },
         [syncNonFormikValue],
     );
-
-    const handleAutocompleteChange = useCallback(
-        (value: string, isOpen: boolean) => {
-            if (!isOpen) {
-                syncNonFormikValue(AUTOCOMPLETE_FIELD_NAME, value);
-            }
-        },
-        [syncNonFormikValue],
-    );
+const handleAutocompleteChange = useCallback(
+    (value: string, _isOpen: boolean) => {
+        // ⚠️ RIMUOVI la condizione if (!isOpen)
+        // Deve aggiornare SEMPRE quando l'utente digita
+        syncNonFormikValue(AUTOCOMPLETE_FIELD_NAME, value);
+    },
+    [syncNonFormikValue],
+);
 
 const handleAutocompleteSelect = useCallback(
         (place: google.maps.places.Place, item: AutocompleteItem) => {
@@ -216,6 +216,14 @@ const handleAutocompleteSelect = useCallback(
             countryCode &&
             countriesWithAutocomplete.includes(countryCode)
         ) {
+
+              const autocompleteValue = addressValues?.address1 || field.default || '';
+        console.log('🔍 AddressForm - Rendering autocomplete:', {
+            addressValues,
+            'addressValues?.address1': addressValues?.address1,
+            'field.default': field.default,
+            autocompleteValue,
+        });
             return (
                 <GoogleAutocompleteFormField
                     apiKey={googleMapsApiKey}
@@ -229,6 +237,7 @@ const handleAutocompleteSelect = useCallback(
                     onToggleOpen={onAutocompleteToggle}
                     parentFieldName={fieldName}
                     supportedCountries={countriesWithAutocomplete}
+                    value={addressValues?.address1 || field.default || ''}
                 />
             );
         }

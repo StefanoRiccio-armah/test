@@ -150,6 +150,7 @@ const BillingForm = ({
                         setFieldValue={setFieldValue}
                         shouldShowCodiceFiscale={shouldShowCodiceFiscale}
                         type={AddressType.Billing}
+                          addressValues={values}
                     />
                 </div>
             )}
@@ -164,6 +165,7 @@ const BillingForm = ({
                                 onUseNewAddress={handleUseNewAddress}
                                 selectedAddress={hasValidCustomerAddress ? billingAddress : undefined}
                                 type={AddressType.Billing}
+                                
                             />
                         </LoadingOverlay>
                     </Fieldset>
@@ -178,6 +180,7 @@ const BillingForm = ({
                             shouldShowSaveAddress={!isGuest}
                             type={AddressType.Billing}
                             shouldShowCodiceFiscale={shouldShowCodiceFiscale}
+                              addressValues={values}
                         />
                     </AddressFormSkeleton>
                 )}

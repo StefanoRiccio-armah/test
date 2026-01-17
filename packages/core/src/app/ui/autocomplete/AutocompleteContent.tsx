@@ -32,14 +32,13 @@ const AutocompleteContent: React.FC<AutocompleteContentProps> = ({
     getMenuProps,
     getItemProps,
     highlightedIndex,
-    initialValue,
     inputProps,
     items,
     listTestId,
     children,
 }) => {
     const { themeV2 } = useThemeContext();
-    const baseInputProps = getInputProps({ value: initialValue });
+  const baseInputProps = getInputProps();
     const combinedProps = { ...baseInputProps, ...inputProps };
 
     // Extract labelText to avoid passing it to input element

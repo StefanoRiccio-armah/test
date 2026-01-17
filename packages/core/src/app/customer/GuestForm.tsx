@@ -150,6 +150,7 @@ const GuestForm: FunctionComponent<
                         shouldShowCodiceFiscale={shouldShowCodiceFiscale}
                         shouldShowSaveAddress={false}
                         type={AddressType.Shipping}
+                         addressValues={values.shippingAddress || shippingAddress}
                         />
                     </Fieldset>
                     <CheckboxFormField

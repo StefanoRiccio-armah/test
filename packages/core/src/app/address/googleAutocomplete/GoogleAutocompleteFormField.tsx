@@ -27,6 +27,7 @@ export interface GoogleAutocompleteFormFieldProps {
     onSelect?: (place: google.maps.places.Place, item: AutocompleteItem) => void;
     onToggleOpen?(state: { inputValue: string; isOpen: boolean }): void;
     onChange(value: string, isOpen: boolean): void;
+    
 }
 
 const GoogleAutocompleteFormField: FunctionComponent<GoogleAutocompleteFormFieldProps> = ({
@@ -63,8 +64,11 @@ const GoogleAutocompleteFormField: FunctionComponent<GoogleAutocompleteFormField
         [name, labelId, placeholder, labelContent, maxLength, isFloatingLabelEnabled, themeV2],
     );
 
-    const renderInput = useCallback(
-        ({ field }: FieldProps) => (
+const renderInput = useCallback(
+    ({ field }: FieldProps) => {
+     const finalValue = value || field.value || '';
+        console.log('🔍 GoogleAutocompleteFormField:', { value, 'field.value': field.value, finalValue });
+        return(
             <GoogleAutocomplete
                 apiKey={apiKey}
                 componentRestrictions={countryCode ? { country: countryCode } : undefined}
@@ -79,7 +83,8 @@ const GoogleAutocompleteFormField: FunctionComponent<GoogleAutocompleteFormField
                 onSelect={onSelect}
                 onToggleOpen={onToggleOpen}
             />
-        ),
+        );
+    },
         [
             apiKey,
             countryCode,

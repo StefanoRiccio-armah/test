@@ -65,6 +65,7 @@ const GoogleAutocomplete: FunctionComponent<GoogleAutocompleteProps> = ({
     onSelect = noop,
     onToggleOpen = noop,
 }) => {
+    console.log('🔍 GoogleAutocomplete value:', value);
     const serviceRef = useRef(new GoogleAutocompleteService(apiKey));
     const [items, setItems] = useState<AutocompleteItem[]>([]);
 
