@@ -1,4 +1,3 @@
-// packages/core/src/app/address/googleAutocomplete/AddressSelector.ts
 
 import { type GoogleAddressFieldType } from './googleAutocompleteTypes';
 
@@ -20,9 +19,9 @@ export default class AddressSelector {
     }
 
     getState(): string {
-        // SOLUZIONE DEFINITIVA PER LA PROVINCIA ITALIANA
+        
         if (this.getCountry() === 'IT') {
-            const province = this._get('administrative_area_level_2', 'short_name'); // Es. "NA"
+            const province = this._get('administrative_area_level_2', 'short_name');
             // Se troviamo la provincia, usiamo quella.
             if (province) {
                 return province;

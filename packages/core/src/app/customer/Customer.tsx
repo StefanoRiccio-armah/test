@@ -50,9 +50,6 @@ export interface CustomerProps {
     isBillingSameAsShipping?: boolean;
 }
 
-// packages/core/src/app/customer/Customer.tsx
-// FIX: Recupero email dal checkout state dopo refresh/navigazione
-
 const Customer: React.FC<CustomerProps> = ({
     viewType,
     step,
@@ -89,7 +86,6 @@ const Customer: React.FC<CustomerProps> = ({
         countries,
     } = useShipping();
 
-    // ✅ FIX PRINCIPALE: Recupera l'email dal checkout state
 useEffect(() => {
     const checkoutState = checkoutService.getState();
     const customer = checkoutState.data.getCustomer();
@@ -97,9 +93,6 @@ useEffect(() => {
     
     const savedEmail = customer?.email || billingAddress?.email;
     
-
-    
-    // ✅ AGGIORNA SEMPRE se c'è email salvata
     if (savedEmail && (!draftEmail || draftEmail !== savedEmail)) {
         setDraftEmail(savedEmail);
     }

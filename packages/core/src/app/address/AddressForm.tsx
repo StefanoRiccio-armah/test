@@ -95,8 +95,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
     );
 const handleAutocompleteChange = useCallback(
     (value: string, _isOpen: boolean) => {
-        // ⚠️ RIMUOVI la condizione if (!isOpen)
-        // Deve aggiornare SEMPRE quando l'utente digita
         syncNonFormikValue(AUTOCOMPLETE_FIELD_NAME, value);
     },
     [syncNonFormikValue],

@@ -1,6 +1,3 @@
-// packages/core/src/app/checkout/CheckoutPage.tsx
-// (Sostituisci l'intero file)
-
 import {
     type Address,
     type Cart,
