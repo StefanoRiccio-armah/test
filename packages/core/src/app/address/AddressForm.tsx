@@ -93,14 +93,15 @@ const AddressForm: React.FC<AddressFormProps> = ({
             },
         [syncNonFormikValue],
     );
-const handleAutocompleteChange = useCallback(
-    (value: string, _isOpen: boolean) => {
-        syncNonFormikValue(AUTOCOMPLETE_FIELD_NAME, value);
-    },
-    [syncNonFormikValue],
-);
 
-const handleAutocompleteSelect = useCallback(
+    const handleAutocompleteChange = useCallback(
+        (value: string, _isOpen: boolean) => {
+            syncNonFormikValue(AUTOCOMPLETE_FIELD_NAME, value);
+        },
+        [syncNonFormikValue],
+    );
+
+    const handleAutocompleteSelect = useCallback(
         (place: google.maps.places.Place, item: AutocompleteItem) => {
             const { value: autocompleteValue } = item;
             const address = mapToAddress(place, countries);
@@ -129,13 +130,40 @@ const handleAutocompleteSelect = useCallback(
         [language],
     );
 
+    // -----------------------------
+    // Funzione per riordinare Shipping
+    // -----------------------------
+    const reorderShippingFields = (fields: FormField[]) => {
+        const result = [...fields];
+
+        const cfIndex = result.findIndex(f => f.name === 'field_29');
+        if (cfIndex === -1) {
+            return result;
+        }
+
+        const codiceFiscaleField = result.splice(cfIndex, 1)[0];
+
+        const phoneIndex = result.findIndex(f => f.name === 'phone');
+        const insertIndex = phoneIndex !== -1 ? phoneIndex + 1 : 0;
+
+        result.splice(insertIndex, 0, codiceFiscaleField);
+
+        return result;
+    };
+
+    const orderedFormFields =
+        type === AddressType.Shipping
+            ? reorderShippingFields(formFields)
+            : formFields;
+
+    // -----------------------------
+    // Funzione per renderizzare ogni campo
+    // -----------------------------
     const renderFormField = (field: FormField) => {
         const addressFieldName = field.name;
         const translatedPlaceholderId = PLACEHOLDER[addressFieldName];
 
-        // SOLO per AddressType.Shipping: nascondi i campi fattura e mostra banner per field_29 (o Codice Fiscale)
         if (type === AddressType.Shipping) {
-            // Nascondi completamente i campi fattura (sostituire con gli id propri dei campi)
             if (
                 addressFieldName === 'company' ||
                 addressFieldName === 'field_33' ||
@@ -145,10 +173,8 @@ const handleAutocompleteSelect = useCallback(
                 return null;
             }
 
-            // Logica condizionale SOLO per field_29(codice fiscale) in Shipping
             if (addressFieldName === 'field_29') {
                 if (shouldShowCodiceFiscale) {
-                    // Mostra il campo normale se ci sono prodotti detraibili
                     return (
                         <DynamicFormField
                             autocomplete={AUTOCOMPLETE[field.name]}
@@ -183,8 +209,7 @@ const handleAutocompleteSelect = useCallback(
                     );
                 }
 
-                // Mostra il banner informativo se NON ci sono prodotti detraibili
-              return (
+                return (
                     <div
                         key="codice-fiscale-placeholder"
                         className={classNames(
@@ -200,28 +225,15 @@ const handleAutocompleteSelect = useCallback(
                         </div>
                     </div>
                 );
-
             }
         }
 
-        // Per AddressType.Billing: nessun rendering condizionale, mostra sempre tutti i campi normalmente
-        // (incluso field_29, field_33, field_35, field_37, company)
-
-        // Google Autocomplete per address1
         if (
             addressFieldName === 'address1' &&
             googleMapsApiKey &&
             countryCode &&
             countriesWithAutocomplete.includes(countryCode)
         ) {
-
-              const autocompleteValue = addressValues?.address1 || field.default || '';
-        console.log('🔍 AddressForm - Rendering autocomplete:', {
-            addressValues,
-            'addressValues?.address1': addressValues?.address1,
-            'field.default': field.default,
-            autocompleteValue,
-        });
             return (
                 <GoogleAutocompleteFormField
                     apiKey={googleMapsApiKey}
@@ -240,7 +252,6 @@ const handleAutocompleteSelect = useCallback(
             );
         }
 
-        // Rendering normale per tutti gli altri campi (inclusi tutti i campi in Billing)
         return (
             <DynamicFormField
                 autocomplete={AUTOCOMPLETE[field.name]}
@@ -276,7 +287,7 @@ const handleAutocompleteSelect = useCallback(
         <>
             <Fieldset>
                 <div className="checkout-address" ref={containerRef}>
-                    {formFields.map(renderFormField)}
+                    {orderedFormFields.map(renderFormField)}
                 </div>
             </Fieldset>
 
