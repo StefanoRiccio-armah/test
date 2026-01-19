@@ -224,11 +224,20 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
         }
         setIsUpdatingFee(true);
 
+        
+
         try {
             const currentLanguage = language.getLocale().split('-')[0] || 'it';
+
+            console.log(`Pronto a fare fetch al backend`, {
+  checkoutId,
+  selectedPaymentMethodId: method.id,
+  language: currentLanguage,
+});
             
             //cambiare con proprio url backend
-            const apiUrl = 'https://glucosic-dylan-ectoblastic.ngrok-free.dev/handle-payment-change';
+       const apiUrl = 'https://contrassegno.onrender.com/payment/handle-payment-change';
+
             
             console.log(`Invio richiesta di aggiornamento fee per lingua: ${currentLanguage}`);
 
@@ -262,7 +271,9 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
     ]);
 
     const handlePaymentMethodSelect = useCallback(
+        
     (method: PaymentMethod) => {
+         console.log('handlePaymentMethodSelect chiamato', method.id);
         if (isUpdatingFee) {
             return;
         }
