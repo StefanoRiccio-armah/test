@@ -4,7 +4,7 @@ import { type FieldProps } from 'formik';
 import { includes } from 'lodash';
 import React, { type FunctionComponent, memo, type ReactNode, useCallback, useMemo } from 'react';
 
-import { TranslatedString } from '@bigcommerce/checkout/locale';
+//import { TranslatedString } from '@bigcommerce/checkout/locale';
 
 import { FormField } from '../FormField';
 import { Label } from '../Label';
@@ -80,7 +80,7 @@ const DynamicFormField: FunctionComponent<DynamicFormFieldProps> = ({
                 isFloatingLabelEnabled={isFloatingLabelSupportedFieldType}
             >
                 {label || fieldLabel}
-                {!required && (
+               {/* {!required && (
                     <>
                         {' '}
                         <small className="optimizedCheckout-contentSecondary">
@@ -88,6 +88,7 @@ const DynamicFormField: FunctionComponent<DynamicFormFieldProps> = ({
                         </small>
                     </>
                 )}
+                    */}
             </Label>
         );
     }, [themeV2, fieldInputId, isFloatingLabelSupportedFieldType, label, fieldLabel, required]);

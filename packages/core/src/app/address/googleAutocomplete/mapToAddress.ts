@@ -3,18 +3,24 @@ import { type Address, type Country, type Region } from '@bigcommerce/checkout-s
 import type AddressSelector from './AddressSelector';
 import AddressSelectorFactory from './AddressSelectorFactory';
 
-
 function getStreet1(accessor: AddressSelector): string {
     const streetName = accessor.getComponent('route')?.long_name;
-    const streetNumber = accessor.getComponent('street_number')?.long_name;
-
-    if (streetName && streetNumber) {
-        return `${streetName}, ${streetNumber}`;
+    
+    // Solo il nome della via, senza il numero civico
+    if (streetName) {
+        return streetName;
     }
 
-    return accessor.getStreet() || streetName || '';
+    // Fallback: prova a ottenere la strada completa
+    return accessor.getStreet() || '';
 }
 
+function getStreet2(accessor: AddressSelector): string {
+    // Il numero civico va in address2
+    const streetNumber = accessor.getComponent('street_number')?.long_name;
+    
+    return streetNumber || '';
+}
 
 export default function mapToAddress(
     place: google.maps.places.Place,
@@ -38,19 +44,20 @@ export default function mapToAddress(
     const country = countries.find((c) => c.code === countryCode);
     
     const address1 = getStreet1(accessor);
+    const address2 = getStreet2(accessor);
 
     const mappedAddress: Partial<Address> = {
         address1,
-        address2: accessor.getStreet2(),
+        address2,
         city: accessor.getCity(),
         countryCode,
         postalCode: accessor.getPostCode(),
         // Passiamo il codice della provincia e la lista delle suddivisioni alla nostra funzione
         ...(stateCodeFromGoogle ? getState(stateCodeFromGoogle, country?.subdivisions) : {}),
     };
+    
     return mappedAddress;
 }
-
 
 function getState(stateCodeFromGoogle: string, states: Region[] = []): Partial<Address> {
     // Cerca la provincia confrontando il campo 'code' (case-insensitive).
@@ -62,7 +69,7 @@ function getState(stateCodeFromGoogle: string, states: Region[] = []): Partial<A
     if (state) {
         return {
             stateOrProvince: state.name,       // Es. "Napoli"
-            stateOrProvinceCode: state.code, // Es. "NA"
+            stateOrProvinceCode: state.code,   // Es. "NA"
         };
     }
 

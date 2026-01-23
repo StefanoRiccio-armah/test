@@ -200,93 +200,172 @@ export default withLanguage(
             onContinueAsGuest(values);
         },
 
-        validationSchema: ({
-            language,
-            privacyPolicyUrl,
-            isExpressPrivacyPolicy,
-        }: GuestFormProps & WithLanguageProps) =>
-            lazy((values: any) => {
-                /* =======================
-                 *  LINGUA (browser → CF)
-                 * ======================= */
-                const errorMessages = {
-                    it: {
-                        REQUIRED: 'Inserire il Codice Fiscale.',
-                        INVALID: 'Codice Fiscale non valido.',
-                    },
-                    en: {
-                        REQUIRED: 'Please enter your Fiscal Code.',
-                        INVALID: 'The Fiscal Code is not valid.',
-                    },
-                };
+     validationSchema: ({
+    language,
+    privacyPolicyUrl,
+    isExpressPrivacyPolicy,
+}: GuestFormProps & WithLanguageProps) =>
+    lazy((values: any) => {
+        /* =======================
+         *  LINGUA (browser → messaggi errore)
+         * ======================= */
+        const errorMessages = {
+            it: {
+                REQUIRED: 'Inserire il Codice Fiscale.',
+                INVALID: 'Codice Fiscale non valido.',
+                FIRST_NAME_REQUIRED: 'Inserire il nome.',
+                LAST_NAME_REQUIRED: 'Inserire il cognome.',
+                PHONE_REQUIRED: 'Inserire il numero di telefono.',
+                PHONE_INVALID: 'Numero di telefono non valido.',
+                ADDRESS1_REQUIRED: 'Inserire l\'indirizzo.',
+                ADDRESS2_REQUIRED: 'Inserire il numero civico.',
+                CITY_REQUIRED: 'Inserire la città.',
+                POSTAL_CODE_REQUIRED: 'Inserire il codice postale.',
+                COUNTRY_REQUIRED: 'Selezionare un paese.',
+                STATE_REQUIRED: 'Selezionare una provincia.',
+            },
+            en: {
+                REQUIRED: 'Please enter your Fiscal Code.',
+                INVALID: 'The Fiscal Code is not valid.',
+                FIRST_NAME_REQUIRED: 'Please enter your first name.',
+                LAST_NAME_REQUIRED: 'Please enter your last name.',
+                PHONE_REQUIRED: 'Please enter your phone number.',
+                PHONE_INVALID: 'Invalid phone number.',
+                ADDRESS1_REQUIRED: 'Please enter your address.',
+                ADDRESS2_REQUIRED: 'Please enter your street number.',
+                CITY_REQUIRED: 'Please enter your city.',
+                POSTAL_CODE_REQUIRED: 'Please enter your postal code.',
+                COUNTRY_REQUIRED: 'Please select a country.',
+                STATE_REQUIRED: 'Please select a state/province.',
+            },
+        };
 
-                const browserLanguage =
-                    typeof navigator !== 'undefined'
-                        ? navigator.language.toLowerCase()
-                        : 'en';
+        const browserLanguage =
+            typeof navigator !== 'undefined'
+                ? navigator.language.toLowerCase()
+                : 'en';
 
-                const lang = browserLanguage.startsWith('it') ? 'it' : 'en';
-                const messages = errorMessages[lang];
+        const lang = browserLanguage.startsWith('it') ? 'it' : 'en';
+        const messages = errorMessages[lang];
 
-                /* =======================
-                 *  EMAIL (BigCommerce)
-                 * ======================= */
-                const email = string()
-                    .email(language.translate('customer.email_invalid_error'))
-                    .max(256)
-                    .required(language.translate('customer.email_required_error'));
+        /* =======================
+         *  EMAIL (BigCommerce)
+         * ======================= */
+        const email = string()
+            .email(language.translate('customer.email_invalid_error'))
+            .max(256)
+            .required(language.translate('customer.email_required_error'));
 
-                /* =======================
-                 *  CALCOLA shouldShowCodiceFiscale
-                 * ======================= */
-                const shouldShowCodiceFiscale = values.shouldShowCodiceFiscale || false;
+        /* =======================
+         *  CALCOLA shouldShowCodiceFiscale
+         * ======================= */
+        const shouldShowCodiceFiscale = values.shouldShowCodiceFiscale || false;
 
-                /* =======================
-                 *  SHIPPING ADDRESS
-                 * ======================= */
-                const customFieldsValidation = shouldShowCodiceFiscale
-                    ? object().shape({
-                        field_29: string()
-                            .required(messages.REQUIRED)
-                            .test(
-                                'cf-valid',
-                                messages.INVALID,
-                                (value) => !value || isCodiceFiscaleValid(value)
-                            ),
-                    })
-                    : object().shape({
-                        field_29: string()
-                            .nullable()
-                            .test(
-                                'cf-valid',
-                                messages.INVALID,
-                                (value) => !value || isCodiceFiscaleValid(value)
-                            ),
-                    });
+        /* =======================
+         *  CUSTOM FIELDS (Codice Fiscale)
+         * ======================= */
+        const customFieldsValidation = shouldShowCodiceFiscale
+            ? object().shape({
+                field_29: string()
+                    .required(messages.REQUIRED)
+                    .test(
+                        'cf-valid',
+                        messages.INVALID,
+                        (value) => !value || isCodiceFiscaleValid(value)
+                    ),
+            })
+            : object().shape({
+                field_29: string()
+                    .nullable()
+                    .test(
+                        'cf-valid',
+                        messages.INVALID,
+                        (value) => !value || isCodiceFiscaleValid(value)
+                    ),
+            });
 
-                const shippingAddress = object({
-                    customFields: customFieldsValidation,
-                });
+        /* =======================
+         *  SHIPPING ADDRESS (TUTTI I CAMPI)
+         * ======================= */
+        const shippingAddress = object({
+            // Nome
+            firstName: string()
+                .trim()
+                .required(messages.FIRST_NAME_REQUIRED)
+                .max(100, lang === 'it' ? 'Il nome è troppo lungo (max 100 caratteri)' : 'First name is too long (max 100 characters)'),
+            
+            // Cognome
+            lastName: string()
+                .trim()
+                .required(messages.LAST_NAME_REQUIRED)
+                .max(100, lang === 'it' ? 'Il cognome è troppo lungo (max 100 caratteri)' : 'Last name is too long (max 100 characters)'),
+            
+            // Telefono
+            phone: string()
+                .trim()
+                .required(messages.PHONE_REQUIRED)
+                .matches(
+                    /^[\d\s\-\+\(\)]+$/,
+                    messages.PHONE_INVALID
+                )
+                .min(6, lang === 'it' ? 'Il numero di telefono è troppo corto' : 'Phone number is too short')
+                .max(20, lang === 'it' ? 'Il numero di telefono è troppo lungo' : 'Phone number is too long'),
+            
+            // Indirizzo (address1)
+            address1: string()
+                .trim()
+                .required(messages.ADDRESS1_REQUIRED)
+                .max(255, lang === 'it' ? 'L\'indirizzo è troppo lungo' : 'Address is too long'),
+            
+            // Numero civico (address2)
+            address2: string()
+                .trim()
+                .required(messages.ADDRESS2_REQUIRED)
+                .max(255, lang === 'it' ? 'Il numero civico è troppo lungo' : 'Street number is too long'),
+            
+            // Città
+            city: string()
+                .trim()
+                .required(messages.CITY_REQUIRED)
+                .max(100, lang === 'it' ? 'Il nome della città è troppo lungo' : 'City name is too long'),
+            
+            // Codice postale
+            postalCode: string()
+                .trim()
+                .required(messages.POSTAL_CODE_REQUIRED)
+                .max(20, lang === 'it' ? 'Il codice postale è troppo lungo' : 'Postal code is too long'),
+            
+            // Paese
+            countryCode: string()
+                .required(messages.COUNTRY_REQUIRED),
+            
+            // Provincia/Stato
+            stateOrProvinceCode: string()
+                .required(messages.STATE_REQUIRED),
+            
+            // Custom Fields (Codice Fiscale)
+            customFields: customFieldsValidation,
+        });
 
-                let schema = object({
-                    email,
-                    shippingAddress,
-                });
+        let schema = object({
+            email,
+            shippingAddress,
+        });
 
-                /* =======================
-                 *  PRIVACY POLICY
-                 * ======================= */
-                if (privacyPolicyUrl && !isExpressPrivacyPolicy) {
-                    schema = schema.concat(
-                        getPrivacyPolicyValidationSchema({
-                            isRequired: true,
-                            language,
-                        }),
-                    );
-                }
+        /* =======================
+         *  PRIVACY POLICY
+         * ======================= */
+        if (privacyPolicyUrl && !isExpressPrivacyPolicy) {
+            schema = schema.concat(
+                getPrivacyPolicyValidationSchema({
+                    isRequired: true,
+                    language,
+                }),
+            );
+        }
 
-                return schema;
-            }),
+        return schema;
+    }),
 
     })(memo(GuestForm)),
 );
