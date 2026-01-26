@@ -20,6 +20,7 @@ export interface CheckoutStepProps {
     type: CheckoutStepType;
     onExpanded?(step: CheckoutStepType): void;
     onEdit?(step: CheckoutStepType): void;
+    additionalActions?: ReactNode; // ✅ AGGIUNTO
 }
 
 const CheckoutStep = ({
@@ -34,6 +35,7 @@ const CheckoutStep = ({
         summary,
         type,
         onExpanded = noop,
+        additionalActions, // ✅ AGGIUNTO
     }: CheckoutStepProps): ReactElement => {
     const [isClosed, setIsClosed] = useState(true);
 
@@ -123,14 +125,6 @@ const CheckoutStep = ({
         }, delay);
     };
 
-    {/*const handleTransitionEnd = (node: HTMLElement, done: () => void): void => {
-        node.addEventListener('transitionend', ({ target }) => {
-            if (target === node) {
-                done();
-            }
-        });
-    };*/}
-
     const onAnimationEnd = useCallback((): void => {
         if (!isActive) {
             setIsClosed(true);
@@ -152,7 +146,7 @@ const CheckoutStep = ({
         }
     }, [isActive]);
 
-               const nodeRef=useRef(null)
+    const nodeRef = useRef(null);
 
     return (
         <li
@@ -170,6 +164,7 @@ const CheckoutStep = ({
                     onEdit={onEdit}
                     summary={summary}
                     type={type}
+                    additionalActions={additionalActions} // ✅ AGGIUNTO
                 />
             </div>
 
@@ -179,11 +174,10 @@ const CheckoutStep = ({
                 </div>
             )}
 
-
             <MobileView>
                 {(matched) => (
                     <CSSTransition
-                       nodeRef={nodeRef}
+                        nodeRef={nodeRef}
                         classNames="checkout-view-content"
                         enter={!matched}
                         exit={!matched}

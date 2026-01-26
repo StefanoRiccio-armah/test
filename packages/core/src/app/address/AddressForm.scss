@@ -152,7 +152,6 @@
 .invoice-section {
     border-radius: 5px;
     margin-top: 1rem;
-    margin-bottom: 1rem;
     animation: fadeIn 0.5s ease-in-out;
 }
 
@@ -214,4 +213,14 @@ label[for="privacyPolicy"] {
 
 .optimizedCheckout-form-label {
     background-color: transparent !important;
+}
+
+// Phone field full width solo per Billing
+#checkoutBillingAddress {
+    .dynamic-form-field--phone {
+        @include breakpoint("small") {
+            flex-basis: 100% !important;
+            max-width: 100% !important;
+        }
+    }
 }

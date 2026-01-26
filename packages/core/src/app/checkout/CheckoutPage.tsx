@@ -74,6 +74,8 @@ export interface CheckoutState {
     hasSelectedShippingOptions: boolean;
     isSubscribed: boolean;
     buttonConfigs: PaymentMethod[];
+    showInvoiceFields?: boolean;
+    additionalActions?: ReactNode;
 }
 
 export interface WithCheckoutProps {
@@ -172,6 +174,7 @@ const Checkout = ({
         hasSelectedShippingOptions: false,
         isSubscribed: false,
         buttonConfigs: [],
+        showInvoiceFields: false,
     });
     const [selectedPaymentMethodName, setSelectedPaymentMethodName] = useState<string | undefined>();
 
@@ -184,6 +187,10 @@ const Checkout = ({
     }>({
         hasSelectedShippingOptions: state.hasSelectedShippingOptions,
     });
+
+    const handleToggleInvoiceFields = useCallback((show: boolean): void => {
+    setState(prevState => ({ ...prevState, showInvoiceFields: show }));
+}, []);
 
     const navigateToStep = useCallback((type: CheckoutStepType, options?: { isDefault?: boolean }): void => {
       
@@ -431,6 +438,8 @@ const Checkout = ({
                     key={step.type}
                     onUnhandledError={handleUnhandledError}
                     step={step}
+                    showInvoiceFields={state.showInvoiceFields} // ✅ AGGIUNTO
+        onToggleInvoiceFields={handleToggleInvoiceFields} // ✅ AGGIUNTO
                 />;
 
             case CheckoutStepType.Payment:

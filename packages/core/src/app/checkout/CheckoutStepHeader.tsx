@@ -19,6 +19,7 @@ export interface CheckoutStepHeaderProps {
     summary?: ReactNode;
     type: CheckoutStepType;
     onEdit?(type: CheckoutStepType): void;
+    additionalActions?: ReactNode;
 }
 
 const CheckoutStepHeader: FunctionComponent<CheckoutStepHeaderProps> = ({
@@ -29,8 +30,11 @@ const CheckoutStepHeader: FunctionComponent<CheckoutStepHeaderProps> = ({
     onEdit,
     summary,
     type,
+    additionalActions,
 }) => {
     const { themeV2 } = useThemeContext();
+    const isBillingStep = type === 'billing';
+    const hasAdditionalActions = !!additionalActions;
 
     return (
         <div
@@ -39,6 +43,7 @@ const CheckoutStepHeader: FunctionComponent<CheckoutStepHeaderProps> = ({
                 'is-clickable': isEditable && !isActive,
             })}
             onClick={preventDefault(isEditable && onEdit ? () => onEdit(type) : noop)}
+            style={isBillingStep && hasAdditionalActions ? { flexWrap: 'wrap', justifyContent: 'space-between' } : undefined}
         >
             <div className="stepHeader-figure stepHeader-column">
                 <IconCheck
@@ -56,7 +61,7 @@ const CheckoutStepHeader: FunctionComponent<CheckoutStepHeaderProps> = ({
                 >{heading}</h2>
             </div>
 
-            {themeV2 && !isActive && isComplete &&
+            {!isBillingStep && themeV2 && !isActive && isComplete &&
                 <div
                     className="stepHeader-body stepHeader-column optimizedCheckout-contentPrimary body-regular"
                     data-test="step-info"
@@ -65,7 +70,7 @@ const CheckoutStepHeader: FunctionComponent<CheckoutStepHeaderProps> = ({
                 </div>
             }
 
-            {!themeV2 &&
+            {!isBillingStep && !themeV2 &&
                 <div
                     className="stepHeader-body stepHeader-column optimizedCheckout-contentPrimary"
                     data-test="step-info"
@@ -85,8 +90,46 @@ const CheckoutStepHeader: FunctionComponent<CheckoutStepHeaderProps> = ({
                     >
                         <TranslatedString id="common.edit_action" />
                     </Button>
+                    {/* Mostra additionalActions qui SOLO se NON è billing step */}
+                    {!isBillingStep && additionalActions && (
+                        <div style={{ marginTop: '8px', whiteSpace: 'nowrap' }}>
+                            {additionalActions}
+                        </div>
+                    )}
                 </div>
             )}
+
+            {isBillingStep && hasAdditionalActions && themeV2 && !isActive && isComplete &&
+                <div
+                    className="stepHeader-body stepHeader-column optimizedCheckout-contentPrimary body-regular customStepHeader"
+                    data-test="step-info"
+                    >
+                        <div style={{ flex: 1 }}>
+                            {summary}
+                        </div>
+                        <div style={{ whiteSpace: 'nowrap' }}>
+                            {additionalActions}
+                        </div>
+                </div>
+            }
+
+            {isBillingStep && hasAdditionalActions && !themeV2 &&
+                <div
+                    className="stepHeader-body stepHeader-column optimizedCheckout-contentPrimary customStepHeader"
+                    data-test="step-info"
+                >
+                    {!isActive && isComplete && (
+                        <>
+                            <div style={{ flex: 1 }}>
+                                {summary}
+                            </div>
+                            <div style={{ whiteSpace: 'nowrap' }}>
+                                {additionalActions}
+                            </div>
+                        </>
+                    )}
+                </div>
+            }
         </div>
     );
 };

@@ -208,3 +208,11 @@
         margin-left: remCalc($checkoutStep-counter-size) + $checkoutStep-header-figure-margin;
     }
 }
+
+.customStepHeader{
+    flex-basis:100%;
+    width:100%;
+    display:flex;
+    align-items: flex-start;
+    gap:2rem;
+}

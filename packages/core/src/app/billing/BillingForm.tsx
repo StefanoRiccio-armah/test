@@ -41,6 +41,7 @@ export interface BillingFormProps {
     onSubmit(values: BillingFormValues): void;
     onUnhandledError(error: Error): void;
     getFields(countryCode?: string): FormField[];
+    showInvoiceFields?: boolean;
 }
 
 const BillingForm = ({
@@ -50,6 +51,7 @@ const BillingForm = ({
     setFieldValue,
     values,
     onUnhandledError,
+    showInvoiceFields = false,
 }: BillingFormProps & WithLanguageProps & FormikProps<BillingFormValues>) => {
     const [isResettingAddress, setIsResettingAddress] = useState(false);
     const addressFormRef: RefObject<HTMLFieldSetElement> = useRef(null);
@@ -112,10 +114,6 @@ const BillingForm = ({
         void handleSelectAddress({});
     };
 
-    const handleToggleInvoice = () => {
-        setFieldValue('wantsInvoice', !values.wantsInvoice);
-    };
-
     const invoiceFieldNames = ['company', 'field_29', 'field_31', 'field_33', 'field_35', 'field_37'];
     const regularAddressFields = editableFormFields.filter(field => !invoiceFieldNames.includes(field.name));
     const invoiceAddressFields = editableFormFields.filter(field => invoiceFieldNames.includes(field.name));
@@ -128,21 +126,8 @@ const BillingForm = ({
                 </div>
             )}
 
-            {/* Checkbox "Vuoi la fattura?" */}
-            <Fieldset>
-                <div className="checkbox-billing">
-                    <input
-                        id="wantsInvoice"
-                        type="checkbox"
-                        checked={values.wantsInvoice}
-                        onChange={handleToggleInvoice}
-                    />
-                    <label htmlFor="wantsInvoice">Vuoi la fattura?</label>
-                </div>
-            </Fieldset>
-
-            {/* Sezione Fattura */}
-            {values.wantsInvoice && (
+            {/* Sezione Fattura - controllata da showInvoiceFields prop */}
+            {showInvoiceFields && (
                 <div className="invoice-section">
                     <AddressForm
                         countryCode={values.countryCode}
@@ -150,7 +135,7 @@ const BillingForm = ({
                         setFieldValue={setFieldValue}
                         shouldShowCodiceFiscale={shouldShowCodiceFiscale}
                         type={AddressType.Billing}
-                          addressValues={values}
+                        addressValues={values}
                     />
                 </div>
             )}
@@ -165,7 +150,6 @@ const BillingForm = ({
                                 onUseNewAddress={handleUseNewAddress}
                                 selectedAddress={hasValidCustomerAddress ? billingAddress : undefined}
                                 type={AddressType.Billing}
-                                
                             />
                         </LoadingOverlay>
                     </Fieldset>
@@ -180,7 +164,7 @@ const BillingForm = ({
                             shouldShowSaveAddress={!isGuest}
                             type={AddressType.Billing}
                             shouldShowCodiceFiscale={shouldShowCodiceFiscale}
-                              addressValues={values}
+                            addressValues={values}
                         />
                     </AddressFormSkeleton>
                 )}
@@ -206,12 +190,7 @@ const BillingForm = ({
 
 export default withLanguage(
     withFormik<BillingFormProps & WithLanguageProps, BillingFormValues>({
-        // ✅ SOLUZIONE: Rimuovi il custom handleSubmit e torna alla versione semplice
         handleSubmit: (values, { props: { onSubmit } }) => {
-            // Il componente padre (Billing.tsx) gestisce già:
-            // 1. La trasformazione di customFields da oggetto ad array
-            // 2. La navigazione al prossimo step
-            // 3. La gestione degli errori
             onSubmit(values);
         },
         
@@ -272,37 +251,7 @@ export default withLanguage(
                             field_37: Yup.string()
                                 .nullable()
                                 .test('piva-valid', messages.PIVA_ERROR, (value) => !value || isPartitaIvaValid(value)),
-                        })
-                        .test(
-                            'at-least-one-required-for-invoice',
-                            messages.INVOICE_REQUIRED_MESSAGE,
-                            function (value) {
-                                const { wantsInvoice } = this.parent;
-                                const { field_29, field_37 } = value || {};
-                                if (!wantsInvoice) return true;
-                                const cf = field_29?.trim();
-                                const piva = field_37?.trim();
-                                if (!cf && !piva) {
-                                    return this.createError({
-                                        path: `${this.path}.field_37`,
-                                        message: messages.INVOICE_REQUIRED_MESSAGE,
-                                    });
-                                }
-                                if (cf && !isCodiceFiscaleValid(cf)) {
-                                    return this.createError({
-                                        path: `${this.path}.field_29`,
-                                        message: messages.CF_ERROR,
-                                    });
-                                }
-                                if (piva && !isPartitaIvaValid(piva)) {
-                                    return this.createError({
-                                        path: `${this.path}.field_37`,
-                                        message: messages.PIVA_ERROR,
-                                    });
-                                }
-                                return true;
-                            }
-                        ),
+                        }),
                 };
                 return Yup.object(extendedFields);
             }),

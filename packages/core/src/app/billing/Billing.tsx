@@ -15,9 +15,15 @@ export interface BillingProps {
     navigateNextStep(): void;
     onReady(): void;
     onUnhandledError(error: Error): void;
+    showInvoiceFields?: boolean;
 }
 
-const Billing = ({ navigateNextStep, onReady, onUnhandledError }:BillingProps): ReactElement => {
+const Billing = ({ 
+    navigateNextStep, 
+    onReady, 
+    onUnhandledError,
+    showInvoiceFields = false 
+}: BillingProps): ReactElement => {
     const { checkoutService, checkoutState } = useCheckout();
     const { themeV2 }  = useThemeContext();
 
@@ -108,6 +114,7 @@ const Billing = ({ navigateNextStep, onReady, onUnhandledError }:BillingProps): 
                     navigateNextStep={navigateNextStep}
                     onSubmit={handleSubmit}
                     onUnhandledError={onUnhandledError}
+                    showInvoiceFields={showInvoiceFields}
                 />
             </div>
         </AddressFormSkeleton>
