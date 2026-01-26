@@ -237,6 +237,18 @@ button[data-test="step-edit-button"] {
     border-radius: 13px !important;
 }
 
+button[data-test="invoice-button"] {
+    background-color: #ffffff !important;
+    color: #000000 !important; 
+    border: 1px solid #24849E !important; 
+    border-radius: 13px !important;
+}
+
+button[data-test="invoice-button"]:hover {
+    background-color: #f2f2f2 !important;
+}
+
+
 
 button[data-test="step-edit-button"]:hover {
     background-color: #f2f2f2 !important;

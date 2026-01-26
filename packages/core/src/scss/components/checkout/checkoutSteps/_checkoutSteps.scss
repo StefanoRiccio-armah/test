@@ -123,6 +123,10 @@
     }
 }
 
+.checkout-step--payment .checkout-view-header {
+    display: none !important;
+}
+
 .stepHeader-figure {
     align-items: center;
     display: flex;

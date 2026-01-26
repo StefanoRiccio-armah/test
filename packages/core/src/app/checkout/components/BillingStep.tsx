@@ -2,13 +2,16 @@ import { type Address } from '@bigcommerce/checkout-sdk/essential';
 import React, { lazy } from 'react';
 
 import { TranslatedString } from '@bigcommerce/checkout/locale';
+import { Button, ButtonSize, ButtonVariant } from '../../ui/button';
 import { AddressFormSkeleton, LazyContainer } from '@bigcommerce/checkout/ui';
+import { useThemeContext } from '@bigcommerce/checkout/contexts';
 
 import { type BillingProps, StaticBillingAddress } from '../../billing';
 import { retry } from '../../common/utility';
 import CheckoutStep from '../CheckoutStep';
 import type CheckoutStepStatus from '../CheckoutStepStatus';
 import type CheckoutStepType from '../CheckoutStepType';
+import classNames from 'classnames';
 
 const Billing = lazy(() =>
     retry(
@@ -45,8 +48,7 @@ const BillingStep: React.FC<BillingStepProps> = ({
 }) => {
     const handleToggleInvoice = (e: React.MouseEvent) => {
         e.preventDefault();
-        e.stopPropagation(); // Previene il click sul parent
-        // Attiva i campi fattura E apre lo step
+        e.stopPropagation();
         if (onToggleInvoiceFields) {
             onToggleInvoiceFields(true);
         }
@@ -54,12 +56,12 @@ const BillingStep: React.FC<BillingStepProps> = ({
     };
     
     const handleEdit = () => {
-        // Disattiva i campi fattura quando si modifica normalmente
         if (onToggleInvoiceFields) {
             onToggleInvoiceFields(false);
         }
         onEdit(step.type);
     };
+    const { themeV2 } = useThemeContext();
 
     return (
         <CheckoutStep
@@ -72,21 +74,16 @@ const BillingStep: React.FC<BillingStepProps> = ({
             summary={billingAddress && <StaticBillingAddress address={billingAddress} />}
             additionalActions={
                 billingAddress ? (
-                    <button
-                        type="button"
+
+                    <Button
                         onClick={handleToggleInvoice}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#0066cc',
-                            textDecoration: 'underline',
-                            cursor: 'pointer',
-                            padding: 0,
-                            fontSize: 'inherit',
-                        }}
+                        size={ButtonSize.Tiny}
+                        variant={ButtonVariant.Secondary}
+                        className={classNames({ 'body-regular': themeV2 })}
+                         testId="invoice-button"
                     >
                        <TranslatedString id="billing.want_invoice" />
-                    </button>
+                    </Button>
                 ) : undefined
             }
         >
