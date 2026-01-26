@@ -1,21 +1,22 @@
-import { creditCardType } from 'card-validator';
+import cardValidator from 'card-validator';
 
 export default function configureCardValidator(): void {
-    const discoverInfo = creditCardType.getTypeInfo('discover');
-    const visaInfo = creditCardType.getTypeInfo('visa');
+    // Ora usiamo cardValidator.creditCardType invece del vecchio creditCardType
+    const discoverInfo = cardValidator.creditCardType.getTypeInfo('discover');
+    const visaInfo = cardValidator.creditCardType.getTypeInfo('visa');
 
     // Need to support 13 digit PAN because some gateways only provide test credit card numbers in this format.
-    creditCardType.updateCard('visa', {
+    cardValidator.creditCardType.updateCard('visa', {
         lengths: [13, ...(visaInfo.lengths || [])],
     });
 
     // Add support for 8-BIN Discover Cards.
-    creditCardType.updateCard('discover', {
+    cardValidator.creditCardType.updateCard('discover', {
         patterns: [...(discoverInfo.patterns || []), [810, 817]],
     });
 
     // Add support for Mada-BIN Cards.
-    creditCardType.addCard({
+    cardValidator.creditCardType.addCard({
         niceType: 'Mada',
         type: 'mada',
         patterns: [
