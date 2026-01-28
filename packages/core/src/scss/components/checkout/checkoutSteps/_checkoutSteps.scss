@@ -161,11 +161,8 @@
   margin-top: remCalc(10px);
   order: 3;
   width: 100%;
-
-  // ✅ IMPORTANTISSIMO: in flex-wrap: wrap, forza la riga intera
   flex: 0 0 100%;
-
-  // ✅ Tablet (medium): niente indent che ti strozza il testo
+  align-self: center;
   @include breakpoint("medium") {
     margin-left: 0;
   }

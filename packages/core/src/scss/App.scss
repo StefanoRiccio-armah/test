@@ -242,6 +242,7 @@ button[data-test="invoice-button"] {
     color: #000000 !important; 
     border: 1px solid #24849E !important; 
     border-radius: 13px !important;
+     margin-top: spacing("quarter");
 }
 
 button[data-test="invoice-button"]:hover {
