@@ -11,6 +11,7 @@ import CheckoutStep from '../CheckoutStep';
 import type CheckoutStepType from '../CheckoutStepType';
 
 
+
 const Shipping = lazy(() =>
     retry(
         () =>
@@ -33,7 +34,7 @@ const ShippingStep: React.FC<ShippingStepProps> = ({
     step,
     cartHasChanged,
     cart,
- 
+    consignments,
     isBillingSameAsShipping,
     isMultiShippingMode,
     onEdit,
@@ -50,6 +51,9 @@ const ShippingStep: React.FC<ShippingStepProps> = ({
         return null;
     }
 
+const firstConsignment = consignments?.[0];
+const selectedOption = firstConsignment?.selectedShippingOption;
+
     return (
         <CheckoutStep
             {...step}
@@ -58,6 +62,11 @@ const ShippingStep: React.FC<ShippingStepProps> = ({
             isActive={step.isActive}
             onEdit={onEdit}
             onExpanded={onExpanded}
+            summary={selectedOption ? (
+                <span className="customSummary-shippingOptionDescription">
+                    {selectedOption.description}
+                </span>
+            ) : undefined}
        
         >
             <LazyContainer loadingSkeleton={<AddressFormSkeleton />}>

@@ -110,11 +110,7 @@
     flex-wrap: wrap;
     padding: #{spacing("half") + spacing("third")} 0;
 
-    @include breakpoint("small") {
-        flex-wrap: nowrap;
-    }
-
-    @include breakpoint("large") {
+    @include breakpoint("xlarge") {
         flex-wrap: nowrap;
     }
 
@@ -135,8 +131,12 @@
 }
 
 .stepHeader-title {
-    margin: 0 0 0 $checkoutStep-header-figure-margin;
-    min-width: 9rem;
+  margin: 0 0 0 $checkoutStep-header-figure-margin;
+  min-width: 9rem;
+
+  @include breakpoint("large") {
+    white-space: nowrap;
+  }
 }
 
 .remove-checkout-step-numbers {
@@ -154,33 +154,40 @@
 }
 
 .stepHeader-body {
-    @include textTruncateMultiline;
+  @include textTruncateMultiline;
 
-    color: color("primary");
-    margin-left: remCalc($checkoutStep-counter-size) + $checkoutStep-header-figure-margin;
-    margin-top: remCalc(10px);
-    order: 3;
-    width: 100%;
+  color: color("primary");
+  margin-left: remCalc($checkoutStep-counter-size) + $checkoutStep-header-figure-margin;
+  margin-top: remCalc(10px);
+  order: 3;
+  width: 100%;
 
-    @include breakpoint("small") {
-        margin-left: 0;
-        order: inherit;
-    }
+  // ✅ IMPORTANTISSIMO: in flex-wrap: wrap, forza la riga intera
+  flex: 0 0 100%;
 
-    @include breakpoint("medium") {
-        margin-left: remCalc($checkoutStep-counter-size) + $checkoutStep-header-figure-margin;
-    }
+  // ✅ Tablet (medium): niente indent che ti strozza il testo
+  @include breakpoint("medium") {
+    margin-left: 0;
+  }
 
-    @include breakpoint("large") {
-        margin-left: 0;
-    }
+  // ✅ Desktop: torna in riga
+  @include breakpoint("large") {
+    margin-left: 0;
+    margin-top: 0;
+    order: inherit;
+    width: auto;
+    flex: 1 1 auto;
+  }
 }
+
 
 .stepHeader-actions {
     align-self: flex-start;
     margin-left: auto;
     margin-top: remCalc(5px);
 
+    // ✅ Mobile + Tablet: rimane a destra (prima riga)
+    // ✅ Desktop: idem
     @include breakpoint("small") {
         margin-left: $checkoutStep-header-actions-margin;
     }
@@ -190,33 +197,18 @@
         border: none;
     }
 
-    .button:hover, .button:focus {
+    .button:hover,
+    .button:focus {
         background: none;
         box-shadow: none;
         outline: none;
     }
 }
 
-.checkout-suggestion {
-    margin: 0;
-
-    @include breakpoint("small") {
-        margin-left: remCalc($checkoutStep-counter-size) + $checkoutStep-header-figure-margin;
-    }
-
-    @include breakpoint("large") {
-        margin-left: 0;
-    }
-
-    @include breakpoint(1080px) {
-        margin-left: remCalc($checkoutStep-counter-size) + $checkoutStep-header-figure-margin;
-    }
-}
-
-.customStepHeader{
-    flex-basis:100%;
-    width:100%;
-    display:flex;
+.customStepHeader {
+    flex-basis: 100%;
+    width: 100%;
+    display: flex;
     align-items: flex-start;
-    gap:2rem;
+    gap: 2rem;
 }

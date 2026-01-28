@@ -298,3 +298,30 @@ button[data-test="step-edit-button"]:hover {
     border-radius: 13px !important;
     border:1px solid #000000 !important;
 }
+
+.customSummary-shippingOptionDescription {
+    @include textTruncateMultiline;
+
+    margin-right: spacing("single");
+    width: 100%;
+}
+
+.checkout-step--shipping {
+  .customSummary-shippingOptionDescription {
+    @include textTruncateMultiline;
+
+    margin-right: spacing("single");
+    width: 100%;
+  }
+
+  @include breakpoint("xlarge") {
+    .customSummary-shippingOptionDescription {
+      width: 100%;
+      margin-right: 0;
+      white-space: nowrap;
+    }
+  }
+}
+
+
+
