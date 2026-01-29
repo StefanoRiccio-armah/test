@@ -209,3 +209,13 @@
     align-items: flex-start;
     gap: 2rem;
 }
+
+.mobileOnlyStepHeader-actions{
+    display:flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width:100%;
+    margin-top:4px;
+}
+

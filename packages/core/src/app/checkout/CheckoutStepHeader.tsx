@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import { noop } from 'lodash';
-import React, { type FunctionComponent, memo, type ReactNode } from 'react';
+import React, { type FunctionComponent, memo, type ReactNode, useState, useEffect } from 'react';
 
 import { useThemeContext } from '@bigcommerce/checkout/contexts';
 import { preventDefault } from '@bigcommerce/checkout/dom-utils';
@@ -35,6 +35,14 @@ const CheckoutStepHeader: FunctionComponent<CheckoutStepHeaderProps> = ({
     const { themeV2 } = useThemeContext();
     const isBillingStep = type === 'billing';
     const hasAdditionalActions = !!additionalActions;
+    const [isMobile, setIsMobile] = useState(false);
+    
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth <= 1024);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     return (
         <div
@@ -45,6 +53,7 @@ const CheckoutStepHeader: FunctionComponent<CheckoutStepHeaderProps> = ({
             onClick={preventDefault(isEditable && onEdit ? () => onEdit(type) : noop)}
             style={isBillingStep && hasAdditionalActions ? { flexWrap: 'wrap', justifyContent: 'space-between' } : undefined}
         >
+            {/* Sempre figura + titolo */}
             <div className="stepHeader-figure stepHeader-column">
                 <IconCheck
                     additionalClassName={classNames(
@@ -53,83 +62,103 @@ const CheckoutStepHeader: FunctionComponent<CheckoutStepHeaderProps> = ({
                         { 'stepHeader-counter--complete': isComplete },
                     )}
                 />
-
                 <h2
                     className={classNames('stepHeader-title optimizedCheckout-headingPrimary',
                         { 'header': themeV2 && (isActive || isComplete) },
                         { 'header-secondary': themeV2 && !isActive && !isComplete })}
-                >{heading}</h2>
+                >
+                    {heading}
+                </h2>
             </div>
 
-            {!isBillingStep && themeV2 && !isActive && isComplete &&
-                <div
-                    className="stepHeader-body stepHeader-column optimizedCheckout-contentPrimary body-regular"
-                    data-test="step-info"
-                    >
-                        {summary}
-                </div>
-            }
-
-            {!isBillingStep && !themeV2 &&
-                <div
-                    className="stepHeader-body stepHeader-column optimizedCheckout-contentPrimary"
-                    data-test="step-info"
-                >
-                    {!isActive && isComplete && summary}
-                </div>
-            }
-
-            {isEditable && !isActive && (
-                <div className="stepHeader-actions stepHeader-column">
-                    <Button
-                        aria-expanded={isActive}
-                        className={classNames({ 'body-regular': themeV2 })}
-                        size={ButtonSize.Tiny}
-                        testId="step-edit-button"
-                        variant={ButtonVariant.Secondary}
-                    >
-                        <TranslatedString id="common.edit_action" />
-                    </Button>
-                    {/* Mostra additionalActions qui SOLO se NON è billing step */}
-                    {!isBillingStep && additionalActions && (
-                        <div style={{ marginTop: '8px', whiteSpace: 'nowrap' }}>
-                            {additionalActions}
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {isBillingStep && hasAdditionalActions && themeV2 && !isActive && isComplete &&
-                <div
-                    className="stepHeader-body stepHeader-column optimizedCheckout-contentPrimary body-regular customStepHeader"
-                    data-test="step-info"
-                    >
-                        <div style={{ flex: 1 }}>
+            {/* MOBILE: summary in actions (row) + "Vuoi fattura" in body flex-end */}
+            {isMobile && isComplete && !isActive && (
+                <>
+                    <div 
+                        className="mobileOnlyStepHeader-actions stepHeader-actions stepHeader-column">
+                        <div className="optimizedCheckout-contentPrimary body-regular" data-test="step-info">
                             {summary}
                         </div>
-                        <div style={{ whiteSpace: 'nowrap' }}>
-                            {additionalActions}
-                        </div>
-                </div>
-            }
+                        <Button
+                            aria-expanded={isActive}
+                            className={classNames({ 'body-regular': themeV2 })}
+                            size={ButtonSize.Tiny}
+                            testId="step-edit-button"
+                            variant={ButtonVariant.Secondary}
+                        >
+                            <TranslatedString id="common.edit_action" />
+                        </Button>
+                    </div>
 
-            {isBillingStep && hasAdditionalActions && !themeV2 &&
-                <div
-                    className="stepHeader-body stepHeader-column optimizedCheckout-contentPrimary customStepHeader"
-                    data-test="step-info"
-                >
-                    {!isActive && isComplete && (
-                        <>
-                            <div style={{ flex: 1 }}>
-                                {summary}
-                            </div>
+                    {/* RIGA 3: "Vuoi fattura" in body (flex-end, SOLO billing) */}
+                    {isBillingStep && hasAdditionalActions && (
+                        <div 
+                            className="Header-body stepHeader-column optimizedCheckout-contentPrimary body-regular customStepHeader"
+                            style={{marginTop:'4px', display:'flex', justifyContent:'flex-end'}}>
                             <div style={{ whiteSpace: 'nowrap' }}>
                                 {additionalActions}
                             </div>
-                        </>
+                        </div>
                     )}
-                </div>
-            }
+                </>
+            )}
+
+            {/* DESKTOP: layout originale */}
+            {!isMobile && (
+                <>
+                    {/* Non-billing: summary in body */}
+                    {!isBillingStep && themeV2 && !isActive && isComplete && (
+                        <div className="stepHeader-body stepHeader-column optimizedCheckout-contentPrimary body-regular" data-test="step-info">
+                            {summary}
+                        </div>
+                    )}
+
+                    {!isBillingStep && !themeV2 && (
+                        <div className="stepHeader-body stepHeader-column optimizedCheckout-contentPrimary" data-test="step-info">
+                            {!isActive && isComplete && summary}
+                        </div>
+                    )}
+
+                    {/* Actions generali (non-billing) */}
+                    {isEditable && !isActive && (
+                        <div className="stepHeader-actions stepHeader-column">
+                            <Button
+                                aria-expanded={isActive}
+                                className={classNames({ 'body-regular': themeV2 })}
+                                size={ButtonSize.Tiny}
+                                testId="step-edit-button"
+                                variant={ButtonVariant.Secondary}
+                            >
+                                <TranslatedString id="common.edit_action" />
+                            </Button>
+                            {!isBillingStep && additionalActions && (
+                                <div style={{ marginTop: '8px', whiteSpace: 'nowrap' }}>
+                                    {additionalActions}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Billing desktop: summary + "Vuoi fattura" in body */}
+                    {isBillingStep && hasAdditionalActions && themeV2 && !isActive && isComplete && (
+                        <div className="stepHeader-body stepHeader-column optimizedCheckout-contentPrimary body-regular customStepHeader" data-test="step-info">
+                            <div style={{ flex: 1 }}>{summary}</div>
+                            <div style={{ whiteSpace: 'nowrap' }}>{additionalActions}</div>
+                        </div>
+                    )}
+
+                    {isBillingStep && hasAdditionalActions && !themeV2 && (
+                        <div className="stepHeader-body stepHeader-column optimizedCheckout-contentPrimary customStepHeader" data-test="step-info">
+                            {!isActive && isComplete && (
+                                <>
+                                    <div style={{ flex: 1 }}>{summary}</div>
+                                    <div style={{ whiteSpace: 'nowrap' }}>{additionalActions}</div>
+                                </>
+                            )}
+                        </div>
+                    )}
+                </>
+            )}
         </div>
     );
 };
