@@ -1,5 +1,4 @@
 import { type Customer } from '@bigcommerce/checkout-sdk';
-
 import { getShippingAddress } from '../shipping/shipping-addresses.mock';
 
 // TODO: Consider exporting mock objects from SDK

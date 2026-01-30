@@ -1,17 +1,8 @@
 import React, { type FunctionComponent, memo, useState } from 'react';
-
-// HOC checkout
 import { withCheckout } from '../checkout';
-
-// Tipi & componenti usati da withRedeemable
-import  {
-    type OrderSummaryProps,
-} from '../order/OrderSummary';
-import OrderSummaryAccordionContent, {
-    type OrderSummaryAccordionContentProps,
-} from '../order/OrderSummaryAccordionContent';
+import  {type OrderSummaryProps} from '../order/OrderSummary';
+import OrderSummaryAccordionContent, {type OrderSummaryAccordionContentProps} from '../order/OrderSummaryAccordionContent';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
-
 import { type WithCheckoutCartSummaryProps } from './CartSummary';
 import EditLink from './EditLink';
 import mapToCartSummaryProps from './mapToCartSummaryProps';
@@ -31,28 +22,18 @@ const ChevronUpIcon = () => (
 );
 
 // -------- ADAPTER --------
-//
-// withRedeemable si aspetta un componente che accetti
-// OrderSummaryProps & OrderSummarySubtotalsProps (i tipi già usati da OrderSummary).
-// Questo adapter prende quelle props, estrae ciò che serve a
-// OrderSummaryAccordionContent e gliele passa nel formato giusto.
-//
 type OrderSummaryAdapterProps = OrderSummaryProps & {
     // qui possono esserci anche le props aggiunte da withRedeemable (coupons, taxes, ecc.)
     // non serve tipizzarle tutte a mano: usiamo "any" in destrutturazione per non litigare con TS.
 };
 
 const OrderSummaryAccordionAdapter: FunctionComponent<OrderSummaryAdapterProps> = (props) => {
-    // NB: la shape esatta dipende da OrderSummaryProps.
-    // Nella maggior parte dei checkout BigCommerce trovi:
-    // lineItems, total, storeCurrency, shopperCurrency, additionalLineItems, ecc.
     const {
         lineItems,
         total,
         storeCurrency,
         shopperCurrency,
         additionalLineItems,
-        // tutto il resto (coupons, taxes, isTaxIncluded, ecc.) va a Subtotals
         ...subtotalsProps
     } = props as any;
 
@@ -117,13 +98,8 @@ const CartSummaryDrawerAccordion: FunctionComponent<CartSummaryAccordionProps> =
                 aria-controls="cart-summary-accordion-content"
             >
                 <div
-                    className="accordion-title-section"
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}
-                >
-                    <span
-                        className="accordion-title"
-                        style={{ fontWeight: 600, fontSize: '1rem', color: '#1a1a1a' }}
-                    >
+                    className="accordion-title-section">
+                    <span className="accordion-title">
                        <TranslatedString id="cart.cart_heading" />
                     </span>
                     {headerLink && (
@@ -140,15 +116,7 @@ const CartSummaryDrawerAccordion: FunctionComponent<CartSummaryAccordionProps> =
                         e.stopPropagation();
                         toggleAccordion();
                     }}
-                    onKeyDown={(e) => e.stopPropagation()}
-                    style={{
-                        background: 'none',
-                        border: 'none',
-                        padding: 0,
-                        cursor: 'pointer',
-                        color: '#555',
-                    }}
-                >
+                    onKeyDown={(e) => e.stopPropagation()}>
                     {isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
                 </button>
             </div>

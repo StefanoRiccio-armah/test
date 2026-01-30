@@ -1,7 +1,5 @@
 import { type CheckoutContextProps } from '@bigcommerce/checkout/contexts';
-
 import { EMPTY_ARRAY } from '../common/utility';
-
 import { type RedeemableProps } from './Redeemable';
 
 export default function mapToRedeemableProps(

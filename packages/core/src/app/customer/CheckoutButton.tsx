@@ -1,4 +1,4 @@
-import { type CustomerInitializeOptions, type CustomerRequestOptions } from '@bigcommerce/checkout-sdk';
+import type{CustomerInitializeOptions,CustomerRequestOptions } from '@bigcommerce/checkout-sdk';
 import { noop } from 'lodash';
 import React, { type ReactElement, useEffect } from 'react';
 

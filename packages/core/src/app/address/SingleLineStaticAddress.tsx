@@ -2,9 +2,7 @@ import { type Address } from '@bigcommerce/checkout-sdk';
 import classNames from 'classnames';
 import { isEmpty } from 'lodash';
 import React from "react";
-
 import { useThemeContext } from '@bigcommerce/checkout/contexts';
-
 import type AddressType from "./AddressType";
 
 export interface SingleLineStaticAddressProps {
@@ -35,7 +33,6 @@ export const getAddressContent: (value: Address) => string = ({
 
 const SingleLineStaticAddress = ({ address }: SingleLineStaticAddressProps) => {
     const { themeV2 } = useThemeContext();
-
     const isValid = !isEmpty(address);
 
     return !isValid ? null : (

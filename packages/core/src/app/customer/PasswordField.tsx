@@ -1,9 +1,7 @@
 import { type FieldProps } from 'formik';
 import React, { type FunctionComponent, memo, useCallback, useMemo } from 'react';
-
 import { useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
-
 import { FormField, TextInput } from '../ui/form';
 import Label from '../ui/form/Label';
 import { IconEye, IconEyeSlash } from '../ui/icon';

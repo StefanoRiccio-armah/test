@@ -1,14 +1,11 @@
 import classNames from 'classnames';
 import { noop } from 'lodash';
 import React, { type FunctionComponent, memo, type ReactNode, useState, useEffect } from 'react';
-
 import { useThemeContext } from '@bigcommerce/checkout/contexts';
 import { preventDefault } from '@bigcommerce/checkout/dom-utils';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
-
 import { Button, ButtonSize, ButtonVariant } from '../ui/button';
 import { IconCheck } from '../ui/icon';
-
 import type CheckoutStepType from './CheckoutStepType';
 
 export interface CheckoutStepHeaderProps {

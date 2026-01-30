@@ -1,17 +1,5 @@
-import {
-    type Address,
-    type Cart,
-    type CheckoutParams,
-    type CheckoutSelectors,
-    type CheckoutStoreSelector,
-    type Consignment,
-    type EmbeddedCheckoutMessenger,
-    type EmbeddedCheckoutMessengerOptions,
-    type FlashMessage,
-    type PaymentMethod,
-    type Promotion,
-    type RequestOptions,
-} from '@bigcommerce/checkout-sdk/essential';
+import type{Address,Cart,CheckoutParams,CheckoutSelectors,CheckoutStoreSelector,Consignment,EmbeddedCheckoutMessenger,
+EmbeddedCheckoutMessengerOptions,FlashMessage,PaymentMethod,Promotion,RequestOptions} from '@bigcommerce/checkout-sdk/essential';
 import classNames from 'classnames';
 import { find, findIndex } from 'lodash';
 import React, {
@@ -22,27 +10,21 @@ import React, {
     useRef,
     useState,
 } from 'react';
-
 import { type AnalyticsContextProps, type ExtensionContextProps, withExtension } from '@bigcommerce/checkout/contexts';
 import { type ErrorLogger } from '@bigcommerce/checkout/error-handling-utils';
 import { withLanguage, type WithLanguageProps } from '@bigcommerce/checkout/locale';
 import { OrderConfirmationPageSkeleton } from '@bigcommerce/checkout/ui';
 import { navigateToOrderConfirmation as navigateToOrderConfirmationUtility } from '@bigcommerce/checkout/utility';
-
 import { withAnalytics } from '../analytics';
 import { EmptyCartMessage } from '../cart';
 import { withCheckout } from '../checkout';
 import { CustomError, ErrorModal, isCustomError, isErrorWithType } from '../common/error';
-import {
-    type CustomerSignOutEvent,
-    CustomerViewType,
-} from '../customer';
+import {type CustomerSignOutEvent,CustomerViewType,} from '../customer';
 import { getSupportedMethodIds } from '../customer/getSupportedMethods';
 import { SubscribeSessionStorage } from '../customer/SubscribeSessionStorage';
 import { type EmbeddedCheckoutStylesheet, isEmbedded } from '../embeddedCheckout';
 import { hasSelectedShippingOptions, isUsingMultiShipping } from '../shipping';
 import { ShippingOptionExpiredError } from '../shipping/shippingOption';
-
 import type CheckoutStepStatus from './CheckoutStepStatus';
 import CheckoutStepType from './CheckoutStepType';
 import type CheckoutSupport from './CheckoutSupport';
@@ -177,7 +159,6 @@ const Checkout = ({
         showInvoiceFields: false,
     });
     const [selectedPaymentMethodName, setSelectedPaymentMethodName] = useState<string | undefined>();
-
     const stepsRef = useRef<CheckoutStepStatus[]>(steps);
     const embeddedMessenger = useRef<EmbeddedCheckoutMessenger>();
     const stateRef = useRef<{
@@ -438,8 +419,8 @@ const Checkout = ({
                     key={step.type}
                     onUnhandledError={handleUnhandledError}
                     step={step}
-                    showInvoiceFields={state.showInvoiceFields} // ✅ AGGIUNTO
-        onToggleInvoiceFields={handleToggleInvoiceFields} // ✅ AGGIUNTO
+                    showInvoiceFields={state.showInvoiceFields}
+        onToggleInvoiceFields={handleToggleInvoiceFields}
                 />;
 
             case CheckoutStepType.Payment:

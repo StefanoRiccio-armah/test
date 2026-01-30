@@ -1,9 +1,7 @@
 import type { Cart, Consignment, PaymentMethod } from '@bigcommerce/checkout-sdk/essential';
 import React, { lazy ,type  ReactElement } from 'react';
-
 import type { ErrorLogger } from '@bigcommerce/checkout/error-handling-utils';
 import { ChecklistSkeleton, LazyContainer } from '@bigcommerce/checkout/ui';
-
 import { retry } from '../../common/utility';
 import { isEmbedded } from '../../embeddedCheckout';
 import { type PaymentProps } from '../../payment';

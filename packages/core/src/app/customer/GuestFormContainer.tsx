@@ -1,14 +1,11 @@
-import { type Cart,type Address, type FormField } from '@bigcommerce/checkout-sdk';
+import type{Cart,Address,FormField } from '@bigcommerce/checkout-sdk';
 import React from 'react';
-
 import { useCheckout } from '@bigcommerce/checkout/contexts';
 import { shouldUseStripeLinkByMinimumAmount } from '@bigcommerce/checkout/instrument-utils';
 import { PaymentMethodId } from '@bigcommerce/checkout/payment-integration-api';
 import { isPayPalFastlaneMethod } from '@bigcommerce/checkout/paypal-fastlane-integration';
-
 import type CheckoutStepStatus from '../checkout/CheckoutStepStatus';
 import getProviderWithCustomCheckout from '../payment/getProviderWithCustomCheckout';
-
 import CheckoutButtonList from './CheckoutButtonList';
 import GuestForm, { type GuestFormValues } from './GuestForm';
 import StripeGuestForm from './StripeGuestForm';
@@ -27,7 +24,6 @@ interface GuestFormContainerProps {
     onUnhandledError?(error: Error): void;
     shippingAddress?: Address;
     shippingAddressFields?: FormField[];
-    // NUOVE PROPS
     onBillingSameAsShippingChange?(isSame: boolean): void;
     isBillingSameAsShipping?: boolean;
 }
@@ -51,7 +47,6 @@ export const GuestFormContainer: React.FC<GuestFormContainerProps> = ({
     onUnhandledError,
     shippingAddress,
     shippingAddressFields = [],
-    // Destruttura
     onBillingSameAsShippingChange,
     isBillingSameAsShipping,
 }) => {
@@ -67,7 +62,6 @@ export const GuestFormContainer: React.FC<GuestFormContainerProps> = ({
     // Estrai le impostazioni dal file di configurazione
     const {
         checkoutSettings: {
-            // Rinomina la variabile originale per evitare conflitti
             privacyPolicyUrl: originalPrivacyPolicyUrl,
             requiresMarketingConsent,
             remoteCheckoutProviders: checkoutButtonIds,

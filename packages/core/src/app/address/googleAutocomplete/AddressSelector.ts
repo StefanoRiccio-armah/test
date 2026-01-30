@@ -1,4 +1,3 @@
-
 import { type GoogleAddressFieldType } from './googleAutocompleteTypes';
 
 export default class AddressSelector {

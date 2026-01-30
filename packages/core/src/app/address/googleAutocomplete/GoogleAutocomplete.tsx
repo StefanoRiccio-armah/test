@@ -1,11 +1,7 @@
 import { debounce, noop } from 'lodash';
 import React, { useCallback, useMemo, useRef, useState, FunctionComponent } from 'react';
-
 import { Autocomplete, type AutocompleteItem } from '../../ui/autocomplete';
-import GoogleAutocompleteService, {
-    type AutocompleteSuggestion,
-    type PlaceField,
-} from './GoogleAutocompleteService';
+import GoogleAutocompleteService,{type AutocompleteSuggestion,type PlaceField} from './GoogleAutocompleteService';
 import { type GoogleAutocompleteOptionTypes } from './googleAutocompleteTypes';
 import './GoogleAutocomplete.scss';
 

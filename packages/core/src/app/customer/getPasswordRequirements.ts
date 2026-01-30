@@ -1,4 +1,4 @@
-import { type CustomerPasswordRequirements, type ShopperConfig } from '@bigcommerce/checkout-sdk';
+import type{CustomerPasswordRequirements,ShopperConfig } from '@bigcommerce/checkout-sdk';
 
 export interface PasswordRequirements {
     minLength: number;

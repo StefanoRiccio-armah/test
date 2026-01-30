@@ -1,9 +1,6 @@
 import type { Cart, Consignment } from '@bigcommerce/checkout-sdk/essential';
 import React, { lazy } from 'react';
-
-
 import { AddressFormSkeleton, LazyContainer } from '@bigcommerce/checkout/ui';
-
 import { retry } from '../../common/utility';
 import { type ShippingProps } from '../../shipping';
 import { TranslatedString } from '@bigcommerce/checkout/locale';

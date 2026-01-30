@@ -1,5 +1,4 @@
 import React from 'react';
-
 import { useCheckout, useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { Button, ButtonVariant } from '@bigcommerce/checkout/ui';

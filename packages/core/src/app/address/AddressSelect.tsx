@@ -1,12 +1,9 @@
-import { type Address, type CustomerAddress } from '@bigcommerce/checkout-sdk';
+import type{Address,CustomerAddress } from '@bigcommerce/checkout-sdk';
 import React, { type FunctionComponent, memo, type ReactNode } from 'react';
-
 import { preventDefault } from '@bigcommerce/checkout/dom-utils';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { PoweredByPayPalFastlaneLabel, usePayPalFastlaneAddress } from '@bigcommerce/checkout/paypal-fastlane-integration';
-
 import { DropdownTrigger } from '../ui/dropdown';
-
 import AddressSelectButton from './AddressSelectButton';
 import type AddressType from './AddressType';
 import isEqualAddress from './isEqualAddress';

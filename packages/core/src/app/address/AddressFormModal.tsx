@@ -1,15 +1,12 @@
-import { type Address, type FormField } from '@bigcommerce/checkout-sdk';
+import type{Address,FormField } from '@bigcommerce/checkout-sdk';
 import { type FormikProps, withFormik } from 'formik';
 import React, { type FunctionComponent } from 'react';
 import { lazy } from 'yup';
-
 import { TranslatedString, withLanguage, type WithLanguageProps } from '@bigcommerce/checkout/locale';
 import { LoadingOverlay } from '@bigcommerce/checkout/ui';
-
 import { Button, ButtonVariant } from '../ui/button';
 import { Form } from '../ui/form';
 import { Modal, ModalHeader } from '../ui/modal';
-
 import AddressForm from './AddressForm';
 import AddressType from './AddressType';
 import getAddressFormFieldsValidationSchema from './getAddressFormFieldsValidationSchema';

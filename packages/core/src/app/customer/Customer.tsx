@@ -1,6 +1,4 @@
-import {
-    type CustomerCredentials,
-} from '@bigcommerce/checkout-sdk';
+import {type CustomerCredentials} from '@bigcommerce/checkout-sdk';
 import { createBigCommercePaymentsFastlaneCustomerStrategy } from '@bigcommerce/checkout-sdk/integrations/bigcommerce-payments';
 import { createBoltCustomerStrategy } from '@bigcommerce/checkout-sdk/integrations/bolt';
 import { createBraintreeFastlaneCustomerStrategy } from '@bigcommerce/checkout-sdk/integrations/braintree';
@@ -8,15 +6,12 @@ import { createPayPalCommerceFastlaneCustomerStrategy } from '@bigcommerce/check
 import { createStripeLinkV2CustomerStrategy, createStripeUPECustomerStrategy } from '@bigcommerce/checkout-sdk/integrations/stripe';
 import { noop } from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
-
 import { useAnalytics,useCheckout } from '@bigcommerce/checkout/contexts';
-
 import { isEqualAddress, mapAddressFromFormValues } from '../address';
 import type CheckoutStepStatus from '../checkout/CheckoutStepStatus';
 import { isErrorWithType } from '../common/error';
 import { PaymentMethodId } from '../payment/paymentMethod';
 import { useShipping } from '../shipping/hooks/useShipping';
-
 import CreateAccountForm from './CreateAccountForm';
 import CustomerViewType from './CustomerViewType';
 import EmailLoginForm, { type EmailLoginFormValues } from './EmailLoginForm';
@@ -45,7 +40,6 @@ export interface CustomerProps {
     onSignInError?(error: Error): void;
     onUnhandledError?(error: Error): void;
     onWalletButtonClick?(methodName: string): void;
-    // NUOVE PROPS
     onBillingSameAsShippingChange?(isSame: boolean): void;
     isBillingSameAsShipping?: boolean;
 }
@@ -73,11 +67,9 @@ const Customer: React.FC<CustomerProps> = ({
     const [isReady, setIsReady] = useState(false);
     const [hasRequestedLoginEmail, setHasRequestedLoginEmail] = useState(false);
     const [draftEmail, setDraftEmail] = useState<string | undefined>();
-    
     const { analyticsTracker } = useAnalytics();
     const customerData = useCustomer();
     const { checkoutService } = useCheckout();
-    
     const {
         shippingAddress,
         updateShippingAddress,
@@ -161,7 +153,7 @@ useEffect(() => {
     const email = formValues.email.trim();
 
     try {
-        // ✅ STEP 1: SALVA SEMPRE EMAIL (punto critico per persistenza)
+        // SALVA SEMPRE EMAIL (punto critico per persistenza)
         await customerData.actions.continueAsGuest({
             email,
             // Non sovrascrivere subscription se già settata
@@ -169,12 +161,12 @@ useEffect(() => {
             acceptsAbandonedCartEmails: formValues.shouldSubscribe,
         });
 
-        // ✅ STEP 2: onSubscribeToNewsletter PRIMA di tutto
+        //  onSubscribeToNewsletter PRIMA di tutto
         onSubscribeToNewsletter(formValues.shouldSubscribe);
         SubscribeSessionStorage.setSubscribeStatus(formValues.shouldSubscribe);
         onBillingSameAsShippingChange?.(formValues.isBillingSameAsShipping);
 
-        // ✅ STEP 3: Shipping address (opzionale)
+        // Shipping address
         if (formValues.shippingAddress) {
             const mappedAddress = mapAddressFromFormValues(formValues.shippingAddress);
             
@@ -188,13 +180,13 @@ useEffect(() => {
             }
         }
         
-        // ✅ STEP 4: SEMPRE chiama onContinueAsGuest() - NON bloccare mai
+        // SEMPRE chiama onContinueAsGuest() - NON bloccare mai
         onContinueAsGuest(); // ← QUESTO è il callback del parent che va allo step successivo
 
     } catch (error) {
         console.error('🔍 DEBUG - handleContinueAsGuest ERROR:', error);
         
-        // ✅ NON bloccare mai il flusso per errori minori
+        // NON bloccare mai il flusso per errori minori
         if (error instanceof Error) {
             if (isErrorWithType(error) && error.type === 'empty_cart') {
                 return onContinueAsGuestError(error);
@@ -299,7 +291,7 @@ useEffect(() => {
             ? getFields(countries[0].code) 
             : [];
 
-    // ✅ FIX: Calcola l'email finale da passare al form
+    // Calcola l'email finale da passare al form
     const checkoutState = checkoutService.getState();
     const currentBilling = checkoutState.data.getBillingAddress();
     const finalEmail = draftEmail || 

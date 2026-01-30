@@ -2,9 +2,7 @@ import classNames from 'classnames';
 import { noop } from 'lodash';
 import React, { type ReactElement, type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { CSSTransition } from 'react-transition-group';
-
 import { isMobileView, MobileView } from '../ui/responsive';
-
 import CheckoutStepHeader from './CheckoutStepHeader';
 import type CheckoutStepType from './CheckoutStepType';
 
@@ -20,7 +18,7 @@ export interface CheckoutStepProps {
     type: CheckoutStepType;
     onExpanded?(step: CheckoutStepType): void;
     onEdit?(step: CheckoutStepType): void;
-    additionalActions?: ReactNode; // ✅ AGGIUNTO
+    additionalActions?: ReactNode;
 }
 
 const CheckoutStep = ({
@@ -35,7 +33,7 @@ const CheckoutStep = ({
         summary,
         type,
         onExpanded = noop,
-        additionalActions, // ✅ AGGIUNTO
+        additionalActions,
     }: CheckoutStepProps): ReactElement => {
     const [isClosed, setIsClosed] = useState(true);
 
@@ -164,7 +162,7 @@ const CheckoutStep = ({
                     onEdit={onEdit}
                     summary={summary}
                     type={type}
-                    additionalActions={additionalActions} // ✅ AGGIUNTO
+                    additionalActions={additionalActions}
                 />
             </div>
 

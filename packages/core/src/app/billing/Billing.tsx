@@ -1,13 +1,10 @@
 import type { CheckoutSelectors } from '@bigcommerce/checkout-sdk';
 import React, { type ReactElement, useEffect } from 'react';
-
 import { useCheckout, useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { AddressFormSkeleton } from '@bigcommerce/checkout/ui';
-
 import { isEqualAddress, mapAddressFromFormValues } from '../address';
 import { Legend } from '../ui/form';
-
 import BillingForm, { type BillingFormValues } from './BillingForm';
 import getBillingMethodId from './getBillingMethodId';
 

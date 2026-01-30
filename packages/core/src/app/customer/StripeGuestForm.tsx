@@ -1,17 +1,14 @@
-import { type CustomerInitializeOptions, type CustomerRequestOptions } from '@bigcommerce/checkout-sdk';
+import type{CustomerInitializeOptions,CustomerRequestOptions } from '@bigcommerce/checkout-sdk';
 import { createStripeUPECustomerStrategy } from '@bigcommerce/checkout-sdk/integrations/stripe';
 import { type FieldProps, type FormikProps, withFormik } from 'formik';
 import React, { type FunctionComponent, memo, type ReactNode, useCallback, useEffect, useState } from 'react';
 import { object } from 'yup';
-
 import { getAppliedStyles } from '@bigcommerce/checkout/dom-utils';
 import { TranslatedString, withLanguage, type WithLanguageProps } from '@bigcommerce/checkout/locale';
-
 import type CheckoutStepStatus from '../checkout/CheckoutStepStatus';
 import { getPrivacyPolicyValidationSchema, PrivacyPolicyField } from '../privacyPolicy';
 import { Button, ButtonVariant } from '../ui/button';
 import { BasicFormField, CheckboxFormField, Fieldset, Form, Legend } from '../ui/form';
-
 import { type GuestFormValues } from './GuestForm';
 import SubscribeField from './SubscribeField';
 
@@ -31,7 +28,6 @@ export interface StripeGuestFormProps {
     deinitialize(options: CustomerRequestOptions): void;
     initialize(options: CustomerInitializeOptions): void;
     onShowLogin(): void;
-    // NUOVE PROPS
     onBillingSameAsShippingChange?(isSame: boolean): void;
     isBillingSameAsShipping?: boolean;
 }
@@ -53,8 +49,7 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
     step,
     status,
     setFieldValue,
-    values, // Aggiunto per accedere ai valori del form
-    // Destruttura nuove props
+    values,
     onBillingSameAsShippingChange = () => {},
 }) => {
     const [continueAsAGuestButton, setContinueAsAGuestButton] = useState(true);
@@ -64,7 +59,7 @@ const StripeGuestForm: FunctionComponent<StripeGuestFormProps & FormikProps<Gues
     const [isNewAuth, setIsNewAuth] = useState(false);
     
     const handleOnClickSubmitButton = () => {
-        // CORREZIONE: Passa l'oggetto completo, includendo isBillingSameAsShipping
+        //Passa l'oggetto completo, includendo isBillingSameAsShipping
         onContinueAsGuest({
             email: emailValue,
             shouldSubscribe: !!status?.shouldSubscribe,
@@ -256,12 +251,12 @@ export default withLanguage(
             email = '',
             defaultShouldSubscribe = false,
             requiresMarketingConsent,
-            isBillingSameAsShipping = true, // CORREZIONE: Usa il valore passato
+            isBillingSameAsShipping = true, // Usa il valore passato
         }) => ({
             email,
             shouldSubscribe: requiresMarketingConsent ? false : defaultShouldSubscribe,
             privacyPolicy: false,
-            // CORREZIONE: Aggiungi il campo mancante
+            // Aggiungi il campo mancante
             isBillingSameAsShipping,
         }),
         handleSubmit: ( values, { setStatus }) => {

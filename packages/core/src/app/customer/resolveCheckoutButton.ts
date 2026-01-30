@@ -1,10 +1,5 @@
 import { type ComponentType } from 'react';
-
-import {
-    type CheckoutButtonProps,
-    type CheckoutButtonResolveId,
-} from '@bigcommerce/checkout/payment-integration-api';
-
+import type {CheckoutButtonProps,CheckoutButtonResolveId} from '@bigcommerce/checkout/payment-integration-api';
 import { resolveLazyComponent } from '../common/resolver';
 import * as lazyCheckoutButtons from '../generated/checkoutButtons';
 

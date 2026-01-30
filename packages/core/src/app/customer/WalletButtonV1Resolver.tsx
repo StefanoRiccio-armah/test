@@ -1,11 +1,10 @@
-import { type CustomerInitializeOptions, type CustomerRequestOptions } from "@bigcommerce/checkout-sdk";
+import type{CustomerInitializeOptions,CustomerRequestOptions } from "@bigcommerce/checkout-sdk";
 import { createBigCommercePaymentsFastlaneCustomerStrategy, createBigCommercePaymentsVenmoCustomerStrategy } from "@bigcommerce/checkout-sdk/integrations/bigcommerce-payments";
 import { createBoltCustomerStrategy } from "@bigcommerce/checkout-sdk/integrations/bolt";
 import { createBraintreeFastlaneCustomerStrategy, createBraintreePaypalCreditCustomerStrategy, createBraintreePaypalCustomerStrategy, createBraintreeVisaCheckoutCustomerStrategy } from "@bigcommerce/checkout-sdk/integrations/braintree";
 import { createPayPalCommerceFastlaneCustomerStrategy, createPayPalCommerceVenmoCustomerStrategy } from "@bigcommerce/checkout-sdk/integrations/paypal-commerce";
 import { createStripeLinkV2CustomerStrategy, createStripeUPECustomerStrategy } from "@bigcommerce/checkout-sdk/integrations/stripe";
 import React, { type FunctionComponent, useCallback } from "react";
-
 import CheckoutButton from "./CheckoutButton";
 
 interface CheckoutButtonV1ResolverProps {

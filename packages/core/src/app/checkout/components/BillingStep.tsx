@@ -1,11 +1,9 @@
 import { type Address } from '@bigcommerce/checkout-sdk/essential';
 import React, { lazy } from 'react';
-
 import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { Button, ButtonSize, ButtonVariant } from '../../ui/button';
 import { AddressFormSkeleton, LazyContainer } from '@bigcommerce/checkout/ui';
 import { useThemeContext } from '@bigcommerce/checkout/contexts';
-
 import { type BillingProps, StaticBillingAddress } from '../../billing';
 import { retry } from '../../common/utility';
 import CheckoutStep from '../CheckoutStep';

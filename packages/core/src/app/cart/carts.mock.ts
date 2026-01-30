@@ -18,6 +18,7 @@ export function getCart(): Cart {
         baseAmount: 200,
         discountAmount: 10,
         cartAmount: 190,
+        locale: 'en',
         coupons: [],
         discounts: [],
         lineItems: {

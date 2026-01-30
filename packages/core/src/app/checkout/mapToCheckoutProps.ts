@@ -1,10 +1,7 @@
-import { type CheckoutSelectors, type CustomError } from '@bigcommerce/checkout-sdk/essential';
+import type{ CheckoutSelectors, CustomError } from '@bigcommerce/checkout-sdk/essential';
 import { createSelector } from 'reselect';
-
 import { type CheckoutContextProps } from '@bigcommerce/checkout/contexts';
-
 import { EMPTY_ARRAY, isExperimentEnabled } from '../common/utility';
-
 import { type WithCheckoutProps } from './Checkout';
 import getCheckoutStepStatuses from './getCheckoutStepStatuses';
 

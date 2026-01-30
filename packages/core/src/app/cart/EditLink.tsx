@@ -1,6 +1,5 @@
 import classNames from 'classnames';
 import React, { type FunctionComponent, memo, useState } from 'react';
-
 import { useThemeContext } from '@bigcommerce/checkout/contexts';
 import { preventDefault } from '@bigcommerce/checkout/dom-utils';
 import { TranslatedString } from '@bigcommerce/checkout/locale';

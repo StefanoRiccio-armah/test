@@ -1,5 +1,4 @@
-import { type Address, type FormField } from '@bigcommerce/checkout-sdk';
-
+import type{Address,FormField } from '@bigcommerce/checkout-sdk';
 import { type AddressKeyMap } from './address';
 import type AddressType from './AddressType';
 

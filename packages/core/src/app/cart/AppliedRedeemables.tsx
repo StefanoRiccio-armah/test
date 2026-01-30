@@ -1,9 +1,7 @@
-import { type Coupon, type GiftCertificate } from '@bigcommerce/checkout-sdk';
+import type{ Coupon, GiftCertificate } from '@bigcommerce/checkout-sdk';
 import React, { type FunctionComponent, memo, useCallback } from 'react';
-
 import { AppliedCoupon } from '../coupon';
 import { AppliedGiftCertificate } from '../giftCertificate';
-
 import AppliedRedeemable from './AppliedRedeemable';
 
 interface AppliedCouponProps {

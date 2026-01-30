@@ -1,8 +1,6 @@
 import { type CheckoutContextProps } from '@bigcommerce/checkout/contexts';
 import { isBuyNowCart } from '@bigcommerce/checkout/utility';
-
 import { isExperimentEnabled } from '../common/utility';
-
 import { type WithCheckoutCartSummaryProps } from './CartSummary';
 import mapToRedeemableProps from './mapToRedeemableProps';
 

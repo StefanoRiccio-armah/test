@@ -2,21 +2,12 @@ import { type SignInEmail } from '@bigcommerce/checkout-sdk';
 import { type FormikProps, withFormik } from 'formik';
 import { noop } from 'lodash';
 import React, { type FunctionComponent, memo, useMemo } from 'react';
-
-import {
-    TranslatedHtml,
-    TranslatedLink,
-    TranslatedString,
-    withLanguage,
-    type WithLanguageProps,
-} from '@bigcommerce/checkout/locale';
+import {TranslatedHtml,TranslatedLink,TranslatedString,withLanguage,type WithLanguageProps} from '@bigcommerce/checkout/locale';
 import { LoadingSpinner } from '@bigcommerce/checkout/ui';
-
 import { Alert, AlertType } from '../ui/alert';
 import { Button, ButtonVariant } from '../ui/button';
 import { Form } from '../ui/form';
 import { Modal, ModalHeader } from '../ui/modal';
-
 import EmailField from './EmailField';
 import getEmailValidationSchema from './getEmailValidationSchema';
 

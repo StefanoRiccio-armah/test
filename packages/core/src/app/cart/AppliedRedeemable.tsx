@@ -1,10 +1,7 @@
 import classNames from 'classnames';
 import React, { type FunctionComponent, type ReactNode } from 'react';
-
 import { TranslatedString } from '@bigcommerce/checkout/locale';
-
 import { IconRemove } from '../ui/icon';
-
 import './AppliedRedeemable.scss';
 
 export interface AppliedRedeemableProps {

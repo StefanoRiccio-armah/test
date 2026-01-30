@@ -1,21 +1,10 @@
 import CodiceFiscale from "codice-fiscale-js";
 
-
-
-/**
- * Regex per formato Codice Fiscale (16 caratteri alfanumerici)
- */
 const CODICE_FISCALE_REGEX = /^[A-Z]{6}[0-9]{2}[A-Z][0-9]{2}[A-Z][0-9]{3}[A-Z]$/;
 
-/**
- * Messaggio di errore per validazione Codice Fiscale
- */
 export const CODICE_FISCALE_ERROR =
   "Codice Fiscale non valido. Formato: RSSMRA90A01H501U (16 caratteri)";
 
-/**
- * Messaggio di errore per validazione P.IVA
- */
 export const PARTITA_IVA_ERROR = "Partita IVA non valida. Deve contenere 11 cifre.";
 
  export const errorMessages = {

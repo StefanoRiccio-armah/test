@@ -3,21 +3,12 @@ import { type FormikProps, withFormik } from 'formik';
 import { noop } from 'lodash';
 import React, { type FunctionComponent, memo, useCallback } from 'react';
 import { object, string } from 'yup';
-
 import { useCheckout, useThemeContext } from '@bigcommerce/checkout/contexts';
 import { preventDefault } from '@bigcommerce/checkout/dom-utils';
-import {
-    TranslatedHtml,
-    TranslatedLink,
-    TranslatedString,
-    withLanguage,
-    type WithLanguageProps,
-} from '@bigcommerce/checkout/locale';
-
+import {TranslatedHtml,TranslatedLink,TranslatedString,withLanguage,type WithLanguageProps} from '@bigcommerce/checkout/locale';
 import { Alert, AlertType } from '../ui/alert';
 import { Button, ButtonVariant } from '../ui/button';
 import { Fieldset, Form, Legend } from '../ui/form';
-
 import CustomerViewType from './CustomerViewType';
 import EmailField from './EmailField';
 import getEmailValidationSchema from './getEmailValidationSchema';

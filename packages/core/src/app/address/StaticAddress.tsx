@@ -1,20 +1,11 @@
-import {
-    type Address,
-    type CheckoutSelectors,
-    type Country,
-    type ShippingInitializeOptions,
-} from '@bigcommerce/checkout-sdk';
+import type{Address,CheckoutSelectors,Country,ShippingInitializeOptions} from '@bigcommerce/checkout-sdk';
 import classNames from 'classnames';
 import { isEmpty } from 'lodash';
 import React, { type FunctionComponent, memo } from 'react';
-
 import { type CheckoutContextProps, useThemeContext } from '@bigcommerce/checkout/contexts';
 import { localizeAddress } from '@bigcommerce/checkout/locale';
-
 import { withCheckout } from '../checkout';
-
 import AddressType from './AddressType';
-
 import './StaticAddress.scss';
 
 export interface StaticAddressProps {
@@ -38,7 +29,6 @@ const StaticAddress: FunctionComponent<
     }) => {
 
     const { themeV2 } = useThemeContext();
-
     const address = localizeAddress(addressWithoutLocalization, countries);
     const isValid = !isEmpty(address);
 
@@ -71,7 +61,7 @@ const StaticAddress: FunctionComponent<
 
                 <p className={classNames('address-entry',
                     { 'body-regular': themeV2 })}>
-                    {address.city && <span className="locality">{`${address.city}, `}</span>}
+
                     {address.localizedProvince && (
                         <span className="region">{`${address.localizedProvince}, `}</span>
                     )}

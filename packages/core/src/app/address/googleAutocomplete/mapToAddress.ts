@@ -1,24 +1,20 @@
 import { type Address, type Country, type Region } from '@bigcommerce/checkout-sdk';
-
 import type AddressSelector from './AddressSelector';
 import AddressSelectorFactory from './AddressSelectorFactory';
 
 function getStreet1(accessor: AddressSelector): string {
     const streetName = accessor.getComponent('route')?.long_name;
-    
-    // Solo il nome della via, senza il numero civico
+
     if (streetName) {
         return streetName;
     }
 
-    // Fallback: prova a ottenere la strada completa
     return accessor.getStreet() || '';
 }
 
 function getStreet2(accessor: AddressSelector): string {
-    // Il numero civico va in address2
     const streetNumber = accessor.getComponent('street_number')?.long_name;
-    
+
     return streetNumber || '';
 }
 
@@ -41,8 +37,7 @@ export default function mapToAddress(
     const accessor = AddressSelectorFactory.create(legacyLikePlace);
     const stateCodeFromGoogle = accessor.getState(); // Questo ora restituisce "NA"
     const countryCode = accessor.getCountry();
-    const country = countries.find((c) => c.code === countryCode);
-    
+    const country = countries.find((c) => c.code === countryCode); 
     const address1 = getStreet1(accessor);
     const address2 = getStreet2(accessor);
 

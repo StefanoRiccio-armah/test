@@ -2,20 +2,13 @@ import { type CheckoutInitialState, createCheckoutService, createEmbeddedCheckou
 import type { BrowserOptions } from '@sentry/browser';
 import React, { type ReactElement, useEffect, useMemo } from 'react';
 import ReactModal from 'react-modal';
-
 import { ExtensionService } from '@bigcommerce/checkout/checkout-extension';
 import { AnalyticsProvider, CheckoutProvider, ExtensionProvider, LocaleProvider, ThemeProvider } from '@bigcommerce/checkout/contexts';
 import { ErrorBoundary } from '@bigcommerce/checkout/error-handling-utils';
 import { getLanguageService } from '@bigcommerce/checkout/locale';
-
 import '../../scss/App.scss';
-
 import { createErrorLogger } from '../common/error';
-import {
-    createEmbeddedCheckoutStylesheet,
-    createEmbeddedCheckoutSupport,
-} from '../embeddedCheckout';
-
+import {createEmbeddedCheckoutStylesheet,createEmbeddedCheckoutSupport} from '../embeddedCheckout';
 import Checkout from './Checkout';
 
 export interface CheckoutAppProps {

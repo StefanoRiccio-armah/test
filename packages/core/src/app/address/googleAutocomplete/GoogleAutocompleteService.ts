@@ -1,5 +1,3 @@
-// GoogleAutocompleteService.ts
-
 import getGoogleAutocompleteScriptLoader from './getGoogleAutocompleteScriptLoader';
 import type GoogleAutocompleteScriptLoader from './GoogleAutocompleteScriptLoader';
 

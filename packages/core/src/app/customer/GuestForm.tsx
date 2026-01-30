@@ -2,19 +2,15 @@ import classNames from 'classnames';
 import { type FieldProps, type FormikProps, withFormik } from 'formik';
 import React, { type FunctionComponent, memo, type ReactNode, useCallback, useEffect } from 'react';
 import { object, string, lazy } from 'yup';
-
 import { useCheckout, useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString, withLanguage, type WithLanguageProps } from '@bigcommerce/checkout/locale';
 import { PayPalFastlaneWatermark } from '@bigcommerce/checkout/paypal-fastlane-integration';
-
-
 import { getPrivacyPolicyValidationSchema, PrivacyPolicyField } from '../privacyPolicy';
 import { Button, ButtonVariant } from '../ui/button';
 import { BasicFormField, CheckboxFormField, Fieldset, Form, Legend } from '../ui/form';
 import { AddressForm, AddressType } from '../address';
 import { hasDeductibleProduct } from '../custom/minsan-checker';
 import type { Address } from '@bigcommerce/checkout-sdk';
-
 import EmailField from './EmailField';
 import SubscribeField from './SubscribeField';
 import { SubscribeSessionStorage } from './SubscribeSessionStorage';
@@ -78,11 +74,9 @@ const GuestForm: FunctionComponent<
 }) => {
         const { checkoutState: { data: { getConfig, getCart } } } = useCheckout();
         const { themeV2 } = useThemeContext();
-
         const config = getConfig();
         const cart = getCart();
         const shouldShowCodiceFiscale = hasDeductibleProduct(cart);
-
         const renderField = useCallback((fieldProps: FieldProps<boolean>) => (
             <SubscribeField {...fieldProps} requiresMarketingConsent={requiresMarketingConsent} />
         ), [requiresMarketingConsent]);

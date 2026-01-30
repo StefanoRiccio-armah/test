@@ -1,9 +1,4 @@
-import {
-    type CustomItem,
-    type DigitalItem,
-    type GiftCertificateItem,
-    type PhysicalItem,
-} from '@bigcommerce/checkout-sdk';
+import type{CustomItem,DigitalItem,GiftCertificateItem,PhysicalItem} from '@bigcommerce/checkout-sdk';
 
 export function getCustomItem(): CustomItem {
     return {
@@ -34,6 +29,7 @@ export function getPhysicalItem(): PhysicalItem {
         listPrice: 200,
         salePrice: 200,
         comparisonPrice: 200,
+        retailPrice: 200,
         extendedListPrice: 200,
         extendedSalePrice: 200,
         extendedComparisonPrice: 250,
@@ -69,6 +65,7 @@ export function getDigitalItem(): DigitalItem {
         listPrice: 100,
         salePrice: 100,
         comparisonPrice: 200,
+         retailPrice: 200,
         downloadPageUrl: 'url.php',
         downloadFileUrls: [],
         downloadSize: '',
@@ -126,6 +123,7 @@ export function getPicklistItem(): PhysicalItem[] {
             listPrice: 200,
             salePrice: 200,
             comparisonPrice: 200,
+            retailPrice: 200,
             extendedListPrice: 200,
             extendedSalePrice: 200,
             extendedComparisonPrice: 250,
@@ -158,6 +156,7 @@ export function getPicklistItem(): PhysicalItem[] {
             listPrice: 100,
             salePrice: 100,
             comparisonPrice: 100,
+            retailPrice: 100,
             extendedListPrice: 100,
             extendedSalePrice: 100,
             extendedComparisonPrice: 150,

@@ -1,19 +1,12 @@
-import { type CheckoutPayment, type CheckoutSelectors } from '@bigcommerce/checkout-sdk';
+import type{CheckoutPayment,CheckoutSelectors } from '@bigcommerce/checkout-sdk';
 import { compact } from 'lodash';
 import { createSelector } from 'reselect';
-
 import { shouldUseStripeLinkByMinimumAmount } from '@bigcommerce/checkout/instrument-utils';
-
 import { isValidAddress } from '../address';
 import { EMPTY_ARRAY, isExperimentEnabled } from '../common/utility';
 import { SUPPORTED_METHODS } from '../customer';
 import { PaymentMethodId } from '../payment/paymentMethod';
-import {
-    hasSelectedShippingOptions,
-    hasUnassignedLineItems,
-    itemsRequireShipping,
-} from '../shipping';
-
+import {hasSelectedShippingOptions,hasUnassignedLineItems,itemsRequireShipping} from '../shipping';
 import CheckoutStepType from './CheckoutStepType';
 
 // StripeLink is a UX that is only available with StripeUpe and will only be displayed for BC guest users,

@@ -1,21 +1,19 @@
 import { type FieldProps } from 'formik';
 import React, { type FunctionComponent, memo, useCallback, useMemo } from 'react';
-
 import { useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
-
 import { FormField, TextInput } from '../ui/form';
 
 export interface EmailFieldProps {
     isFloatingLabelEnabled?: boolean;
-    value?: string; // aggiunto value
+    value?: string;
     onChange?(value: string): void;
     onBlur?(): void;
     onFocus?(): void;
 }
 
 const EmailField: FunctionComponent<EmailFieldProps> = ({ 
-    value = '', // fallback a stringa vuota
+    value = '',
     onChange, 
     onBlur,
     onFocus,
@@ -27,7 +25,7 @@ const EmailField: FunctionComponent<EmailFieldProps> = ({
         (props: FieldProps) => (
             <TextInput
                 {...props.field}
-                value={props.field.value ?? value} // fallback se Formik non ha ancora il valore
+                value={props.field.value ?? value}
                 autoComplete={props.field.name}
                 id={props.field.name}
                 isFloatingLabelEnabled={isFloatingLabelEnabled}

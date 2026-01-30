@@ -1,4 +1,3 @@
-// GoogleAutocompleteScriptLoader.ts
 
 import { getScriptLoader, type ScriptLoader } from '@bigcommerce/script-loader';
 import type { GoogleMapsSdk } from './googleAutocompleteTypes';

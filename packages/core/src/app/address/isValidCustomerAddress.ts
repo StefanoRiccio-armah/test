@@ -1,6 +1,5 @@
 import { type Address, type CustomerAddress, type FormField } from '@bigcommerce/checkout-sdk';
 import { some } from 'lodash';
-
 import isEqualAddress from './isEqualAddress';
 import isValidAddress from './isValidAddress';
 

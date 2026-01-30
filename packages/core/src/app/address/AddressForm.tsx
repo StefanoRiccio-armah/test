@@ -1,21 +1,15 @@
 import { type FormField } from '@bigcommerce/checkout-sdk';
 import { forIn, noop } from 'lodash';
 import React, { useCallback, useEffect, useRef } from 'react';
-
 import { useCheckout, useLocale, useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { DynamicFormField, DynamicFormFieldType } from '@bigcommerce/checkout/ui';
-
 import { EMPTY_ARRAY, isFloatingLabelEnabled } from '../common/utility';
 import { type AutocompleteItem } from '../ui/autocomplete';
 import { CheckboxFormField, Fieldset } from '../ui/form';
-
 import { type AddressFormProps, AUTOCOMPLETE, AUTOCOMPLETE_FIELD_NAME, LABEL, PLACEHOLDER } from './AddressFormType';
 import AddressType from './AddressType';
-import {
-    getAddressFormFieldInputId,
-    getAddressFormFieldLegacyName,
-} from './getAddressFormFieldInputId';
+import {getAddressFormFieldInputId,getAddressFormFieldLegacyName} from './getAddressFormFieldInputId';
 import { GoogleAutocompleteFormField, mapToAddress } from './googleAutocomplete';
 import './AddressForm.scss';
 import classNames from 'classnames';

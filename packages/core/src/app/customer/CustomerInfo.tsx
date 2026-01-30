@@ -1,15 +1,12 @@
-import { type CheckoutSelectors, type CustomerRequestOptions, type CustomError } from '@bigcommerce/checkout-sdk';
+import type{CheckoutSelectors,CustomerRequestOptions,CustomError } from '@bigcommerce/checkout-sdk';
 import classNames from 'classnames';
 import { noop } from 'lodash';
 import React, { type FunctionComponent } from 'react';
-
 import { type CheckoutContextProps, useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
-
 import { withCheckout } from '../checkout';
 import { isErrorWithType } from '../common/error';
 import { Button, ButtonSize, ButtonVariant } from '../ui/button';
-
 import canSignOut, { isSupportedSignoutMethod } from './canSignOut';
 
 export interface CustomerInfoProps {

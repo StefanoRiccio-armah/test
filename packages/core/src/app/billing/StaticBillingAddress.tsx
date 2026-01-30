@@ -1,10 +1,8 @@
-import { type Address, type CheckoutPayment, type FormField } from '@bigcommerce/checkout-sdk';
+import type{Address,CheckoutPayment,FormField } from '@bigcommerce/checkout-sdk';
 import React, { type FunctionComponent, memo } from 'react';
-
 import { type CheckoutContextProps } from '@bigcommerce/checkout/contexts';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { isPayPalFastlaneAddress, PoweredByPayPalFastlaneLabel, usePayPalFastlaneAddress } from '@bigcommerce/checkout/paypal-fastlane-integration';
-
 import { AddressType, StaticAddress } from '../address';
 import { withCheckout } from '../checkout';
 import { EMPTY_ARRAY } from '../common/utility';

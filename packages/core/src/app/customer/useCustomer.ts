@@ -1,18 +1,7 @@
-import {
-    type CheckoutSelectors,
-    type CustomerAccountRequestBody,
-    type CustomerCredentials,
-    type CustomerInitializeOptions,
-    type CustomerRequestOptions,
-    type ExecutePaymentMethodCheckoutOptions,
-    type FormField,
-    type GuestCredentials,
-    type SignInEmail
-} from '@bigcommerce/checkout-sdk';
-
+import type{CheckoutSelectors,CustomerAccountRequestBody,CustomerCredentials,CustomerInitializeOptions,
+CustomerRequestOptions,ExecutePaymentMethodCheckoutOptions,FormField,GuestCredentials,SignInEmail} from '@bigcommerce/checkout-sdk';
 import { useCheckout } from '@bigcommerce/checkout/contexts';
 import { shouldUseStripeLinkByMinimumAmount } from '@bigcommerce/checkout/instrument-utils';
-
 import { isFloatingLabelEnabled } from '../common/utility';
 import getProviderWithCustomCheckout from '../payment/getProviderWithCustomCheckout';
 import { PaymentMethodId } from '../payment/paymentMethod';

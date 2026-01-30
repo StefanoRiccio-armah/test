@@ -1,12 +1,7 @@
-import { type FormField, type LanguageService } from '@bigcommerce/checkout-sdk';
+import type{FormField,LanguageService } from '@bigcommerce/checkout-sdk';
 import { memoize } from 'lodash';
 import { type ObjectSchema } from 'yup';
-
-import {
-    type FormFieldValues,
-    getFormFieldsValidationSchema,
-    type TranslateValidationErrorFunction,
-} from '../formFields';
+import {type FormFieldValues,getFormFieldsValidationSchema,type TranslateValidationErrorFunction,} from '../formFields';
 
 export interface AddressFormFieldsValidationSchemaOptions {
     formFields: FormField[];

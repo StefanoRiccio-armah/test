@@ -1,9 +1,7 @@
 import { ExtensionRegion } from '@bigcommerce/checkout-sdk/essential';
 import React, { lazy } from 'react';
-
 import { Extension } from '@bigcommerce/checkout/checkout-extension';
 import { CartSummarySkeleton, LazyContainer } from '@bigcommerce/checkout/ui';
-
 import { retry } from '../../common/utility';
 import { MobileView } from '../../ui/responsive';
 
@@ -40,7 +38,8 @@ export const CartSummary: React.FC<CartSummaryProps> = ({ isMultiShippingMode,se
                     return (
                         <LazyContainer loadingSkeleton={<></>}>
                             <Extension region={ExtensionRegion.SummaryAfter} />
-                           <CartSummaryDrawerAccordion isMultiShippingMode={isMultiShippingMode}     selectedPaymentMethodName={selectedPaymentMethodName} />
+                           <CartSummaryDrawerAccordion isMultiShippingMode={isMultiShippingMode}
+                           selectedPaymentMethodName={selectedPaymentMethodName} />
                         </LazyContainer>
                     );
                 }
@@ -48,7 +47,8 @@ export const CartSummary: React.FC<CartSummaryProps> = ({ isMultiShippingMode,se
                 return (
                     <LazyContainer loadingSkeleton={<CartSummarySkeleton />}>
                         <aside aria-label="Cart Summary" className="layout-cart">
-                            <CartSummaryComponent isMultiShippingMode={isMultiShippingMode}     selectedPaymentMethodName={selectedPaymentMethodName} />
+                            <CartSummaryComponent isMultiShippingMode={isMultiShippingMode}
+                            selectedPaymentMethodName={selectedPaymentMethodName} />
                             <Extension region={ExtensionRegion.SummaryAfter} />
                         </aside>
                     </LazyContainer>

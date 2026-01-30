@@ -2,17 +2,11 @@ import { type FormField as FormFieldType } from '@bigcommerce/checkout-sdk';
 import classNames from 'classnames';
 import { type FieldProps } from 'formik';
 import React, { type FunctionComponent, memo, useCallback, useMemo } from 'react';
-
 import { useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
-
 import { type AutocompleteItem } from '../../ui/autocomplete';
 import { FormField, Label } from '../../ui/form';
-import {
-    getAddressFormFieldInputId,
-    getAddressFormFieldLabelId,
-} from '../getAddressFormFieldInputId';
-
+import {getAddressFormFieldInputId,getAddressFormFieldLabelId} from '../getAddressFormFieldInputId';
 import GoogleAutocomplete from './GoogleAutocomplete';
 
 export interface GoogleAutocompleteFormFieldProps {

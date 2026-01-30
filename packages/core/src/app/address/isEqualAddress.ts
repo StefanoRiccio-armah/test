@@ -1,9 +1,4 @@
-import {
-    type Address,
-    type AddressRequestBody,
-    type BillingAddress,
-    type CustomerAddress,
-} from '@bigcommerce/checkout-sdk';
+import type{Address,AddressRequestBody,BillingAddress,CustomerAddress} from '@bigcommerce/checkout-sdk';
 import { isEqual, omit } from 'lodash';
 
 type ComparableAddress = CustomerAddress | Address | BillingAddress | AddressRequestBody;

@@ -1,9 +1,7 @@
 import { type PaymentMethod } from '@bigcommerce/checkout-sdk/essential';
 import React from 'react';
-
 import { useCheckout, useExtensions } from '@bigcommerce/checkout/contexts';
 import { LoadingNotification } from '@bigcommerce/checkout/ui';
-
 import { EMPTY_ARRAY } from '../../common/utility';
 import { CheckoutButtonContainer } from '../../customer';
 import { PromotionBannerList } from '../../promotion';
@@ -28,11 +26,8 @@ export const CheckoutHeader: React.FC<CheckoutHeaderProps> = ({
 }) => {
     const { checkoutState } = useCheckout();
     const { extensionState } = useExtensions();
-
     const { data } = checkoutState;
-
     const { promotions = EMPTY_ARRAY } = data.getCheckout() || {};
-
     const config = data.getConfig();
     const isShowingWalletButtonsOnTop = Boolean(
         config?.checkoutSettings?.checkoutUserExperienceSettings?.walletButtonsOnTop

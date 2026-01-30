@@ -1,9 +1,7 @@
-import { type Checkout, type ShopperCurrency, type StoreCurrency } from '@bigcommerce/checkout-sdk';
+import type{Checkout,ShopperCurrency,StoreCurrency } from '@bigcommerce/checkout-sdk';
 import React, { type FunctionComponent } from 'react';
-
 import { withCheckout } from '../checkout';
 import OrderSummary from '../order/OrderSummary';
-
 import EditLink from './EditLink';
 import mapToCartSummaryProps from './mapToCartSummaryProps';
 import { type RedeemableProps } from './Redeemable';

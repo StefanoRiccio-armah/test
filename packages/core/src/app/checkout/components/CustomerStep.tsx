@@ -1,14 +1,7 @@
 import React, { lazy } from 'react';
-
 import { LazyContainer } from '@bigcommerce/checkout/ui';
-
 import { retry } from '../../common/utility';
-import {
-    CheckoutSuggestion,
-    CustomerInfo,
-    type CustomerProps,
-    type CustomerSignOutEvent,
-} from '../../customer';
+import {CheckoutSuggestion,CustomerInfo,type CustomerProps,type CustomerSignOutEvent} from '../../customer';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { isEmbedded } from '../../embeddedCheckout';
 import CheckoutStep from '../CheckoutStep';
@@ -30,7 +23,6 @@ export interface CustomerStepProps extends CustomerProps {
     onExpanded(type: CheckoutStepType): void;
     onSignOut(event: CustomerSignOutEvent): void;
     onSignOutError(error: Error): void;
-    // NUOVE PROPS PER GESTIRE LO STATO DELLA FATTURAZIONE
     onBillingSameAsShippingChange(isSame: boolean): void;
     isBillingSameAsShipping: boolean;
 }
@@ -55,7 +47,6 @@ const CustomerStep: React.FC<CustomerStepProps> = ({
     onSubscribeToNewsletter,
     onUnhandledError,
     onWalletButtonClick,
-    // Destruttura le nuove props
     onBillingSameAsShippingChange,
     isBillingSameAsShipping,
 }) => {

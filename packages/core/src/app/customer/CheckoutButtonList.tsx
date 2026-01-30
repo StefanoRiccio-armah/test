@@ -1,18 +1,10 @@
-import {
-    type CheckoutSelectors,
-    type CheckoutService,
-    type CustomerInitializeOptions,
-    type CustomerRequestOptions,
-} from '@bigcommerce/checkout-sdk';
+import type{CheckoutSelectors,CheckoutService,CustomerInitializeOptions,CustomerRequestOptions,} from '@bigcommerce/checkout-sdk';
 import { noop } from 'lodash';
 import React, { type FunctionComponent, lazy, memo } from 'react';
-
 import { type CheckoutContextProps, useLocale } from '@bigcommerce/checkout/contexts';
 import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { LazyContainer } from '@bigcommerce/checkout/ui';
-
 import { withCheckout } from '../checkout';
-
 import { getSupportedMethodIds } from './getSupportedMethods';
 import resolveCheckoutButton from './resolveCheckoutButton';
 
