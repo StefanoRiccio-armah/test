@@ -215,6 +215,13 @@
 
 .stepHeader-title {
 white-space: nowrap !important;
+
+}
+
+@media (max-width: 768px){
+  .stepHeader-title{
+  white-space: normal !important;    
+  }
 }
 
 

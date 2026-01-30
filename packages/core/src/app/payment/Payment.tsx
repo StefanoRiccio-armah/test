@@ -305,13 +305,13 @@ const Payment= (props: PaymentProps & WithCheckoutPaymentProps & WithLanguagePro
 
     const { selectedMethod = defaultMethod, submitFunctions } = state;
 
-    // ✅ Aggiungi un controllo: se values è undefined, non inviare analytics
+    //se values è undefined, non inviare analytics
     if (!values) {
         console.warn('Payment.handleSubmit: values is undefined, skipping analytics and submit');
         return;
     }
 
-    // ✅ Usa optional chaining per evitare l’errore
+    //  Usa optional chaining per evitare l’errore
     analyticsTracker.clickPayButton({ shouldCreateAccount: values.shouldCreateAccount ?? false });
 
     const customSubmit =
@@ -355,8 +355,6 @@ const Payment= (props: PaymentProps & WithCheckoutPaymentProps & WithLanguagePro
 
    const setSelectedMethod = useCallback((method?: PaymentMethod) : void => {
         const { selectedMethod } = state;
-        
-        // La riga seguente è quella che dobbiamo aggiungere
         const { onPaymentMethodSelect } = props;
 
         if (selectedMethod === method) {
@@ -366,16 +364,12 @@ const Payment= (props: PaymentProps & WithCheckoutPaymentProps & WithLanguagePro
         if (method) {
             trackSelectedPaymentMethod(method);
         }
-
-        // =================================================================
-        // =========== CHIAMIAMO LA NOSTRA NUOVA CALLBACK QUI ===============
-        // =================================================================
         // Se la prop `onPaymentMethodSelect` è stata passata da CheckoutPage,
         // la eseguiamo, notificando il genitore del cambiamento.
         if (onPaymentMethodSelect) {
             onPaymentMethodSelect(method);
         }
-        // =================================================================
+
 
         // Manteniamo la logica originale per aggiornare lo stato locale di questo componente
         setState(prevState => ({ ...prevState, selectedMethod: method }));

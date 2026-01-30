@@ -1,16 +1,9 @@
-//import { type CheckoutSelectors } from '@bigcommerce/checkout-sdk';
 import { noop } from 'lodash';
 import React, { useCallback, useEffect, useState,useRef } from 'react';
-
-//import { TranslatedString } from '@bigcommerce/checkout/locale';
 import { AddressFormSkeleton } from '@bigcommerce/checkout/ui';
-
 import type CheckoutStepStatus from '../checkout/CheckoutStepStatus';
-
 import { useShipping } from './hooks/useShipping';
-//import { type MultiShippingFormValues } from './MultiShippingForm';
-import ShippingMethodForm from './ShippingMethodForm'; // NUOVO componente semplificato
-//import ShippingHeader from './ShippingHeader';
+import ShippingMethodForm from './ShippingMethodForm';
 
 export interface ShippingProps {
     isBillingSameAsShipping: boolean;
