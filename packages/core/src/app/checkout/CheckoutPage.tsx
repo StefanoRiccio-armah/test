@@ -31,6 +31,8 @@ import type CheckoutSupport from './CheckoutSupport';
 import { BillingStep, CartSummary, CheckoutHeader, CustomerStep, PaymentStep, ShippingStep } from './components';
 import { mapCheckoutComponentErrorMessage } from './mapErrorMessage';
 import mapToCheckoutProps from './mapToCheckoutProps';
+//import { getGLSShopSelection, isGLSParcelShopSelected, clearGLSSelection } from '../custom/api/glsShippingMethod';
+//import { BACKEND_URL } from '../custom/api/config';
 
 export interface CheckoutProps {
     checkoutId: string;
@@ -255,6 +257,50 @@ const Checkout = ({
         void navigateToOrderConfirmationUtility(orderId);
     }, [analyticsTracker]);
 
+    /*const navigateToOrderConfirmation = useCallback(async (orderId?: number): Promise<void> => {
+    analyticsTracker.trackStepCompleted(stepsRef.current[stepsRef.current.length - 1].type);
+    if (embeddedMessenger.current) { embeddedMessenger.current.postComplete(); }
+    SubscribeSessionStorage.removeSubscribeStatus();
+
+    try {
+        localStorage.removeItem('selectedPaymentMethodId');
+        localStorage.removeItem('selectedPaymentMethodName');
+    } catch (e) {
+        console.warn('Errore pulizia localStorage:', e);
+    }
+
+    // ── GLS: salva metafields se spedizione GLS Parcel Shop ──────────
+    if (orderId) {
+        const consignment = data.getConsignments()?.[0];
+        const selectedOptionId = consignment?.selectedShippingOption?.id;
+
+        if (isGLSParcelShopSelected(selectedOptionId)) {
+            const shopSelection = getGLSShopSelection();
+            if (shopSelection) {
+                try {
+                    await fetch(`${BACKEND_URL}/gls/save-shop-selection`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            orderId,
+                            partnerId: shopSelection.partnerId,
+                            parcelShopId: shopSelection.parcelShopId,
+                        })
+                    });
+                    console.log('[GLS] Metafields salvati per ordine:', orderId);
+                } catch (e) {
+                    console.warn('[GLS] Errore salvataggio metafields:', e);
+                }
+                clearGLSSelection();
+            }
+        }
+    }
+    // ─────────────────────────────────────────────────────────────────
+
+    setState(prevState => ({ ...prevState, isRedirecting: true }));
+    void navigateToOrderConfirmationUtility(orderId);
+}, [analyticsTracker, data]); */
+
     const checkEmbeddedSupport = useCallback((methodIds: string[]): boolean => {
         return embeddedSupport.isSupported(...methodIds);
     }, [embeddedSupport]);
@@ -420,7 +466,7 @@ const Checkout = ({
                     onUnhandledError={handleUnhandledError}
                     step={step}
                     showInvoiceFields={state.showInvoiceFields}
-        onToggleInvoiceFields={handleToggleInvoiceFields}
+                    onToggleInvoiceFields={handleToggleInvoiceFields}
                 />;
 
             case CheckoutStepType.Payment:

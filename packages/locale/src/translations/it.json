@@ -40,7 +40,13 @@
             "state_required_error": "Lo Stato/Provincia è obbligatorio",
             "select": "Seleziona",
             "select_all": "Tutti",
-            "select_none": "Nessuno"
+            "select_none": "Nessuno",
+            "gls_selection":"Seleziona Punto di ritiro GLS sulla mappa",
+            "gls_choose":"Hai scelto il punto di ritiro",
+            "gls_change":"Cambia punto di ritiro",
+            "gls_title":"Seleziona Punto Ritiro GLS",
+            "gls_select":"Seleziona questo punto",
+            "no_gls":"Nessun GLS Parcel Shop disponibile nella tua zona"
         },
         "billing": {
             "billing_address_heading": "Indirizzo di fatturazione",

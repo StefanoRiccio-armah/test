@@ -2,7 +2,7 @@ import type{Address,FormField,} from '@bigcommerce/checkout-sdk';
 import { type FormikProps, withFormik } from 'formik';
 import React, { type RefObject, useRef, useState } from 'react';
 import * as Yup from 'yup';
-import { isCodiceFiscaleValid, isPartitaIvaValid } from '../custom/codice-fiscale-validator';
+import { isCodiceFiscaleValid, isPartitaIvaValid } from '../custom/validation/codice-fiscale-validator';
 import { useCheckout, useThemeContext } from '@bigcommerce/checkout/contexts';
 import { TranslatedString, withLanguage, type WithLanguageProps } from '@bigcommerce/checkout/locale';
 import { usePayPalFastlaneAddress } from '@bigcommerce/checkout/paypal-fastlane-integration';
@@ -13,7 +13,7 @@ import { OrderComments } from '../orderComments';
 import { getShippableItemsCount } from '../shipping';
 import { Button, ButtonVariant } from '../ui/button';
 import { Fieldset, Form } from '../ui/form';
-import { hasDeductibleProduct } from '../custom/minsan-checker'
+import { hasDeductibleProduct } from '../custom/validation/minsan-checker'
 import StaticBillingAddress from './StaticBillingAddress';
 
 export type BillingFormValues = AddressFormValues & { orderComment: string, wantsInvoice: boolean; };

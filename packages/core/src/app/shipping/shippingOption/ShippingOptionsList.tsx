@@ -1,11 +1,13 @@
 import { ExtensionRegion, type ShippingOption } from '@bigcommerce/checkout-sdk/essential';
-import React, { type FunctionComponent, memo, useCallback } from 'react';
+import React, { type FunctionComponent, memo, useCallback, useState } from 'react';
 
 import { Extension } from '@bigcommerce/checkout/checkout-extension';
 import { LoadingOverlay } from '@bigcommerce/checkout/ui';
 
 import { EMPTY_ARRAY } from '../../common/utility';
 import { Checklist, ChecklistItem } from '../../ui/form';
+import {  isGLSParcelShopSelected } from '../../custom/api/glsShippingMethod';
+import GLSParcelShopSelector from '../../custom/components/GLSParcelShopSelector';
 
 import StaticShippingOption from './StaticShippingOption';
 
@@ -64,6 +66,8 @@ const ShippingOptionsList: FunctionComponent<ShippingOptionListProps> = ({
     selectedShippingOptionId,
     onSelectedOption,
 }) => {
+    const [selectedParcelShopId, setSelectedParcelShopId] = useState<string | undefined>();
+
     const handleSelect = useCallback(
         (value: string) => {
             onSelectedOption(consignmentId, value);
@@ -71,9 +75,19 @@ const ShippingOptionsList: FunctionComponent<ShippingOptionListProps> = ({
         [consignmentId, onSelectedOption],
     );
 
+    const handleShopSelected = useCallback(
+        (partnerId: string, parcelShopId: string, shopName: string) => {
+            setSelectedParcelShopId(parcelShopId);
+            console.log('[GLS] Shop selezionato:', { partnerId, parcelShopId, shopName });
+        },
+        [],
+    );
+
     if (!shippingOptions.length) {
         return null;
     }
+
+   const glsIsSelected = isGLSParcelShopSelected(selectedShippingOptionId, shippingOptions);
 
     return (
         <LoadingOverlay isLoading={isLoading}>
@@ -93,6 +107,14 @@ const ShippingOptionsList: FunctionComponent<ShippingOptionListProps> = ({
                     />
                 ))}
             </Checklist>
+
+            {/* Selettore GLS — appare solo se l'utente ha selezionato GLS Parcel Shop */}
+            {glsIsSelected && (
+                <GLSParcelShopSelector
+                    onShopSelected={handleShopSelected}
+                    selectedParcelShopId={selectedParcelShopId}
+                />
+            )}
         </LoadingOverlay>
     );
 };

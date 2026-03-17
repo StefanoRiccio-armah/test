@@ -40,15 +40,21 @@
             "state_required_error": "State/Province is required",
             "select": "Select",
             "select_all": "All",
-            "select_none": "None"
+            "select_none": "None",
+            "gls_selection": "Select a GLS pickup point on the map",
+            "gls_choose": "You have selected the pickup point",
+            "gls_change": "Change pickup point",
+            "gls_title": "Select GLS Pickup Point",
+            "gls_select": "Select this pickup point",
+            "no_gls": "No GLS Parcel Shop available in your area"
         },
         "billing": {
             "billing_address_heading": "Billing Address",
-           "billing_heading": "Payment and Billing",
+            "billing_heading": "Payment and Billing",
             "save_billing_address_error": "An error occurred while saving the billing address to your price quote. Please try again.",
             "billing_address_amazonpay": "Managed by Amazon Pay",
             "use_shipping_address_label": "My billing address is the same as my shipping address.",
-            "want_invoice":"Do you want an invoice?"
+            "want_invoice": "Do you want an invoice?"
         },
         "cart": {
             "billed_amount_text": "*You will be charged and invoiced {total} ({code}) for this order.",
@@ -166,7 +172,7 @@
             "subscribe_to_newsletter_text": "Yes, I'd like to receive updates.",
             "suggestion_text": "Looks like you have an account with {provider}. For fast checkout, continue with {providerFlow}.",
             "suggestion_action": "{providerFlow}",
-            "fiscal_code_tooltip":"There are no tax-deductible products in your cart"
+            "fiscal_code_tooltip": "There are no tax-deductible products in your cart"
         },
         "login_email": {
             "error_server": "We couldn't send you a sign-in link. Please try again.",
@@ -223,7 +229,7 @@
                 "length": "Routing Number must be 9 digits long"
             },
             "bluesnap_direct_company_name": {
-               "length_max": "Company Name is too long"
+                "length_max": "Company Name is too long"
             },
             "bluesnap_direct_account_type": {
                 "label": "Account Type",
@@ -604,7 +610,7 @@
                     "boletobancario": "Boleto Bancário Ticket"
                 },
                 "bluesnapdirect": {
-                    "sepa_direct_debit":  "SEPA Direct Debit Mandate Reference: {mandate}"
+                    "sepa_direct_debit": "SEPA Direct Debit Mandate Reference: {mandate}"
                 },
                 "checkoutcom": {
                     "boleto": "Boleto Bancário Ticket",

@@ -9,12 +9,12 @@ import { getPrivacyPolicyValidationSchema, PrivacyPolicyField } from '../privacy
 import { Button, ButtonVariant } from '../ui/button';
 import { BasicFormField, CheckboxFormField, Fieldset, Form, Legend } from '../ui/form';
 import { AddressForm, AddressType } from '../address';
-import { hasDeductibleProduct } from '../custom/minsan-checker';
+import { hasDeductibleProduct } from '../custom/validation/minsan-checker';
 import type { Address } from '@bigcommerce/checkout-sdk';
 import EmailField from './EmailField';
 import SubscribeField from './SubscribeField';
 import { SubscribeSessionStorage } from './SubscribeSessionStorage';
-import { isCodiceFiscaleValid } from '../custom/codice-fiscale-validator';
+import { isCodiceFiscaleValid } from '../custom/validation/codice-fiscale-validator';
 
 function getShouldSubscribeValue(requiresMarketingConsent: boolean, defaultShouldSubscribe: boolean) {
     if (SubscribeSessionStorage.getSubscribeStatus()) { return true; }

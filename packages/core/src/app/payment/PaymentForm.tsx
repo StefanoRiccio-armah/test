@@ -25,6 +25,7 @@ import PaymentRedeemables from './PaymentRedeemables';
 import PaymentSubmitButton from './PaymentSubmitButton';
 import SpamProtectionField from './SpamProtectionField';
 import { StoreCreditField, StoreCreditOverlay } from './storeCredit';
+import { updatePaymentFee } from '../custom/api/updatePaymentFee';
 
 export interface PaymentFormProps {
     availableStoreCredit?: number;
@@ -217,58 +218,28 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
         }
     }, []);
 
-    const updateFeeAndRefresh = async (method: PaymentMethod) => {
-        const checkoutId = checkoutState.data.getCheckout()?.id;
-        if (!checkoutId) {
-            return;
+    const updateFeeAndRefresh = useCallback(async (method: PaymentMethod) => {
+    const checkoutId = checkoutState.data.getCheckout()?.id;
+    if (!checkoutId) return;
+
+    setIsUpdatingFee(true);
+    try {
+        const currentLanguage = language.getLocale().split('-')[0] || 'it';
+        const success = await updatePaymentFee({
+            checkoutId,
+            selectedPaymentMethodId: method.id,
+            language: currentLanguage,
+        });
+
+        if (success) {
+            await checkoutService.loadCheckout(checkoutId);
         }
-        setIsUpdatingFee(true);
+    } finally {
+        setIsUpdatingFee(false);
+    }
+}, [checkoutState, checkoutService, language]);
 
-        
-
-        try {
-            const currentLanguage = language.getLocale().split('-')[0] || 'it';
-
-            console.log(`Pronto a fare fetch al backend`, {
-  checkoutId,
-  selectedPaymentMethodId: method.id,
-  language: currentLanguage,
-});
-            
-            //cambiare con proprio url backend
-       const apiUrl = 'https://contrassegno.onrender.com/payment/handle-payment-change';
-
-            
-            console.log(`Invio richiesta di aggiornamento fee per lingua: ${currentLanguage}`);
-
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    checkoutId,
-                    selectedPaymentMethodId: method.id,
-                    language: currentLanguage,
-                }),
-            });
-
-
-            if (response.ok) {
-                await checkoutService.loadCheckout(checkoutId);
-            } else {
-                console.error('Il server ha risposto con un errore:', await response.text());
-            }
-        } catch (error) {
-            console.error('Errore di rete durante l\'aggiornamento della fee:', error);
-        } finally {
-            setIsUpdatingFee(false);
-        }
-    };
-
-    const debouncedUpdate = useCallback(debounce(updateFeeAndRefresh, 100), [
-        checkoutState,
-        checkoutService,
-        language,
-    ]);
+const debouncedUpdate = useCallback(debounce(updateFeeAndRefresh, 100), [updateFeeAndRefresh]);
 
     const handlePaymentMethodSelect = useCallback(
         
