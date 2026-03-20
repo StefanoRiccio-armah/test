@@ -31,8 +31,8 @@ import type CheckoutSupport from './CheckoutSupport';
 import { BillingStep, CartSummary, CheckoutHeader, CustomerStep, PaymentStep, ShippingStep } from './components';
 import { mapCheckoutComponentErrorMessage } from './mapErrorMessage';
 import mapToCheckoutProps from './mapToCheckoutProps';
-//import { getGLSShopSelection, isGLSParcelShopSelected, clearGLSSelection } from '../custom/api/glsShippingMethod';
-//import { BACKEND_URL } from '../custom/api/config';
+import { BACKEND_URL, GLS_PARCEL_SHOP_METHOD_NAME } from '../custom/api/config';
+import { getGLSShopSelection, clearGLSSelection } from '../custom/api/glsShippingMethod';
 
 export interface CheckoutProps {
     checkoutId: string;
@@ -190,37 +190,32 @@ const Checkout = ({
     }, [state.activeStepType, error, clearError]);
 
     const navigateToNextIncompleteStep = useCallback((options?: { isDefault?: boolean }): void => {
-       
-        const nextIncompleteStep = find(stepsRef.current, { isComplete: false });
-      
+    const nextIncompleteStep = find(stepsRef.current, { isComplete: false });
 
-        if (!nextIncompleteStep) {
-            // 🔴 TUTTI COMPLETI → APRI PAYMENT
-            const paymentStep = find(stepsRef.current, { type: CheckoutStepType.Payment });
-            if (paymentStep) {
-                navigateToStep(CheckoutStepType.Payment, options);
-                return;
-            }
-
-            // fallback estremo
-            const lastStep = stepsRef.current[stepsRef.current.length - 1];
-            if (lastStep) {
-                navigateToStep(lastStep.type, options);
-            }
+    if (!nextIncompleteStep) {
+        const paymentStep = find(stepsRef.current, { type: CheckoutStepType.Payment });
+        if (paymentStep) { navigateToStep(CheckoutStepType.Payment, options); return; }
+        const lastStep = stepsRef.current[stepsRef.current.length - 1];
+        if (lastStep) { navigateToStep(lastStep.type, options); }
+        return;
+    }
+    if (nextIncompleteStep.type === CheckoutStepType.Payment) {
+        const consignments = data.getConsignments() ?? [];
+        const shippingLoaded = consignments.length > 0 && consignments[0].availableShippingOptions !== undefined;
+        if (!shippingLoaded) {
+            navigateToStep(CheckoutStepType.Shipping, options);
             return;
         }
+    }
 
-        const previousStepIndex =
-            findIndex(stepsRef.current, { type: nextIncompleteStep.type }) - 1;
 
-        if (previousStepIndex >= 0) {
-            analyticsTracker.trackStepCompleted(
-                stepsRef.current[previousStepIndex].type
-            );
-        }
+    const previousStepIndex = findIndex(stepsRef.current, { type: nextIncompleteStep.type }) - 1;
+    if (previousStepIndex >= 0) {
+        analyticsTracker.trackStepCompleted(stepsRef.current[previousStepIndex].type);
+    }
 
-        navigateToStep(nextIncompleteStep.type, options);
-    }, [analyticsTracker, navigateToStep]);
+    navigateToStep(nextIncompleteStep.type, options);
+}, [analyticsTracker, navigateToStep, data]);
 
 
     // NUOVA FUNZIONE per essere chiamata dal CustomerStep
@@ -242,22 +237,8 @@ const Checkout = ({
         setState((prevState) => ({ ...prevState, isMultiShippingMode: !prevState.isMultiShippingMode }));
     }, []);
 
-    const navigateToOrderConfirmation = useCallback((orderId?: number): void => {
-        analyticsTracker.trackStepCompleted(stepsRef.current[stepsRef.current.length - 1].type);
-        if (embeddedMessenger.current) { embeddedMessenger.current.postComplete(); }
-        SubscribeSessionStorage.removeSubscribeStatus();
-        // Pulisci il localStorage alla conferma dell'ordine
-        try {
-            localStorage.removeItem('selectedPaymentMethodId');
-            localStorage.removeItem('selectedPaymentMethodName');
-        } catch (e) {
-            console.warn('Errore pulizia localStorage:', e);
-        }
-        setState(prevState => ({ ...prevState, isRedirecting: true }));
-        void navigateToOrderConfirmationUtility(orderId);
-    }, [analyticsTracker]);
 
-    /*const navigateToOrderConfirmation = useCallback(async (orderId?: number): Promise<void> => {
+    const navigateToOrderConfirmation = useCallback(async (orderId?: number): Promise<void> => {
     analyticsTracker.trackStepCompleted(stepsRef.current[stepsRef.current.length - 1].type);
     if (embeddedMessenger.current) { embeddedMessenger.current.postComplete(); }
     SubscribeSessionStorage.removeSubscribeStatus();
@@ -272,9 +253,12 @@ const Checkout = ({
     // ── GLS: salva metafields se spedizione GLS Parcel Shop ──────────
     if (orderId) {
         const consignment = data.getConsignments()?.[0];
-        const selectedOptionId = consignment?.selectedShippingOption?.id;
+        
+        // ✅ FIX: confronta direttamente la description senza bisogno di shippingOptions
+        const selectedOption = consignment?.selectedShippingOption;
+        const isGLS = selectedOption?.description === GLS_PARCEL_SHOP_METHOD_NAME;
 
-        if (isGLSParcelShopSelected(selectedOptionId)) {
+        if (isGLS) {
             const shopSelection = getGLSShopSelection();
             if (shopSelection) {
                 try {
@@ -299,8 +283,7 @@ const Checkout = ({
 
     setState(prevState => ({ ...prevState, isRedirecting: true }));
     void navigateToOrderConfirmationUtility(orderId);
-}, [analyticsTracker, data]); */
-
+}, [analyticsTracker, data]);
     const checkEmbeddedSupport = useCallback((methodIds: string[]): boolean => {
         return embeddedSupport.isSupported(...methodIds);
     }, [embeddedSupport]);

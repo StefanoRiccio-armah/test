@@ -1,214 +1,161 @@
-import React, { type FunctionComponent, useState, useEffect } from 'react'
+import React, { type FunctionComponent, useState, useEffect, useCallback } from 'react'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
-import L from 'leaflet'
 import { TranslatedString } from '@bigcommerce/checkout/locale'
-import {getGLSParcelShops,saveGLSShopSelection,type GLSShop} from '../api/glsShippingMethod'
-import navigatorIcon from '../../../static/img/navigator.png'
-import locationIcon from '../../../static/img/location.png'
+import { getGLSParcelShops, saveGLSShopSelection } from '../api/glsShippingMethod'
+import type { GLSShop } from '../api/fetchGLSParcelShops'
+import {POLLING_INTERVAL_MS,POLLING_MAX_ATTEMPTS, type GLSParcelShopSelectorProps, markerIcon,selectedMarkerIcon} from './UseGLSShop'
 
-interface GLSParcelShopSelectorProps {
-    onShopSelected(partnerId: string, parcelShopId: string, shopName: string): void
-    selectedParcelShopId?: string
+function useGLSShops(): GLSShop[] {
+    const [shops, setShops] = useState<GLSShop[]>([])
+
+    useEffect(() => {
+        const data = getGLSParcelShops()
+        if (data.length > 0) { setShops(data); return }
+
+        let attempts = 0
+        const interval = setInterval(() => {
+            const retryData = getGLSParcelShops()
+            if (retryData.length > 0 || ++attempts >= POLLING_MAX_ATTEMPTS) {
+                if (retryData.length > 0) setShops(retryData)
+                clearInterval(interval)
+            }
+        }, POLLING_INTERVAL_MS)
+
+        return () => clearInterval(interval)
+    }, [])
+
+    return shops
 }
 
+// ─── Sub-components ───────────────────────────────────────────────────────────
 
+const ShopAddress: FunctionComponent<{ shop: GLSShop }> = ({ shop: { address: a } }) => (
+    <address style={{ fontStyle: 'normal' }}>
+        {a.street} {a.houseNumber}<br />
+        {a.city} ({a.province}) {a.zipCode}
+    </address>
+)
 
+interface ShopMarkerProps {
+    shop: GLSShop
+    isSelected: boolean
+    onSelect(shop: GLSShop): void
+}
 
-const markerIcon = new L.Icon({
-    iconUrl: locationIcon,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-})
+const ShopMarker: FunctionComponent<ShopMarkerProps> = ({ shop, isSelected, onSelect }) => (
+    <Marker
+        position={[shop.address.latitude, shop.address.longitude]}
+        icon={isSelected ? selectedMarkerIcon : markerIcon}
+    >
+        <Popup>
+            <div style={{ minWidth: 180 }}>
+                <strong>{shop.name}</strong>
+                <div className="popup-style">
+                    <ShopAddress shop={shop} />
+                </div>
+                <button className="button button--primary button-gls" onClick={() => onSelect(shop)}>
+                    <TranslatedString id="address.gls_select" />
+                </button>
+            </div>
+        </Popup>
+    </Marker>
+)
 
-const selectedMarkerIcon = new L.Icon({
-    iconUrl: navigatorIcon,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-})
+interface SelectedShopCardProps {
+    shop: GLSShop
+    onClick(): void
+}
+
+const SelectedShopCard: FunctionComponent<SelectedShopCardProps> = ({ shop, onClick }) => (
+    <div className="gls-selected-shop" onClick={onClick} role="button" tabIndex={0}>
+        <div className="gls-selected-title"><TranslatedString id="address.gls_choose" /></div>
+        <div className="gls-selected-name">{shop.name}</div>
+        <div className="gls-selected-address"><ShopAddress shop={shop} /></div>
+        <div className="gls-selected-change"><TranslatedString id="address.gls_change" /></div>
+    </div>
+)
+
+interface DrawerProps {
+    shops: GLSShop[]
+    selectedParcelShopId?: string
+    center: [number, number]
+    onClose(): void
+    onSelect(shop: GLSShop): void
+}
+
+const Drawer: FunctionComponent<DrawerProps> = ({ shops, selectedParcelShopId, center, onClose, onSelect }) => (
+    <div className="gls-drawer">
+        <div className="gls-drawer-overlay" onClick={onClose} />
+        <div className="gls-drawer-content">
+            <div className="gls-drawer-header">
+                <strong><TranslatedString id="address.gls_title" /></strong>
+                <button className="gls-drawer-close" onClick={onClose} aria-label="Close">✕</button>
+            </div>
+            <div className="gls-map-container">
+                <MapContainer center={center} zoom={13} scrollWheelZoom className="map">
+                    <TileLayer attribution="&copy; OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    {shops.map(shop => (
+                        <ShopMarker
+                            key={shop.parcelShopId}
+                            shop={shop}
+                            isSelected={shop.parcelShopId === selectedParcelShopId}
+                            onSelect={onSelect}
+                        />
+                    ))}
+                </MapContainer>
+            </div>
+        </div>
+    </div>
+)
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 const GLSParcelShopSelector: FunctionComponent<GLSParcelShopSelectorProps> = ({
     onShopSelected,
     selectedParcelShopId,
 }) => {
-    const [shops, setShops] = useState<GLSShop[]>([])
+    const shops = useGLSShops()
     const [drawerOpen, setDrawerOpen] = useState(false)
 
-useEffect(() => {
-    const data = getGLSParcelShops()
-    if (data.length > 0) {
-        setShops(data)
-        return
-    }
-
-    // Dati non ancora pronti — polling ogni 300ms fino a 5s
-    let attempts = 0
-    const interval = setInterval(() => {
-        attempts++
-        const retryData = getGLSParcelShops()
-        if (retryData.length > 0) {
-            setShops(retryData)
-            clearInterval(interval)
-        } else if (attempts >= 17) { // ~5s
-            clearInterval(interval)
-        }
-    }, 300)
-
-    return () => clearInterval(interval)
-}, [])
-
-    if (!shops.length) {
-        return (
-            <div className="alertBox alertBox--error">
-                <div className="alertBox-column alertBox-message">
-                    <TranslatedString id="address.no_gls"/>
-                </div>
-            </div>
-        )
-    }
-
-    const selectedShop = shops.find(
-        shop => shop.parcelShopId === selectedParcelShopId
-    )
+    const selectedShop = shops.find(s => s.parcelShopId === selectedParcelShopId)
 
     const center: [number, number] = selectedShop
         ? [selectedShop.address.latitude, selectedShop.address.longitude]
-        : [shops[0].address.latitude, shops[0].address.longitude]
+        : shops.length > 0 ? [shops[0].address.latitude, shops[0].address.longitude] : [0, 0]
 
+    const handleSelect = useCallback((shop: GLSShop) => {
+        saveGLSShopSelection(shop.partnerId, shop.parcelShopId, shop.name)
+        sessionStorage.setItem('gls_selected_shop', JSON.stringify(shop))
+        onShopSelected(shop.partnerId, shop.parcelShopId, shop.name)
+        setDrawerOpen(false)
+    }, [onShopSelected])
 
-
-return (
-    <div className="gls-selector-wrapper">
-
-        {!selectedShop && (
-            <button
-                type="button"
-                className="button button--primary gls-open-map-button"
-                onClick={() => setDrawerOpen(true)}
-            >
-                <TranslatedString id="address.gls_selection"/>
-            </button>
-        )}
-
-        {selectedShop && (
-            <div
-                className="gls-selected-shop"
-                onClick={() => setDrawerOpen(true)}
-            >
-                <div className="gls-selected-title">
-                    <TranslatedString id="address.gls_choose"/>
-                </div>
-
-                <div className="gls-selected-name">
-                    {selectedShop.name}
-                </div>
-
-                <div className="gls-selected-address">
-                    {selectedShop.address.street} {selectedShop.address.houseNumber} <br/>
-                    {selectedShop.address.city} ({selectedShop.address.province}) {selectedShop.address.zipCode}
-                </div>
-
-                <div className="gls-selected-change">
-                    <TranslatedString id="address.gls_change"/>
-                </div>
+    if (!shops.length) return (
+        <div className="alertBox alertBox--error">
+            <div className="alertBox-column alertBox-message">
+                <TranslatedString id="address.no_gls" />
             </div>
-        )}
+        </div>
+    )
 
+    return (
+        <div className="gls-selector-wrapper">
+            {selectedShop
+                ? <SelectedShopCard shop={selectedShop} onClick={() => setDrawerOpen(true)} />
+                : (
+                    <button type="button" className="button button--primary gls-open-map-button" onClick={() => setDrawerOpen(true)}>
+                        <TranslatedString id="address.gls_selection" />
+                    </button>
+                )
+            }
             {drawerOpen && (
-                <div className="gls-drawer">
-                    <div
-                        className="gls-drawer-overlay"
-                        onClick={() => setDrawerOpen(false)}
-                    />
-
-                    <div className="gls-drawer-content">
-                        <div className="gls-drawer-header">
-                            <strong><TranslatedString id="address.gls_title"/></strong>
-
-                            <button
-                                className="gls-drawer-close"
-                                onClick={() => setDrawerOpen(false)}
-                            >
-                                ✕
-                            </button>
-                        </div>
-
-                        <div className="gls-map-container">
-                            <MapContainer
-                                center={center}
-                                zoom={13}
-                                scrollWheelZoom
-                               className='map'
-                            >
-                                <TileLayer
-                                    attribution="&copy; OpenStreetMap"
-                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                />
-
-                                {shops.map((shop) => {
-                                    const isSelected =
-                                        shop.parcelShopId ===
-                                        selectedParcelShopId
-
-                                    return (
-                                        <Marker
-                                            key={shop.parcelShopId}
-                                            position={[
-                                                shop.address.latitude,
-                                                shop.address.longitude,
-                                            ]}
-                                            icon={
-                                                isSelected
-                                                    ? selectedMarkerIcon
-                                                    : markerIcon
-                                            }
-                                        >
-                                            <Popup>
-                                                <div style={{ minWidth: '180px' }}>
-                                                    <strong>{shop.name}</strong>
-
-                                                    <div className='popup-style'>
-                                                        {shop.address.street}{' '}
-                                                        {shop.address.houseNumber}
-                                                        <br />
-                                                        {shop.address.city} (
-                                                        {shop.address.province})
-                                                        <br />
-                                                        {shop.address.zipCode}
-                                                    </div>
-
-                                                    <button className='button button--primary button-gls'
-                                                        onClick={() => {
-                                                            saveGLSShopSelection(
-                                                                shop.partnerId,
-                                                                shop.parcelShopId,
-                                                                shop.name,
-                                                            )
-
-                                                            sessionStorage.setItem(
-                                                                'gls_selected_shop',
-                                                                JSON.stringify(shop),
-                                                            )
-
-                                                            onShopSelected(
-                                                                shop.partnerId,
-                                                                shop.parcelShopId,
-                                                                shop.name,
-                                                            )
-
-                                                            setDrawerOpen(false)
-                                                        }}
-                                                    >
-                                                        <TranslatedString id="address.gls_select"/>
-                                                    </button>
-                                                </div>
-                                            </Popup>
-                                        </Marker>
-                                    )
-                                })}
-                            </MapContainer>
-                        </div>
-                    </div>
-                </div>
+                <Drawer
+                    shops={shops}
+                    selectedParcelShopId={selectedParcelShopId}
+                    center={center}
+                    onClose={() => setDrawerOpen(false)}
+                    onSelect={handleSelect}
+                />
             )}
         </div>
     )
